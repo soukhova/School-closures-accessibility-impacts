@@ -1,0 +1,660 @@
+## Preliminaries
+
+Load packages:
+```{r load-packages}
+library(readxl)
+library(sf)
+library(tidyverse)
+library(units)
+library(tmap)
+library(ggplot2)
+```
+
+## Traffic Analysis Zones
+
+Read the boundaries of the traffic analysis zones (retrieved from the TTS 2016):
+```{r}
+ggh_taz <- st_read("data-inputs/TTS/tts06_83_region.shp")
+```
+
+Project object:
+```{r}
+ggh_taz <- ggh_taz %>%
+  st_transform(crs = 32617)
+```
+
+Prepare traffic analysis zones:
+```{r}
+ggh_taz <- ggh_taz %>%
+  transmute(GTA06 = as.character(GTA06),
+            AREA = st_area(geometry) %>% 
+              set_units(km^2) %>% 
+              drop_units())
+```
+
+Extract the IDs for all TAZ:
+```{r}
+ghta_taz_id <- ggh_taz$GTA06
+```
+
+## Planning boundaries
+
+Read the boundaries of the traffic analysis zones (retrieved from the TTS 2016):
+```{r}
+ggh_pd <- st_read("data-inputs/TTS/tts06_pd_83.shp")
+```
+
+Project object:
+```{r}
+ggh_pd <- ggh_pd %>%
+  st_transform(crs = 32617)
+```
+
+Adding region names to the object as they are not included in the origin data:
+(http://dmg.utoronto.ca/pdf/tts/2016/2016TTS_Conduct.pdf):
+```{r}
+ggh_pd <- ggh_pd %>%
+  mutate(REGION_name = 
+           ifelse(REGION == 1, "Toronto", 
+                  ifelse(REGION == 2, "Durham", 
+                         ifelse(REGION == 3, "York", 
+                                ifelse(REGION == 4, "Peel", 
+                                       ifelse(REGION == 5, "Halton", 
+                                              ifelse(REGION == 6, "Hamilton", 
+                                                     ifelse(REGION == 11, "Niagara", 
+                                                            ifelse(REGION == 12, "Waterloo", 
+                                                                   ifelse(REGION == 13, "Guelph", 
+                                                                          ifelse(REGION == 14, "Wellington", 
+                                                                                 ifelse(REGION == 15, "Orangeville", 
+                                                                                        ifelse(REGION == 16, "Barrie", 
+                                                                                               ifelse(REGION == 17, "Simcoe", 
+                                                                                                      ifelse(REGION == 18, "Kawartha Lakes", 
+                                                                                                             ifelse(REGION == 19, "Peterborough City", 
+                                                                                                                    ifelse(REGION == 20, "Peterborough County", 
+                                                                                                                           ifelse(REGION == 21, "Orillia", 
+                                                                                                                                  ifelse(REGION == 22, "Dufferin", 
+                                                                                                                                         ifelse(REGION == 23, "Brantford", 
+                                                                                                                                                ifelse(REGION == 24, "Brant", "NOOOO")))))))))))))))))))))
+```
+
+add 'REGION' from the planning distract object to the `ggh_taz`. 
+```{r}
+#buffering to clean up the edges of these objects -> there wre issues using st_join. 
+ggh_taz <- st_buffer(ggh_taz, dist=0)
+ggh_pd <- st_buffer(ggh_pd, dist=0)
+```
+
+
+```{r}
+ggh_taz <- st_join(ggh_taz, ggh_pd %>% transmute(REGION),left = TRUE, largest = TRUE)
+ham_taz <- ggh_taz %>% dplyr::filter(REGION==6) #Filter out everything other than Planning District 6 = Hamilton
+```
+
+## Origin destination matrices for place of residence and school destination (by person)
+Read exported TTS 2011 and 2016 tables. The query was a cross-tabulation of <!--"persons"--> "trips" by 2006 zone of residence and 2006 zone of school using motorized modes ("mode_prime In B, D, G, J, M, O, P, S, T, U, 9" -- this is only one of four options, school bus, auto care passenger, taxi passenger, or transit) or non-motorized ("mode_prime In C, W" -- cycling or walking). The data was filtered to only include Hamilton residential households, "Trip purpose of destination" as school, the student status as full/part-time student, and age In 5-14:
+
+```{r}
+od_trips_2011_motor <- read_delim(file = "data-inputs/TTS/Schooltrip_trips_2011_motorized.txt", 
+                      delim = "\t", 
+                      col_names = FALSE)
+od_trips_2016_motor <- read_delim(file = "data-inputs/TTS/Schooltrip_trips_2016_motorized.txt", 
+                      delim = "\t", 
+                      col_names = FALSE)
+
+od_trips_2011_nonmotor <- read_delim(file = "data-inputs/TTS/Schooltrip_trips_2011_nonmotorized.txt", 
+                      delim = "\t", 
+                      col_names = FALSE)
+
+od_trips_2016_nonmotor <- read_delim(file = "data-inputs/TTS/Schooltrip_trips_2016_nonmotorized.txt", 
+                      delim = "\t", 
+                      col_names = FALSE)
+# od_trips_2011 <- read_delim(file = "data-inputs/TTS/Schooltrip_persons_2011.txt", 
+#                       delim = "\t", 
+#                       col_names = FALSE)
+# od_trips_2016 <- read_delim(file = "data-inputs/TTS/Schooltrip_persons_2016.txt", 
+#                       delim = "\t", 
+#                       col_names = FALSE)
+
+```
+
+Find the position in the table where the information on work trips begins:
+```{r}
+# idx <- which(od_trips_2011$X1 == "TABLE    : stu_stat (Full time)")
+idx <- which(od_trips_2011_motor$X1 == "COLUMN : gta06_sch")
+```
+
+Slice the table to obtain the work trips (remove heading information):
+```{r}
+od_trips_2011_motor <- od_trips_2011_motor %>% 
+  slice((idx+2):n())
+```
+
+Separate the zone identifiers and the trips, and convert to numeric:
+```{r}
+od_trips_2011_motor <- od_trips_2011_motor %>%
+  separate(X1, into = c("Zones", "Trips"), sep = " (?=[^ ]+$)") %>%
+  mutate(Zones = str_trim(Zones, side = "both")) %>%
+  separate(Zones, into = c("Origin", "Destination"), sep = " (?=[^ ]+$)") %>%
+  mutate(Origin = str_trim(Origin),
+         Destination = str_trim(Destination),
+         Trips = as.numeric(Trips))
+```
+
+```{r}
+idx <- which(od_trips_2011_nonmotor$X1 == "COLUMN : gta06_sch")
+
+od_trips_2011_nonmotor <- od_trips_2011_nonmotor %>% 
+  slice((idx+2):n())
+
+od_trips_2011_nonmotor <- od_trips_2011_nonmotor %>%
+  separate(X1, into = c("Zones", "Trips"), sep = " (?=[^ ]+$)") %>%
+  mutate(Zones = str_trim(Zones, side = "both")) %>%
+  separate(Zones, into = c("Origin", "Destination"), sep = " (?=[^ ]+$)") %>%
+  mutate(Origin = str_trim(Origin),
+         Destination = str_trim(Destination),
+         Trips = as.numeric(Trips))
+```
+
+Repeat the same steps for 2016:
+```{r}
+idx <- which(od_trips_2016_motor$X1 == "COLUMN : gta06_sch")
+
+od_trips_2016_motor <- od_trips_2016_motor %>% 
+  slice((idx+2):n())
+
+od_trips_2016_motor <- od_trips_2016_motor %>%
+  separate(X1, into = c("Zones", "Trips"), sep = " (?=[^ ]+$)") %>%
+  mutate(Zones = str_trim(Zones, side = "both")) %>%
+  separate(Zones, into = c("Origin", "Destination"), sep = " (?=[^ ]+$)") %>%
+  mutate(Origin = str_trim(Origin),
+         Destination = str_trim(Destination),
+         Trips = as.numeric(Trips))
+
+idx <- which(od_trips_2016_nonmotor$X1 == "COLUMN : gta06_sch")
+
+od_trips_2016_nonmotor <- od_trips_2016_nonmotor %>% 
+  slice((idx+2):n())
+
+od_trips_2016_nonmotor <- od_trips_2016_nonmotor %>%
+  separate(X1, into = c("Zones", "Trips"), sep = " (?=[^ ]+$)") %>%
+  mutate(Zones = str_trim(Zones, side = "both")) %>%
+  separate(Zones, into = c("Origin", "Destination"), sep = " (?=[^ ]+$)") %>%
+  mutate(Origin = str_trim(Origin),
+         Destination = str_trim(Destination),
+         Trips = as.numeric(Trips))
+```
+
+The resulting objects `od_trips_2011`.. and  `od_trips_2016`.. has the number of trips made by students aged 5-14 who are full-time/part-time students by place of residence (Origin) and place of school (Destination) using the GTA06 zoning system. 
+
+Now let's see how many students travel outside of their catchment. 
+```{r}
+#load catchments
+load(file="data-products/ALL_CATCHS.RData")
+CATCH_2011_Public <- ALL_CATCHS%>%filter(Year == 2011 & Level == "Elementary" & System == "Public") %>% st_set_crs(st_crs(ham_taz))
+CATCH_2011_Cath <- ALL_CATCHS%>%filter(Year == 2011 & Level == "Elementary" & System == "Catholic")%>% st_set_crs(st_crs(ham_taz))
+CATCH_2016_Public <- ALL_CATCHS%>%filter(Year == 2016 & Level == "Elementary" & System == "Public")%>% st_set_crs(st_crs(ham_taz))
+CATCH_2016_Cath <- ALL_CATCHS%>%filter(Year == 2016 & Level == "Elementary" & System == "Catholic")%>% st_set_crs(st_crs(ham_taz))
+
+#assign a catchment id (from elem, 2011) to od_trips_2011 taz ids, what I'm doing here is creating a column of lists -- the lists contain all the GTA06 within a single catchment. I do this for all 4 catchments (2011, 2016 and pub, cath). GTA06s that are within  multiple catchments are repeated i.e., a GTA06 that is in 3 catchments spatially is withinin 3 lists. 
+ham_taz_catch_2011_public <-st_join(ham_taz,CATCH_2011_Public, join=st_intersects) %>% select(c("GTA06", "CID")) %>% st_drop_geometry() %>% group_by(CID) %>% summarize(GTA06_in_catch = list(GTA06))
+ham_taz_catch_2011_cath <-st_join(ham_taz,CATCH_2011_Cath, join=st_intersects)%>% select(c("GTA06", "CID"))%>% st_drop_geometry()%>% group_by(CID) %>% summarize(GTA06_in_catch = list(GTA06))
+ham_taz_catch_2016_public <-st_join(ham_taz,CATCH_2016_Public, join=st_intersects)%>% select(c("GTA06", "CID"))%>% st_drop_geometry()%>% group_by(CID) %>% summarize(GTA06_in_catch = list(GTA06))
+ham_taz_catch_2016_cath <-st_join(ham_taz,CATCH_2016_Cath, join=st_intersects)%>% select(c("GTA06", "CID"))%>% st_drop_geometry()%>% group_by(CID) %>% summarize(GTA06_in_catch = list(GTA06))
+```
+
+```{r}
+## THIS FUNCTION WAS CREATED USING CHATGDPT on DEC 6 2023
+
+# Function to check if values in a row of df1 are within any list in df2
+check_within_lists <- function(df1, df2) {
+  # Initialize an empty list to store the results
+  result_list <- list()
+
+  # Check if values in a row of df1 are within any list in df2
+  for (i in 1:nrow(df1)) {
+    matching_ids <- which(sapply(df2$check_list, function(lst) all(df1[i, ] %in% unlist(lst))))
+    if (length(matching_ids) > 0) {
+      result_list[[i]] <- data.frame(result = TRUE, df1[i, ], CID = matching_ids)
+    } else {
+      result_list[[i]] <- data.frame(result = FALSE, df1[i, ], CID = NA)
+    }
+  }
+
+  # Combine the results into a single dataframe
+  result_df <- do.call(rbind, result_list)
+
+  return(result_df)
+}
+
+# # Example usage is commented out:
+# # Assuming you have two data frames named 'df1' and 'df2'
+# # df1 has columns 'column1' and 'column2' with numeric values
+# # df2 has columns 'id' and 'check_list' with lists of numeric values created using I() function
+# df1 <- data.frame(column1 = c(1, 2, 3, 4, 5), column2 = c(10, 20, 30, 40, 50))
+# df2 <- data.frame(id = c(1, 2, 3), check_list = I(list(c(1, 10), c(3, 30), c(1, 6, 10, 4, 40))))
+# 
+# # Call the function
+# check_within_lists(df1, df2)
+```
+```{r, warning=FALSE}
+## FOR 2011
+#the origin-destination trips made within hamilton to hamilton schools (all in TTS Region `6`).
+ODs <- data.frame(Origin = od_trips_2011_motor$Origin,
+                 Destination = od_trips_2011_motor$Destination)
+#the list of GTA06 zones within each "CID" id)
+LISTS <- data.frame(CID = ham_taz_catch_2011_public$CID,
+                  check_list = I(ham_taz_catch_2011_public$GTA06_in_catch))
+
+LISTS_catch_2011_public <- check_within_lists(df1 = ODs, df2= LISTS)
+
+LISTS <- data.frame(CID = ham_taz_catch_2011_cath$CID,
+                  check_list = I(ham_taz_catch_2011_cath$GTA06_in_catch))
+LISTS_catch_2011_cath <- check_within_lists(df1 = ODs, df2= LISTS)
+
+## FOR 2016
+ODs <- data.frame(Origin = od_trips_2016_motor$Origin,
+                 Destination = od_trips_2016_motor$Destination)
+
+LISTS <- data.frame(CID = ham_taz_catch_2016_public$CID,
+                  check_list = I(ham_taz_catch_2016_public$GTA06_in_catch))
+
+LISTS_catch_2016_public <- check_within_lists(df1 = ODs, df2= LISTS)
+
+LISTS <- data.frame(CID = ham_taz_catch_2016_cath$CID,
+                  check_list = I(ham_taz_catch_2016_cath$GTA06_in_catch))
+LISTS_catch_2016_cath <- check_within_lists(df1 = ODs, df2= LISTS)
+
+rm(ODs,LISTS)
+```
+
+```{r}
+LISTS_catch_2011_public <- LISTS_catch_2011_public %>% 
+  merge(od_trips_2011_motor, by=c("Origin", "Destination")) %>% 
+  mutate(Trips_perc = Trips/sum(Trips))
+
+LISTS_catch_2011_cath <- LISTS_catch_2011_cath %>% 
+  merge(od_trips_2011_motor, by=c("Origin", "Destination")) %>% 
+  mutate(Trips_perc = Trips/sum(Trips))
+
+LISTS_catch_2016_public <- LISTS_catch_2016_public %>% 
+  merge(od_trips_2016_motor, by=c("Origin", "Destination")) %>% 
+  mutate(Trips_perc = Trips/sum(Trips))
+
+LISTS_catch_2016_cath <- LISTS_catch_2016_cath %>% 
+  merge(od_trips_2016_motor, by=c("Origin", "Destination")) %>% 
+  mutate(Trips_perc = Trips/sum(Trips))
+```
+```{r}
+(LISTS_catch_2011_public$Trips_perc*LISTS_catch_2011_public$result) %>% sum()
+(LISTS_catch_2011_cath$Trips_perc*LISTS_catch_2011_cath$result) %>% sum()
+(LISTS_catch_2016_public$Trips_perc*LISTS_catch_2016_public$result) %>% sum()
+(LISTS_catch_2016_cath$Trips_perc*LISTS_catch_2016_cath$result) %>% sum()
+
+# these sums make sense, almost all CIDs (minus 1 small CID in the public catchments) are represented... e.g., checking the count of 'LISTS_catch_2011_public$CID %>% unique() %>% count()' against how many invidual CIDs there are. 
+```
+Okay, so here we see approximately ~80% of trips that are 'motorized' made by students in Hamilton (5-14 age) to hamilton schools are made within catchment. 
+
+Interestingly, if we repeat this process for the non-motorized trips -- almost 100% of trips are made within catchment! This is an interesting but intuitive finding. Using a wider-range modes allows you to reach larger distance. In a way, those who walk/cycle have a reduced luxury of school-seat choice. 
+
+## Calculating car travel time for OD of hamilton TAZs
+
+Libraries:
+```{r setup, include=FALSE, eval=FALSE}
+library(disk.frame)
+library(ggplot2)
+library(gridExtra)
+library(httr)
+library(knitr)
+#install.packages("kableExtra", dependencies = TRUE) #installing kableExtra and dependencies as I was receiving errors
+library(kableExtra)
+#install.packages("devtools")
+#install.packages("Rtools")
+#devtools::install_github("https://github.com/hrbrmstr/lodes.git", dependencies = TRUE) # if you need to download
+library(lodes)
+library(progress)
+library(purrr)
+library(r5r)
+#library(stplanr)
+library(tidyr)
+library(tmap)
+library(zoo) # for rollapplyr
+
+# setup for disk.frame
+setup_disk.frame()
+options(scipen = 999)
+options(java.parameters = "-Xmx512m")
+options(future.globals.maxSize = Inf)
+```
+
+Format the destination and origin points (ID, Long, Lat):
+```{r, eval=FALSE}
+ham_taz_coords <-  
+  cbind(ham_taz %>% st_drop_geometry()%>% transmute(GTA06), st_centroid(ham_taz) %>% st_transform(crs = 4326) %>% st_coordinates()) %>%
+  rename(lon = "X", lat = "Y", id = "GTA06") 
+```
+Set-up directories and download the osm network:
+```{r set up r5 path, include=FALSE, eval=FALSE}
+# the r5r package requires Java Development Kit version 11, which can be downloaded from https://www.oracle.com/java/technologies/javase-jdk11-downloads.html
+dir.create("data-inputs/TTS/r5_graph")
+r5_path <- file.path("data-inputs/TTS/r5_graph")
+```
+
+```{r download data, include=FALSE, eval=FALSE}
+# downloading ontario osm in the correct format
+# download.file(url = paste0("https://download.geofabrik.de/north-america/canada/ontario-latest.osm.pbf"),
+#               destfile = file.path(r5_path, "osm.pbf"),
+#               mode = "wb")
+
+```
+Set Up R5 Routing:
+```{r build graph, include = FALSE, eval=FALSE}
+# NOTE: I had signficant issues getting this function to run. Since the most recent r5r update (before Nov ~25 2022 when I was working on this), I believe the setup_r5 requires smaller road networks. So putting the full ontario geofabrik extract no longer works for me. I used http://share.mapbbcode.org/ to export the Hamilton area, and then OSMCONVERT to convert the .osm file into a .pbf.
+r5_HAM <- setup_r5(data_path = r5_path, verbose = TRUE, overwrite = TRUE, temp_dir = TRUE)
+
+```
+
+Now calculate the OD matrix, for car travel time from all origins (residential GTA06) to all destinations (school GTA06):
+```{r, eval=FALSE}
+# set up batching according to how many origin rows to process at one time
+chunksize = 50 
+num_chunks = ceiling(nrow(ham_taz_coords)/chunksize)
+
+# create origin-destination pairs
+origins_chunks <- as.disk.frame(ham_taz_coords,
+                          outdir = "data-inputs/df/Orig",
+                          nchunks = num_chunks,
+                          overwrite = TRUE)
+
+start.time <- Sys.time()
+pb <- txtProgressBar(0, num_chunks, style = 3)
+
+for (i in 1:num_chunks){
+  Orig_chunk <- get_chunk(origins_chunks, i)
+  ttm_chunk <- travel_time_matrix(r5r_core = r5_HAM,
+                          origins = Orig_chunk,
+                          destinations = ham_taz_coords,
+                          mode = c("CAR"), 
+                          departure_datetime = as.POSIXct(strptime("2022-11-16 08:00:00", "%Y-%m-%d %H:%M:%S", tz = "EST5EDT")),
+                          max_trip_duration = 120)
+  
+  # export output as disk.frame
+  ifelse(i == 1, output_df <- as.disk.frame(ttm_chunk,
+                                            nchunks = 1,
+                                            outdir = "data-inputs/df/output_ttm",
+                                            compress = 50,
+                                            overwrite = TRUE),
+         add_chunk(output_df, ttm_chunk, chunk_id = i))
+  setTxtProgressBar(pb, i)
+}
+end.time <- Sys.time()
+print(paste0("OD matrix calculation took ", round(difftime(end.time, start.time, units = "mins"), digits = 2), " minutes..."))
+
+output_OD_car <- as.data.frame(output_df)
+
+save("output_OD_car", file = "data-inputs/TTS/output_OD_car.Rdata")
+#I only made the cut off 60 minutes, so if some parcels do not have a travel time, rerun this for a 120 min cut off. The following are 120mins cutoff
+```
+
+```{r, eval=FALSE}
+# set up batching according to how many origin rows to process at one time
+chunksize = 50 
+num_chunks = ceiling(nrow(ham_taz_coords)/chunksize)
+
+# create origin-destination pairs
+origins_chunks <- as.disk.frame(ham_taz_coords,
+                          outdir = "data-inputs/df/Orig",
+                          nchunks = num_chunks,
+                          overwrite = TRUE)
+
+start.time <- Sys.time()
+pb <- txtProgressBar(0, num_chunks, style = 3)
+
+for (i in 1:num_chunks){
+  Orig_chunk <- get_chunk(origins_chunks, i)
+  ttm_chunk <- travel_time_matrix(r5r_core = r5_HAM,
+                          origins = Orig_chunk,
+                          destinations = ham_taz_coords,
+                          mode = c("WALK"), 
+                          departure_datetime = as.POSIXct(strptime("2022-11-16 08:00:00", "%Y-%m-%d %H:%M:%S", tz = "EST5EDT")),
+                          max_trip_duration = 120)
+  
+  # export output as disk.frame
+  ifelse(i == 1, output_df <- as.disk.frame(ttm_chunk,
+                                            nchunks = 1,
+                                            outdir = "data-inputs/df/output_ttm",
+                                            compress = 50,
+                                            overwrite = TRUE),
+         add_chunk(output_df, ttm_chunk, chunk_id = i))
+  setTxtProgressBar(pb, i)
+}
+end.time <- Sys.time()
+print(paste0("OD matrix calculation took ", round(difftime(end.time, start.time, units = "mins"), digits = 2), " minutes..."))
+
+output_OD_walk <- as.data.frame(output_df)
+
+save("output_OD_walk", file = "data-inputs/TTS/output_OD_walk.Rdata")
+```
+Java garbage collector:
+```{r, eval=FALSE}
+stop_r5(r5_HAM)
+rJava::.jgc(R.gc = TRUE)
+```
+
+## Inspecting the travel times and calculating TLD
+```{r}
+load(file = "data-inputs/TTS/output_OD_car.Rdata")
+summary(output_OD_car)
+#we'll set 0 travel times to equal 7 min for inter-zonal travel, half of the 1st Qu. travel time.
+
+load(file = "data-inputs/TTS/output_OD_walk.Rdata")
+summary(output_OD_walk) #max trip length calculated is 27 mins -- this corresponds to 'within catchment'. lets make 0 min trips into half of 1st Q. so 4min.
+```
+
+Trip length distribution (cutting the travel_time into 150 intervals and summing all trips within each interval). The TLD is a probability density function for likelihood of travel informed by travel time:
+```{r}
+#join travel_time to 2011 and 2016 OD trips
+od_trips_2011_motor <- od_trips_2011_motor %>% 
+  merge(output_OD_car, by.x = c("Origin", "Destination"), by.y = c("from_id", "to_id")) %>%
+  merge(ham_taz %>% st_drop_geometry(), by.x="Origin", by.y="GTA06") 
+
+od_trips_2011_motor <- od_trips_2011_motor %>% 
+  mutate(travel_time = ifelse(travel_time_p50 == 0, (7)*AREA/max(od_trips_2011_motor %>% filter(travel_time_p50 == 0) %>% dplyr::select(AREA)),
+                                  travel_time_p50)) #~7 mins is Q1 for 'tl_2016_motor.
+
+od_trips_2016_motor <- od_trips_2016_motor %>% 
+  merge(output_OD_car, by.x = c("Origin", "Destination"), by.y = c("from_id", "to_id")) %>%
+  merge(ham_taz %>% st_drop_geometry(), by.x="Origin", by.y="GTA06") 
+
+od_trips_2016_motor <- od_trips_2016_motor %>% 
+  mutate(travel_time = ifelse(travel_time_p50 == 0, (7)*AREA/max(od_trips_2016_motor %>% filter(travel_time_p50 == 0) %>% dplyr::select(AREA)),
+                                  travel_time_p50)) ##~7 mins is Q1 for 'tl_2016_motor.
+
+od_trips_2011_nonmotor <- od_trips_2011_nonmotor %>%
+  merge(output_OD_walk, by.x = c("Origin", "Destination"), by.y = c("from_id", "to_id")) %>%
+  merge(ham_taz %>% st_drop_geometry(), by.x="Origin", by.y="GTA06") 
+
+od_trips_2011_nonmotor <- od_trips_2011_nonmotor %>% 
+  mutate(travel_time = ifelse(travel_time_p50 == 0, (15)*AREA/max(od_trips_2011_nonmotor %>% filter(travel_time_p50 == 0) %>% dplyr::select(AREA)),
+                                  travel_time_p50)) ##~15 mins is Q1 for 'tld_2016_nonmotor.
+
+od_trips_2016_nonmotor <- od_trips_2016_nonmotor %>% 
+  merge(output_OD_walk, by.x = c("Origin", "Destination"), by.y = c("from_id", "to_id"))  %>%
+  merge(ham_taz %>% st_drop_geometry(), by.x="Origin", by.y="GTA06") 
+
+od_trips_2016_nonmotor <- od_trips_2016_nonmotor %>% 
+  mutate(travel_time = ifelse(travel_time_p50 == 0, (15)*AREA/max(od_trips_2016_nonmotor %>% filter(travel_time_p50 == 0) %>% dplyr::select(AREA)),
+                                  travel_time_p50)) #~15 mins is Q1 for 'tld_2016_nonmotor.
+```
+
+```{r}
+tld_2011_motor <- od_trips_2011_motor %>%
+  mutate(tt_classes = cut(travel_time, 
+                          150,
+                          ordered_result = TRUE)) %>%
+  group_by(tt_classes) %>%
+  summarize(Trips = sum(Trips),
+            travel_time = mean(travel_time))
+
+tld_2016_motor <- od_trips_2016_motor %>%
+  mutate(tt_classes = cut(travel_time, 
+                          150,
+                          ordered_result = TRUE)) %>%
+  group_by(tt_classes) %>%
+  summarize(Trips = sum(Trips),
+            travel_time = mean(travel_time))
+
+tld_2011_nonmotor <- od_trips_2011_nonmotor %>%
+  mutate(tt_classes = cut(travel_time, 
+                          150,
+                          ordered_result = TRUE)) %>%
+  group_by(tt_classes) %>%
+  summarize(Trips = sum(Trips),
+            travel_time = mean(travel_time))
+
+tld_2016_nonmotor <- od_trips_2016_nonmotor %>%
+  mutate(tt_classes = cut(travel_time, 
+                          150,
+                          ordered_result = TRUE)) %>%
+  group_by(tt_classes) %>%
+  summarize(Trips = sum(Trips),
+            travel_time = mean(travel_time))
+```
+
+Plot the TLD, motorized:
+```{r}
+ggplot(data = tld_2011_motor, 
+       aes(x =travel_time, y = Trips)) +
+  geom_point()
+
+ggplot(data = tld_2016_motor, 
+       aes(x =travel_time, y = Trips)) +
+  geom_point()
+
+summary(tld_2011_motor)
+summary(tld_2016_motor)
+```
+
+Plot the TLD, nonmotorized:
+```{r}
+ggplot(data = tld_2011_nonmotor, 
+       aes(x =travel_time, y = Trips)) +
+  geom_point()
+
+ggplot(data = tld_2016_nonmotor, 
+       aes(x =travel_time, y = Trips)) +
+  geom_point()
+
+summary(tld_2011_nonmotor)
+summary(tld_2016_nonmotor)
+```
+
+
+Lets fit a curve.
+
+First, let's transform the data so each travel time for each OD trip is a row
+```{r data-for-Hamilton-trips, include=FALSE}
+#for 2011
+all_tt_2011_motor <- od_trips_2011_motor  %>% 
+  dplyr::select(Trips, travel_time)
+sum((od_trips_2011_motor$Trips))
+all_tt_2011_motor <- all_tt_2011_motor[rep(seq_len(dim(all_tt_2011_motor)[1]), all_tt_2011_motor$Trips), 2]
+
+all_tt_2011_nonmotor <- od_trips_2011_nonmotor  %>% 
+  dplyr::select(Trips, travel_time)
+sum((all_tt_2011_nonmotor$Trips))
+all_tt_2011_nonmotor <- all_tt_2011_nonmotor[rep(seq_len(dim(all_tt_2011_nonmotor)[1]), all_tt_2011_nonmotor$Trips), 2]
+
+#for 2016
+all_tt_2016_motor <- od_trips_2016_motor  %>% 
+  dplyr::select(Trips, travel_time)
+sum((all_tt_2016_motor$Trips))
+all_tt_2016_motor <- all_tt_2016_motor[rep(seq_len(dim(all_tt_2016_motor)[1]), all_tt_2016_motor$Trips), 2]
+
+all_tt_2016_nonmotor <- od_trips_2016_nonmotor  %>% 
+  dplyr::select(Trips, travel_time)
+sum((all_tt_2016_nonmotor$Trips))
+all_tt_2016_nonmotor <- all_tt_2016_nonmotor[rep(seq_len(dim(all_tt_2016_nonmotor)[1]), all_tt_2016_nonmotor$Trips), 2]
+
+```
+
+```{r fitting-impedance-function-2011-2016-1, cache=TRUE}
+library(fitdistrplus)
+descdist(all_tt_2011_motor, discrete=FALSE)
+descdist(all_tt_2016_motor, discrete=FALSE)
+
+descdist(all_tt_2011_nonmotor, discrete=FALSE)
+descdist(all_tt_2016_nonmotor, discrete=FALSE)
+```
+
+```{r fitting-impedance-function-2011-2016-2, cache=TRUE}
+gamma2011_motor <- fitdistrplus::fitdist(data=all_tt_2011_motor, "gamma", method="mle", optim.method="Nelder-Mead")
+exp2011_motor <- fitdistrplus::fitdist(data=all_tt_2011_motor, "exp", method="mme", optim.method="Brent")
+
+gamma2016_motor <- fitdistrplus::fitdist(data=all_tt_2016_motor, "gamma", method="mle", optim.method="Nelder-Mead")
+exp2016_motor <- fitdistrplus::fitdist(data=all_tt_2016_motor, "exp", method="mme", optim.method="Brent")
+
+plot(gamma2011_motor)
+plot(exp2011_motor)
+
+plot(gamma2016_motor)
+plot(exp2016_motor)
+
+gamma2011_motor$aic #gamma has the lowest aic and bic, thus we pick gamma distribution. 
+exp2011_motor$aic
+
+gamma2016_motor$aic
+exp2016_motor$aic
+```
+
+```{r fitting-impedance-function-2011-2016-2, cache=TRUE}
+gamma2011_nonmotor <- fitdistrplus::fitdist(data=all_tt_2011_nonmotor, "gamma", method="mle", optim.method="Nelder-Mead")
+exp2011_nonmotor <- fitdistrplus::fitdist(data=all_tt_2011_nonmotor, "exp", method="mme", optim.method="Brent")
+
+gamma2016_nonmotor <- fitdistrplus::fitdist(data=all_tt_2016_nonmotor, "gamma", method="mle", optim.method="Nelder-Mead")
+exp2016_nonmotor <- fitdistrplus::fitdist(data=all_tt_2016_nonmotor, "exp", method="mme", optim.method="Brent")
+
+plot(gamma2011_nonmotor)
+plot(exp2011_nonmotor)
+
+plot(gamma2016_nonmotor)
+plot(exp2016_nonmotor)
+
+gamma2011_nonmotor$aic #gamma and exp have similar aic and bic. empirically exp is often selected, so we pick it here too.
+exp2011_nonmotor$aic
+
+gamma2016_nonmotor$aic
+exp2016_nonmotor$aic
+```
+```{r save-impedance-plot, include=FALSE, cache=TRUE}
+# For some reason plot(norm_) does not play well with knitr, so instead we save the figure and then include it as a graphic in the following chunk
+png("Fig-imped2011-motor.png")
+plot(gamma2011_motor)
+dev.off()
+```
+```{r save-impedance-plot-2, include=FALSE, cache=TRUE}
+# For some reason plot(norm_) does not play well with knitr, so instead we save the figure and then include it as a graphic in the following chunk
+png("Fig-imped2016-motor.png")
+plot(gamma2016_motor)
+dev.off()
+```
+```{r save-impedance-plot-3, include=FALSE, cache=TRUE}
+# For some reason plot(norm_) does not play well with knitr, so instead we save the figure and then include it as a graphic in the following chunk
+png("Fig-imped2011-nonmotor.png")
+plot(exp2011_nonmotor)
+dev.off()
+```
+```{r save-impedance-plot-4, include=FALSE, cache=TRUE}
+# For some reason plot(norm_) does not play well with knitr, so instead we save the figure and then include it as a graphic in the following chunk
+png("Fig-imped2016-nonmotor.png")
+plot(exp2016_nonmotor)
+dev.off()
+```
+
+And save the gamma functions, to use in the analysis
+```{r}
+save(gamma2011_motor, file="data-inputs/TTS/gamma2011_motor.Rdata")
+save(gamma2016_motor, file="data-inputs/TTS/gamma2016_motor.Rdata")
+save(exp2011_nonmotor, file="data-inputs/TTS/exp2011_nonmotor.Rdata")
+save(exp2016_nonmotor, file="data-inputs/TTS/exp2016_nonmotor.Rdata")
+```
+

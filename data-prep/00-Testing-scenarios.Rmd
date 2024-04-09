@@ -1,0 +1,121 @@
+---
+title: "Testing-doc"
+output: html_document
+date: "2024-02-14"
+---
+```{r}
+rm(list=ls())
+```
+
+```{r}
+library(dplyr)
+library(sf)
+library(ggplot2)
+library(tidyverse)
+library(units)
+library(patchwork)
+library(ggspatial)
+```
+
+# Scenario 1 (WE ASSUME THIS FOR NOW): What if, all parcels are occupied with kids. And the average DA kid pop divided by parcels in the DA is assigned to each parcel and divided up by the number of OD trips. Effectively: each parcel has occupied with ~0.002 children that go to ALL schools by either walking (if travel time less than 27) AND/or driving. walking children are avg ~0.2% and driving children are on avg ~0.8%. 
+```{r}
+#test <- OD_2011 |> filter(GeoUID == 35250032 | GeoUID == 35250034)
+load(file="test2.RData")
+load(file="data-prep/data-products/cen_data_2011_hamiltononly.Rdata")
+cen_data_2011_hamiltononly <- cen_data_2011_1
+rm("cen_data_2011_1")
+```
+
+
+```{r}
+test2 |> group_by(GeoUID) |> summarize(DA_pop_5to14 = mean(DA_pop_5to14)) |> select(DA_pop_5to14) |> sum()
+```
+
+```{r}
+test_ID_count <- test2 |> group_by(ID) |> summarise(ID_count = n())
+test2 <- test2 |> left_join(test_ID_count, by="ID")
+test_IDsinDA_count <- test2 |> group_by(GeoUID) |> summarise(DA_ID_count = sum(ID_count))
+test2 <- test2 |> left_join(test_IDsinDA_count, by="GeoUID")
+
+test2 <- test2 |> mutate(kid_pop = (DA_pop_5to14/DA_ID_count.y)*ID_count, #SEE NOTE
+               kid_pop = ifelse(is.na(kid_pop) | is.nan(kid_pop) | kid_pop == Inf, 0, kid_pop),
+               kid_popadj = case_when(mode == "w" & mode_count == 2 ~ (1.0000000-TAZOrig_car_perc)*2*kid_pop,
+                                         mode == "c" & mode_count == 2 ~ (TAZOrig_car_perc)*2*kid_pop,
+                                         mode == "c" & mode_count == 1 ~ kid_pop),
+                  kid_popadj = ifelse(is.na(kid_popadj) | is.nan(kid_popadj) | kid_popadj == Inf, 0, kid_popadj))
+
+test2$kid_pop %>% sum()
+test2$kid_popadj %>% sum()
+
+#NOTE: ID_Count sum is equal to the number of rows (28475 -- the number that OD pairs (that originate in the 1 DA) appears in this 1 DA (each parcel goes to 148 schools by 1 mode (and sometimes another mode)). The "sum(ID_count)) should be the total number of rows in a DA if the numerator is the population. The *ID_count is in our case the number of times that ID appears. So the numerator (# of children in the DA) divided by the number of OD pairs (originated in the DA) times the number of parcels is the assumed number of children at each parcel. IN this case, it is assumed that all parcels have equal number of children -- but likely some households in fact do NOT have children. Maybe we should do a random assignment of full integer children (either 0, 1, 2, 3) to parcels instead of averages?
+```
+
+# Scenario 2: just integer children. Each parcel is randomly assigned to have either 0,1,2,3 children. All parcels are still assumed to make trips to ALL schools at the same ~%80:%20 drive/walk proportion (i.e., those 'integer' children are divided evenly to have an equal proportion going to all schools). We also assume each household uses only 1 mode.
+
+```{r}
+#GENERATED USING CHATGPT Feb 15 - the last number of vector is always biased
+generate_vector_binomial <- function(length, total_sum) {
+  vec <- integer(length)  # Initialize an empty integer vector
+  
+  # Loop until the sum matches the desired total_sum
+  while (sum(vec) != total_sum) {
+    # Generate a vector of length 'length' with random numbers from binomial distribution
+    vec <-  rbinom(length, size = 15, prob = 0.03) #rgamma(length, shape = 2, rate = 0.2)
+    
+    #  # Scale the vector to integers between 0 and 5
+    # vec <- as.integer(5 * (vec / max(vec)))
+    
+    # Adjust the last element to ensure the total sum is correct
+    vec[length] <- total_sum - sum(vec[-length])
+    
+    # Ensure the adjusted last element is within the range [0, 5]
+    vec[length] <- pmin(vec[length], 5)
+    vec[length] <- pmax(vec[length], 0)
+    
+    # Shuffle the vector to randomize the order
+    vec <- sample(vec)
+  }
+  
+  return(vec)
+}
+
+# Example usage
+length <-  160  # Change this to your desired length
+total_sum <- 50  # Change this to your desired sum
+result_vector  <- generate_vector_binomial(length, total_sum)
+result_vector  
+result_vector |> sum()
+```
+
+```{r}
+test_scen2_ID_kid <- test |> group_by(GeoUID) |> 
+  summarise(ID_unique_count = n_distinct(ID),
+            DA_pop_5to13 = mean(DA_pop_5to13)) |>
+  mutate(kid_pop_int = map2(ID_unique_count, DA_pop_5to13, generate_vector_gamma)) 
+
+ID_vector <- data.frame(ID = test$ID |> unique(),
+                        test_scen2_ID_kid |> select(kid_pop_int) |> unnest(kid_pop_int))
+
+test <- test |> left_join(ID_vector, by="ID") 
+```
+
+```{r}
+test <- test |> mutate(kid_pop_int_adj = case_when(mode == "w" & mode_count == 2 
+                                           ~ (1.0000000-TAZOrig_car_perc)*2*kid_pop_int/ID_count,
+                                         mode == "c" & mode_count == 2 
+                                         ~ (TAZOrig_car_perc)*2*kid_pop_int/ID_count,
+                                         mode == "c" & mode_count == 1 
+                                         ~ kid_pop_int/ID_count),
+               kid_pop_int_adj = ifelse(is.na(kid_pop_int_adj) | 
+                                          is.nan(kid_pop_int_adj) | 
+                                          kid_pop_int_adj == Inf, 
+                                        0, kid_pop_int_adj))
+#checking to make sure they all add up to the number of children in this DA
+test$kid_pop %>% sum()
+test$kid_popadj %>% sum()
+test$kid_pop_int_adj %>% sum()
+```
+
+
+
+

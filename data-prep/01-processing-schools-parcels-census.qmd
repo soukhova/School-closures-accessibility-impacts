@@ -1,0 +1,257 @@
+---
+title: "01-processing-schools-parcels-census"
+format: html
+---
+Processing canadian census at the DA level, schools,  school catchments, and then household parcels (this data is not included in the repo, it is strictly available only through TERANET INC.).
+
+```{r library-setup, message=FALSE}
+library(tmap)
+library(tidyverse)
+library(cancensus)
+library(sf)
+```
+
+```{r}
+#import boundaries downloaded from Hamilton Open Data portal
+ham_city_bound<- st_read("data-inputs/Boundaries/City_Boundary.shp")
+ham_community_bounds<- st_read("data-inputs/Boundaries/Community_Boundaries.shp")
+```
+
+# Census
+```{r import census data 2011}
+set_cancensus_api_key("CensusMapper_53e5295237d9965a06425f1138ee6db7", install=TRUE, overwrite = TRUE) # this is my key, create your own account and get a key here: https://censusmapper.ca/
+
+#explore census data for hamilton, you see here that the Hamilton is available at the level of CMA, CD, and CSD. Do this for both 2011 and 2016 census. 
+
+list_census_regions('CA11') %>%
+   filter(name == c("Hamilton")) 
+list_census_regions('CA16') %>%
+   filter(name == c("Hamilton")) #from this result we see the code for the Hamilton CMA is 35537
+```
+
+```{r}
+find_census_vectors("prevalence of low income", dataset = "CA16", type = "total", query_type = "keyword", interactive = FALSE)
+```
+
+```{r import census data 2011}
+# Let's call the DA-level data by their vector IDs. Note, to retrieve all vector IDs you need, visit https://censusmapper.ca/, go to the API tab, and search for Variables and their corresponding IDs for your region and aggergation level of interest. Very user-friendly GUI! 
+ cen_data_2011_1 <- get_census(dataset='CA11', regions=list(CMA="35537"),
+                           vectors=c("v_CA11N_2458", #family median after-tax income in 2010, 
+                                     "v_CA11N_2476", #lone-parent median after-tax family income in 2010
+                                     "v_CA11N_2564", #private household Median after-tax income of households in 2010,
+                                     "v_CA11N_2609", #CA 2011 NHS; Income; Status; Prevalence of low income in 2010 based on after-tax low-income measure %; Less than 18 years %
+                                     "v_CA11F_11", # population age 5-9
+                                     "v_CA11F_14", #population age 10-14
+                                     "v_CA11F_17"), #population age 15-19
+                           level='DA', use_cache = FALSE, geo_format = 'sf')
+
+save(cen_data_2011_1, file="data-inputs/Census-data/cen_data_2011_1.RData")
+```
+
+Repeat for 2016 incomes:
+```{r}
+cen_data_2016_1 <- get_census(dataset='CA16', regions=list(CMA="35537"),
+                           vectors=c("v_CA16_2448", #family median after-tax income in 2015,
+                                     "v_CA16_2460", #lone-parent median after-tax family income in 2015
+                                     "v_CA16_2398", #private household Median after-tax income of households in 2015,
+                                     "v_CA16_2543", #	Income; Low Income Measures; Prevalence of low income based on the Low-income measure, after tax (LIM-AT) (%); 0 to 17 years (%)
+                                     "v_CA16_25", # population age 5-9
+                                     "v_CA16_43", #population age 10-14
+                                     "v_CA16_64"), #population age 15-19
+                           level='DA', use_cache = FALSE, geo_format = 'sf')
+
+save(cen_data_2016_1, file="data-inputs/Census-data/cen_data_2016_1.RData")
+```
+
+Hamilton CMA is larger than the hamilton boundary. Clip the census data and resave:
+```{r}
+ham_city_bound <- ham_city_bound |> st_transform(st_crs(cen_data_2011_1))
+ham_community_bounds <- ham_community_bounds |> st_transform(st_crs(cen_data_2011_1))
+
+cen_data_2011_1 <- st_intersection(ham_city_bound |> select(geometry), cen_data_2011_1)
+cen_data_2016_1 <- st_intersection(ham_city_bound |> select(geometry), cen_data_2016_1)
+
+save(cen_data_2011_1, file="data-products/cen_data_2011_hamiltononly.RData")
+save(cen_data_2016_1, file="data-products/cen_data_2016_hamiltononly.RData")
+```
+
+# Schools and catchments:
+Available through the hamONdests package (https://github.com/soukhova/hamONdests):
+```{r}
+library(hamONdests)
+data(Schools_2011_2016)
+data(School_Catchments_2011_2016)
+```
+
+```{r}
+schools_map <- tm_shape(cen_data_2011_1 %>% rename("LIM-ATperc_0to17" = "v_CA11N_2609..Less.than.18.years..")) +
+  tm_polygons("LIM-ATperc_0to17", palette = 'Reds')+
+  
+  tm_shape(Schools_2011_2016 |> filter(Level == "Elementary" & (Year == "2011" | Year == "2011 and 2016"))) +
+	tm_bubbles("OTGC2011", col = "grey",alpha=0.5, contrast=1, title.size="School OTGC") + 
+  
+	tm_layout(legend.bg.color = "grey90", legend.bg.alpha=.5, legend.frame=TRUE) 
+
+tmap_leaflet(schools_map, add.titles = TRUE)
+```
+
+```{r}
+school_catchments_map <- tm_shape(cen_data_2011_1 %>% rename("LIM-ATperc_0to17" = "v_CA11N_2609..Less.than.18.years..")) +
+  tm_polygons("LIM-ATperc_0to17", palette = 'Reds')+
+  
+  tm_shape(School_Catchments_2011_2016 |> filter(Level == "Elementary" & System == "Public" & (Year == "2011" | Year == "2011 and 2016"))) +
+	tm_polygons(col = "yellow",alpha=0.3, contrast=1) + 
+  
+	tm_layout(legend.bg.color = "grey90", legend.bg.alpha=.5, legend.frame=TRUE) 
+
+tmap_leaflet(school_catchments_map, add.titles = TRUE)
+```
+
+# Parcels
+
+Read shapefile as "sf" and drop all non-residential parcels:
+```{r}
+load(file="data-inputs/Census-data/cen_data_2011_1.RData")
+load(file="data-inputs/Census-data/cen_data_2016_1.RData")
+RED_LU_2011 <- st_read("data-inputs/Parcels/PED_LANDUSE_2011/PED_LANDUSE.shp") |> 
+  filter(TYPE == "Residential") |> st_transform(st_crs(cen_data_2011_1)) # set the CRS to epsg 4326, same as the census data
+
+RED_LU_2016 <- st_read("data-inputs/Parcels/PED_Landuse_2016/PED_LANDUSE.shp") |>
+  mutate(TYPE = ifelse(LUC1_DESC == "Residential:Detached House" | 
+                         LUC1_DESC == "Residential:Row/Town House"| 
+                         LUC1_DESC == "Residential:Semi-Detached House" |
+                         LUC1_DESC == "Residential:Apartment (7 or more units)"|
+                         LUC1_DESC == "Residential:Multiplex Dwelling (6 units or less)",
+                       "Residential", 0)) |>
+  filter(TYPE != 0) |> #i.e. filter out non-residential
+  st_transform(st_crs(cen_data_2016_1))
+RED_LU_2016 <- st_make_valid(RED_LU_2016)
+```
+
+Transfer the GeoUID from the DAs (I.e., their DA IDs) that intersect with the residential land use parcel centroids to the RED_LU sf object. (we use 'over' here instead of st_intersection because it is way faster)
+```{r}
+RED_LU_centroids_2011 <- sp::over(as_Spatial(st_centroid(RED_LU_2011)),as_Spatial(cen_data_2011_1 |> select(GeoUID)))
+RED_LU_centroids_2011<- cbind(RED_LU_centroids_2011,st_centroid(RED_LU_2011))
+```
+```{r}
+RED_LU_centroids_2016 <- sp::over(as_Spatial(st_centroid(RED_LU_2016)),as_Spatial(cen_data_2016_1 |> select(GeoUID)))
+
+RED_LU_centroids_2016<- cbind(RED_LU_centroids_2016,st_centroid(RED_LU_2016))
+```
+
+Now transfer the TAZ ids to the RED centroids -- this is so we can pull the proportion of motor/non-motorized trips. 
+```{r}
+ggh_taz <- st_read("data-inputs/TTS/tts06_83_region.shp") |> st_transform(st_crs(cen_data_2011_hamiltononly))
+```
+Now add the TAZ IDs column to the residential parcel id
+```{r}
+cols_TAZIDs <-sp::over(as_Spatial(st_centroid(RED_LU_2011)),
+                              as_Spatial(ggh_taz |> select(GTA06) |> rename("GTA06_Orig" = "GTA06")))
+RED_LU_centroids_2011<- cbind(RED_LU_centroids_2011,cols_TAZIDs)
+
+cols_TAZIDs <- sp::over(as_Spatial(st_centroid(RED_LU_2016)),
+                              as_Spatial(ggh_taz |> select(GTA06) |> rename("GTA06_Orig" = "GTA06")))
+
+RED_LU_centroids_2016<- cbind(RED_LU_centroids_2016,cols_TAZIDs)
+rm(cols_TAZIDs)
+
+# and save
+save(RED_LU_centroids_2011, file="data-inputs/Parcels/RED_LU_centroids_2011.RData")
+save(RED_LU_centroids_2016, file="data-inputs/Parcels/RED_LU_centroids_2016.RData")
+```
+
+We also want to make a list of origin-destination TAZ ids and their percentage of car-use:
+```{r}
+od_trips_2011_motor <- read_delim(file = "data-inputs/TTS/Schooltrip_trips_2011_motorized.txt", 
+                      delim = "\t", 
+                      col_names = FALSE)
+od_trips_2016_motor <- read_delim(file = "data-inputs/TTS/Schooltrip_trips_2016_motorized.txt", 
+                      delim = "\t", 
+                      col_names = FALSE)
+
+od_trips_2011_nonmotor <- read_delim(file = "data-inputs/TTS/Schooltrip_trips_2011_nonmotorized.txt", 
+                      delim = "\t", 
+                      col_names = FALSE)
+
+od_trips_2016_nonmotor <- read_delim(file = "data-inputs/TTS/Schooltrip_trips_2016_nonmotorized.txt", 
+                      delim = "\t", 
+                      col_names = FALSE)
+
+#Find the position in the table where the information on work trips begins:
+idx <- which(od_trips_2011_motor$X1 == "COLUMN : gta06_sch")
+
+#Slice the table to obtain the work trips (remove heading information):
+od_trips_2011_motor <- od_trips_2011_motor %>% 
+  slice((idx+2):n())
+
+#Separate the zone identifiers and the trips, and convert to numeric:
+od_trips_2011_motor <- od_trips_2011_motor %>%
+  separate(X1, into = c("Zones", "Trips"), sep = " (?=[^ ]+$)") %>%
+  mutate(Zones = str_trim(Zones, side = "both")) %>%
+  separate(Zones, into = c("Origin", "Destination"), sep = " (?=[^ ]+$)") %>%
+  mutate(Origin = str_trim(Origin),
+         Destination = str_trim(Destination),
+         Trips = as.numeric(Trips))
+
+idx <- which(od_trips_2011_nonmotor$X1 == "COLUMN : gta06_sch")
+
+od_trips_2011_nonmotor <- od_trips_2011_nonmotor %>% 
+  slice((idx+2):n())
+
+od_trips_2011_nonmotor <- od_trips_2011_nonmotor %>%
+  separate(X1, into = c("Zones", "Trips"), sep = " (?=[^ ]+$)") %>%
+  mutate(Zones = str_trim(Zones, side = "both")) %>%
+  separate(Zones, into = c("Origin", "Destination"), sep = " (?=[^ ]+$)") %>%
+  mutate(Origin = str_trim(Origin),
+         Destination = str_trim(Destination),
+         Trips = as.numeric(Trips))
+```
+
+Repeat the same steps for 2016:
+```{r}
+idx <- which(od_trips_2016_motor$X1 == "COLUMN : gta06_sch")
+
+od_trips_2016_motor <- od_trips_2016_motor %>% 
+  slice((idx+2):n())
+
+od_trips_2016_motor <- od_trips_2016_motor %>%
+  separate(X1, into = c("Zones", "Trips"), sep = " (?=[^ ]+$)") %>%
+  mutate(Zones = str_trim(Zones, side = "both")) %>%
+  separate(Zones, into = c("Origin", "Destination"), sep = " (?=[^ ]+$)") %>%
+  mutate(Origin = str_trim(Origin),
+         Destination = str_trim(Destination),
+         Trips = as.numeric(Trips))
+
+idx <- which(od_trips_2016_nonmotor$X1 == "COLUMN : gta06_sch")
+
+od_trips_2016_nonmotor <- od_trips_2016_nonmotor %>% 
+  slice((idx+2):n())
+
+od_trips_2016_nonmotor <- od_trips_2016_nonmotor %>%
+  separate(X1, into = c("Zones", "Trips"), sep = " (?=[^ ]+$)") %>%
+  mutate(Zones = str_trim(Zones, side = "both")) %>%
+  separate(Zones, into = c("Origin", "Destination"), sep = " (?=[^ ]+$)") %>%
+  mutate(Origin = str_trim(Origin),
+         Destination = str_trim(Destination),
+         Trips = as.numeric(Trips))
+```
+
+Merge the the motor/non-motorized objects together:
+```{r}
+od_trips_perc_2011 <- od_trips_2011_motor %>% left_join(od_trips_2011_nonmotor, by=c("Origin", "Destination")) %>%
+  group_by(Origin, Destination) |>
+  summarize(TAZOrig_car_trips= sum(Trips.x, na.rm=TRUE),
+            TAZOrig_walk_trips = sum(Trips.y, na.rm=TRUE)) |>
+  mutate(TAZOrig_car_trip_perc = TAZOrig_car_trips/(TAZOrig_car_trips + TAZOrig_walk_trips))
+
+od_trips_perc_2016 <- od_trips_2016_motor %>% left_join(od_trips_2016_nonmotor, by=c("Origin", "Destination")) %>%
+  group_by(Origin,Destination) |>
+  summarize(TAZOrig_car_trips = sum(Trips.x, na.rm=TRUE),
+            TAZOrig_walk_trips = sum(Trips.y, na.rm=TRUE)) |>
+  mutate(TAZOrig_car_trip_perc = TAZOrig_car_trips/(TAZOrig_car_trips + TAZOrig_walk_trips))
+```
+
+```{r}
+save(od_trips_perc_2011, file="data-inputs/TTS/od_trips_perc_2011.RData")
+save(od_trips_perc_2016, file="data-inputs/TTS/od_trips_perc_2016.RData")
+```

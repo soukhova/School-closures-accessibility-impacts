@@ -1,6 +1,7 @@
 ---
 title: "The cost of school consolidations: impacts of reduced accessibility"
-bibliography: mybibfile.bib
+bibliography: 
+  - "`r system('kpsewhich ../bibliography/bibliography.bib', intern=TRUE)`"
 linenumbers: true
 numbersections: true
 format: pdf
@@ -37,28 +38,29 @@ rm(list=ls())
 
 <!--- 2016 and 2011 sp_avail is calculated in 'test-doc-2016run', LOAD THE BELOW! -->
 ```{r, include=FALSE}
-library(dplyr)
-library(sf)
-library(ggplot2)
-library(tidyverse)
-library(units)
-library(patchwork)
-library(ggspatial)
-library(scales)
-library(stplanr)
-library(tmap)
+library(dplyr) # A Grammar of Data Manipulation
+library(ggplot2) # Create Elegant Data Visualisations Using the Grammar of Graphics
+library(ggspatial) # Spatial Data Framework for ggplot2
+library(here) # A Simpler Way to Find Your Files
+library(patchwork) # The Composer of Plots
+library(scales) # Scale Functions for Visualization
+library(sf) # Simple Features for R
+library(stplanr) # Sustainable Transport Planning
+library(tidyverse) # Easily Install and Load the 'Tidyverse'
+library(tmap) # Thematic Maps
+library(units) # Measurement Units for R Vectors
 ```
 
 ```{r, include=FALSE}
-load(file="data-prep/data-products/cen_data_2011_hamiltononly.Rdata")
+load(file = paste0(here::here(),"/data-prep/data-products/cen_data_2011_hamiltononly.Rdata"))
 cen_data_2011_hamiltononly <- cen_data_2011_1 |> filter(Region.Name == "Hamilton") #NOTE: GEOUID 35250242, 35250133, 35250457 do not have any child population
 rm("cen_data_2011_1")
-load(file="data-prep/data-products/cen_data_2016_hamiltononly.Rdata")
+load(file=paste0(here::here(),"/data-prep/data-products/cen_data_2016_hamiltononly.Rdata"))
 cen_data_2016_hamiltononly <- cen_data_2016_1 |> filter(Region.Name == "Hamilton") #NOTE: GEOUID 35250133, 35250398, 35250427 do not have any child population
 rm("cen_data_2016_1")
 
-ham_city_bound <- st_read("data-prep/data-inputs/Boundaries/City_Boundary.shp") |> st_transform(st_crs(cen_data_2011_hamiltononly))
-ham_community_bounds <- st_read("data-prep/data-inputs/Boundaries/Community_Boundaries.shp") |> st_transform(st_crs(cen_data_2011_hamiltononly))
+ham_city_bound <- st_read(paste0(here::here(),"/data-prep/data-inputs/Boundaries/City_Boundary.shp")) |> st_transform(st_crs(cen_data_2011_hamiltononly))
+ham_community_bounds <- st_read(paste0(here::here(),"/data-prep/data-inputs/Boundaries/Community_Boundaries.shp")) |> st_transform(st_crs(cen_data_2011_hamiltononly))
 ```
 
 ```{r, include=FALSE}
@@ -93,7 +95,7 @@ cen_data_2016_hamiltononly <-
 ```
 
 ```{r, include=FALSE}
-library(hamONdests)
+library(hamONdests) # A R package of Hamilton, Ontario destinations
 data(Schools_2011_2016)
 ALL_SCHOOLS_Elem <- Schools_2011_2016 %>% filter(Level == "Elementary")
 rm("Schools_2011_2016")
@@ -101,10 +103,10 @@ data(School_Catchments_2011_2016)
 ALL_SCHOOLS_CATCH_Elem <- School_Catchments_2011_2016 %>% filter(Level == "Elementary")
 rm("School_Catchments_2011_2016")
 
-load(file="data-prep/data-products/TTS_gamma2011_motor.Rdata")
-load(file="data-prep/data-products/TTS_gamma2016_motor.Rdata")
-load(file="data-prep/data-products/TTS_exp2011_nonmotor.Rdata")
-load(file="data-prep/data-products/TTS_exp2016_nonmotor.Rdata")
+load(file = paste0(here::here(),"/data-prep/data-products/TTS_gamma2011_motor.Rdata"))
+load(file = paste0(here::here(),"/data-prep/data-products/TTS_gamma2016_motor.Rdata"))
+load(file = paste0(here::here(),"/data-prep/data-products/TTS_exp2011_nonmotor.Rdata"))
+load(file = paste0(here::here(),"/data-prep/data-products/TTS_exp2016_nonmotor.Rdata"))
 ```
 
 ```{r}
@@ -159,12 +161,12 @@ catchment_schools_plot <-
   tmap_defaults +
   tm_layout(panel.labels = list(c('HWDCSB (Catholic Public)','HWDSB (Public)'),c('2011','2016')))
 
-tmap_save(catchment_schools_plot, "Figures/catchment_schools_plot.png", height=7, width=12, dpi=600)
+tmap_save(catchment_schools_plot, paste0(here::here(),"/Figures/catchment_schools_plot.png"), height=7, width=12, dpi=600)
 ```
 
 ```{r,include=FALSE}
-load(file="data-prep/data-products/avail_2011.RData")
-load(file="data-prep/data-products/avail_2016.RData")
+load(file = paste0(here::here(),"/data-prep/data-products/avail_2011.RData"))
+load(file = paste0(here::here(),"/data-prep/data-products/avail_2016.RData"))
 ```
 
 ```{r}
@@ -476,12 +478,12 @@ LIMAT_under18_DA_plot <-
 
 stud_pop_rate_LIM_plot <- tmap_arrange(student_pop_absolute_plot, student_pop_rate_plot, LIMAT_under18_DA_plot, nrow = 3)
 
-tmap_save(stud_pop_rate_LIM_plot, "Figures/stud_pop_rate_LIM_plot.png", height=7, width=12, dpi=600)
+tmap_save(stud_pop_rate_LIM_plot, paste0(here::here(),"/Figures/stud_pop_rate_LIM_plot.png"), height=7, width=12, dpi=600)
 ```
 
 ```{r importing-taz-and-associated-flows}
 #Read the boundaries of the traffic analysis zones (retrieved from the TTS 2016):
-ggh_taz <- st_read("data-prep/data-inputs/TTS/tts06_83_region.shp") %>% st_transform(crs = 32617)
+ggh_taz <- st_read(paste0(here::here(), "/data-prep/data-inputs/TTS/tts06_83_region.shp")) %>% st_transform(crs = 32617)
 
 # Prepare traffic analysis zones:
 ggh_taz <- ggh_taz %>%
@@ -493,7 +495,7 @@ ggh_taz <- ggh_taz %>%
 ghta_taz_id <- ggh_taz$GTA06
 
 #Read the boundaries of the traffic analysis zones (retrieved from the TTS 2016):
-ggh_pd <- st_read("data-prep/data-inputs/TTS/tts06_pd_83.shp") %>%
+ggh_pd <- st_read(paste0(here::here(), "/data-prep/data-inputs/TTS/tts06_pd_83.shp")) %>%
   st_transform(crs = 32617)
 
 #Adding region names to the object as they are not included in the origin data: (http://dmg.utoronto.ca/pdf/tts/2016/2016TTS_Conduct.pdf)
@@ -532,8 +534,8 @@ ham_taz <- ggh_taz %>% dplyr::filter(REGION==6) #Filter out everything other tha
 
 ```{r include=FALSE}
 #the tts origin-destination trips, by mode
-load(file="data-prep/data-inputs/TTS/od_trips_perc_2011.Rdata")
-load(file="data-prep/data-inputs/TTS/od_trips_perc_2016.Rdata")
+load(file = paste0(here::here(),"/data-prep/data-inputs/TTS/od_trips_perc_2011.Rdata"))
+load(file = paste0(here::here(),"/data-prep/data-inputs/TTS/od_trips_perc_2016.Rdata"))
 
 ham_taz_centroids <- ham_taz |> st_centroid() |> dplyr::select(GTA06)
 
@@ -628,7 +630,7 @@ walk_OD_flow <- tm_shape(od_trips_perc_walk |> mutate(mode = "non-motorized"), b
                 col = "darkblue",
                 labels = "TAZ centroid")
 OD_flow_plot <- tmap_arrange(car_OD_flow_plot, walk_OD_flow, nrow = 2)
-tmap_save(OD_flow_plot, "Figures/OD_flow_plot.png", height=7, width=12, dpi=600)
+tmap_save(OD_flow_plot, paste0(here::here(),"/Figures/OD_flow_plot.png"), height=7, width=12, dpi=600)
 ```
 
 ```{r quartiles-of-tts-estimated-tt}
@@ -762,7 +764,7 @@ TLD_empirical_wtheo_curve_plot <- ggplot() +
             mapping = aes(x = x, y = y, label = label), colour = "grey20", size=3) +
   theme_classic()
 TLD_empirical_wtheo_curve_plot
-ggsave("Figures/TLD_empirical_wtheo_curve_plot.png", height=7, width=12, dpi=600)
+ggsave(paste0(here::here(),"/Figures/TLD_empirical_wtheo_curve_plot.png"), height=7, width=12, dpi=600)
 ```
 
 ```{r, eval=FALSE}
@@ -802,7 +804,7 @@ vvim_20112016_plot <-  tm_shape(SAvail_im_DA, bbox=SAvail_im_DA) +
 
 Vim_vvim_20112016_plot <- tmap_arrange(Vim_20112016_plot, vvim_20112016_plot, nrow=2)
 
-tmap_save(Vim_vvim_20112016_plot, "Figures/Vim_vvim_20112016_plot.png", height=7, width=12, dpi=600)
+tmap_save(Vim_vvim_20112016_plot, paste0(here::here(),"/Figures/Vim_vvim_20112016_plot.png"), height=7, width=12, dpi=600)
 ```
 
 
@@ -850,7 +852,11 @@ vvim_20112016_CHANGE_plot <- tm_shape(SAvail_im_DA_changes, bbox=SAvail_im_DA) +
 
 Vim_vvim_20112016_CHANGE_plot <- tmap_arrange(Vim_20112016_CHANGE_plot, vvim_20112016_CHANGE_plot, nrow=2)
 
-tmap_save(Vim_vvim_20112016_CHANGE_plot, "Figures/Vim_vvim_20112016_CHANGE_plot.png", height=7, width=12, dpi=600)
+tmap_save(Vim_vvim_20112016_CHANGE_plot, 
+          paste0(here::here(),"/Figures/Vim_vvim_20112016_CHANGE_plot.png"),
+          height=7,
+          width=12, 
+          dpi=600)
 ```
 
 ```{r, eval=FALSE}
@@ -885,7 +891,11 @@ walk_OD_flow <- tm_shape(od_trips_perc_walk |> mutate(mode = "non-motorized"), b
                 col = "darkblue",
                 labels = "TAZ centroid")
 OD_flow_plot <- tmap_arrange(car_OD_flow_plot, walk_OD_flow, nrow = 2)
-tmap_save(OD_flow_plot, "Figures/SA-and-SAperStud-20112016.png", height=7, width=12, dpi=600)
+tmap_save(OD_flow_plot, 
+          paste0(here::here(),"/Figures/SA-and-SAperStud-20112016.png"),
+          height=7, 
+          width=12,
+          dpi=600)
 ```
 
 ```{r, eval=FALSE}
@@ -1155,7 +1165,7 @@ OTGC_{Catholic} =F^{0.471}-e^{0.00003*DistCBD}+e^{2.333*Elem_b}
 
 ```{r catchments-2011-2016, fig.cap="\\label{fig:Fig1}The school catchments, estimated on the ground capacities of schools summed per catchment, and school status for both public and public catholic school boards for year 2011 and 2016. OTGC is presented by quartiles. ", out.width="100%", echo=FALSE}
 
-knitr::include_graphics("Figures/catchment_schools_plot.png")
+knitr::include_graphics(paste0(here::here(),"/Figures/catchment_schools_plot.png"))
 ```
 
 ## Students, residential locations and low-income prevelance
@@ -1164,7 +1174,7 @@ Secondly, student population and proportion of household low-income after tax (L
 Thirdly, centroids of residential parcels in 2011 and 2016 are used to represent residential locations [@Teranet_2009]. There are 134,340 and 139,467 residential locations in 2011 and 2016 respectively, representing `r cen_data_2011_hamiltononly$DA_households |> sum() |> prettyNum(big.mark = ",")` and `r cen_data_2016_hamiltononly$DA_households |> sum() |> prettyNum(big.mark = ",")` households (according to the Canadian Census [@Statistics_Canada_2011; @Statistics_Canada_2016]). As the number of children per residential location is unavailable publicly, the average number of 5 to 14 year olds for each DA is divided by the number of residential households in that DA. Then the potential number of children at each residential location is calculated by multiplying this DA rate. As the [@Teranet_2009] dataset is proprietary, the the middle row in @fig-Fig2 visualises an aggregation of the information: the average rate of 5-14 year olds per residential household at the DA level. 
 
 ```{r elem-res-rate-2016, fig.cap="\\label{fig:Fig2}The magnitude (top row) and rate per residential unit (middle row) of elementary aged student population per DA in 2011 and 2016. The proportion of low-income households with children under 18 years old is also shown (bottom row). All scales are represented in quartiles.", out.width="100%", echo=FALSE}
-knitr::include_graphics("Figures/stud_pop_rate_LIM_plot.png")
+knitr::include_graphics(paste0(here::here(),"/Figures/stud_pop_rate_LIM_plot.png"))
 ```
 
 ## Estimated travel times and emissions 
@@ -1174,12 +1184,12 @@ The fourth data source is an estimated travel time matrices from all residential
 It is assumed that children can go to any elementary school, but certain schools are more likely to be attended depending on their proximity to their residential location. Based on this assumption, the fifth data source is empirical data regarding the mode-used and origin-destination locations of home-to-school trips from the 2011 and 2016 TTS [@data_management_group_tts_2018]. The TTS is representative travel survey conducted in the Greater Golden Horseshoe Area in Ontario every 5 years. The trip-level travel data extract for this paper represent `r od_trips_perc_2011$TAZOrig_car_trips |> sum() |> prettyNum(big.mark = ",")` and `r od_trips_perc_2016$TAZOrig_car_trips |> sum() |> prettyNum(big.mark = ",")` motorized trips (mode used includes private care passenger, school bus, taxi, and transit) and `r od_trips_perc_2011$TAZOrig_walk_trips |> sum() |> prettyNum(big.mark = ",")` and `r od_trips_perc_2016$TAZOrig_walk_trips |> sum() |> prettyNum(big.mark = ",")` non-motorized trips (mode used includes walk and cycling) for 5 to 13 year olds from home to school in 2011 and 2016 respectively. Data is available at the spatial resolution of Traffic Analysis Zones (TAZ). TAZ are spatial units created for the purpose of the TTS; a few DAs typically nest within each TAZ. {r5r} is used to estimated motorized and non-motorized travel from all TAZ centroids to all TAZ centroids and these estimated travel times are tied to the OD trips. The travel times and the intensity of modal home-to-school flows are visualised in @fig-Fig3 along with the boundaries of the TAZ and DAs. As can be seen in @fig-Fig3, not all TAZ capture an elementary school trip by both modes. For this reason, the proportion of modal-split is aggregated at the community level. Hamilton (Ancaster `r community_car_perc_2011$TAZOrig_car_perc[1] |> percent()`-`r community_car_perc_2016$TAZOrig_car_perc[1] |> percent()`, Dundas `r community_car_perc_2011$TAZOrig_car_perc[2] |> percent()`-`r community_car_perc_2016$TAZOrig_car_perc[2] |> percent()`, Flamborough `r community_car_perc_2011$TAZOrig_car_perc[3] |> percent()`-`r community_car_perc_2016$TAZOrig_car_perc[3] |> percent()`, Glanbrook `r community_car_perc_2011$TAZOrig_car_perc[4] |> percent()`-`r community_car_perc_2016$TAZOrig_car_perc[4] |> percent()`, Hamilton Central `r community_car_perc_2011$TAZOrig_car_perc[5] |> percent()`-`r community_car_perc_2016$TAZOrig_car_perc[5] |> percent()`, and Stoney Creek `r community_car_perc_2011$TAZOrig_car_perc[6] |> percent()`-`r community_car_perc_2016$TAZOrig_car_perc[6] |> percent()`).
 
 ```{r imped-20112016, fig.cap="\\label{fig:Fig3}The origin-destination flows from home-based motorized and non-motorized school trips for students between 5-13 years old as retrieved from TTS 2011 and 2016 mapped atop proportion of TAZ non/motorized modal share, DA boundaries, and community boundaries. ", out.width="100%", echo=FALSE}
-knitr::include_graphics("Figures/OD_flow_plot.png")
+knitr::include_graphics(paste0(here::here(),"/Figures/OD_flow_plot.png"))
 ```
 Furthermore, as a sixth data source, an estimated travel time matrix for walk and car travel modes is calculated using {r5r} and the geographical centroids of the TTS origin-destination flows.  For both modes, the inputs assume a maximum travel time threshold of 60 minutes and the free-flow OpenStreetMap road network of Hamilton [@geofabrikOntarioOpenStreetMapGeofabrik2022]. The walk travel times are filtered to only include travel times under 27 minutes. These travel time matrices along with the origin-destination flows are used to create modal trip length distribution (TLD) functions. A TLD is a useful technique to calibrate impedance functions as they are a representation of the likelihood that a proportion of trips are taken at a specific travel cost [@horbachov_theoretical_2018; @batista_estimation_2019]. The empirical TLD is fit to a density distribution using maximum likelihood and moment matching techniques and the Nelder-Mead and Brent methods for direct optimization available within the {fitdistrplus} R package [@fitdistrplus_2015]. Based on goodness-of-fit criteria and diagnostics (included in Appendix), the gamma and exponential distribution is selected for the motorized and non-motorized modal distributions respectively. The gamma distribution is defined by the shape ($\alpha$) parameter of `r round(gamma2011_motor$estimate[1], 3)` (2011) and `r round(gamma2016_motor$estimate[1], 3)` (2016) and the rate ($\beta$) of `r round(gamma2011_motor$estimate[2], 3)` (2011) and `r round(gamma2016_motor$estimate[2], 3)` (2016). The exponential distribution is defined by the rate ($\beta$) parameter of `r round(exp2011_nonmotor$estimate[1], 3)` (2011) and `r round(exp2016_nonmotor$estimate[1], 3)` (2016). The TLDs for the motorized and non-motorized trips are shown in @fig-Fig4.
 
 ```{r imped-20112016-2, fig.cap="\\label{fig:Fig4}The empirical and theoretical motorized and non-motorized impedance functions. ", out.width="100%", echo=FALSE}
-knitr::include_graphics("Figures/TLD_empirical_wtheo_curve_plot.png")
+knitr::include_graphics(paste0(here::here(),"/Figures/TLD_empirical_wtheo_curve_plot.png"))
 ```
 
 The sixth and final data source relates to motorized GHG well-to-wheel estimations. It assumed that all non-motorized trips produce no emissions and those that are motorized take the average emission factor of 0.1 kg CO2e per minute travel. This emission factor is assumed base on an average speed of 40 km/h, the 2,380 g $CO_{2}e$ produced when 1 L of gasoline is combusted and an internal combustion engine passenger vehicle fuel efficiency of 7 g/100km as discussed in @soukhovOccupancyGHGEmissions2022.
@@ -1253,13 +1263,13 @@ For the reasons outlined, this paper uses the multimodal spatial availability $V
 # Results
 
 ```{r Vim-vim-4-plots, fig.cap="\\label{fig:Fig6}Multimodal spatial availability (greys) and spatial availability per mode-using student (diverging reds and greens) aggregated at the level of DA for 2011 and 2016.", out.width="100%", echo=FALSE}
-knitr::include_graphics("Figures/Vim_vvim_20112016_plot.png")
+knitr::include_graphics(paste0(here::here(),"/Figures/Vim_vvim_20112016_plot.png"))
 ```
 
 The motorized and non-motorized spatial availability $V_i$ for both 2011 and 2016 is represented in the top half of @fig-Fig6. Though at different magnitudes, both populations using non- and motorized modes have higher spatial availability when more proximate to schools. Hence, all DAs have higher values within Hamilton Central and those more proximate to schools in less-urban communities. Trends appear similar for both 2011 and 2016: proximate populations using motorized modes benefit from a wider-range in high spatial availability than non-motorized modes. When $V_im$ is divided by the number of mode-using students in that DA, $v_i^m$ is derived (bottom half of @fig-Fig6). A similar spatial distribution seen in $V_i^m$ can be seen in $v_i^m$ plots, but as a rate of student population. If our aim is to provide sufficient availability to schools for both motorized and non-motorized populations (i.e., greater than 1.0 $v_i^m$ school-seat availability per student), this rate is only achieved in the core of the city for motorized modes, and notably only for non-motorized populations in DAs that are in less-densely populated rural areas that are school proximate and certain pockets of Hamilton Central. The majority of schools closed were within Hamilton Central, so non-motorized populations in DAs within Hamilton Central were the most negatively, and certain motorized populations captured these losses as gains in availability. 
 
 ```{r change-Vim-vim-plot, fig.cap="\\label{fig:Fig7}The change in multimodal spatial availability and spatial availability per mode-using student between 2016 and 2011 at the level of DA of the 2016 Canadian Census.", out.width="100%", echo=FALSE}
-knitr::include_graphics("Figures/Vim_vvim_20112016_CHANGE_plot.png")
+knitr::include_graphics(paste0(here::here(),"/Figures/Vim_vvim_20112016_CHANGE_plot.png"))
 ```
 
 To emphasize how spatial availability changed between 2016 and 2011, the change in $V_i^m$ and $v_i^m$ is visualised for both modes in @fig-Fig7. Overall, a decrease in both $V_i^m$ and $v_i^m$ can be seen both modes modes around closed schools (black points). An increase near new or expanded schools (green points) is not as noteable as overall fewer school seats were added relative to population increase. The non-motorized mode-using populations are most impacted by the school closures/consolidations along with other competition factors such as increased children population in less urban areas and an increase in motorized mode use. For non-motorzied mode-using populations, $V_i^m$ decreases across the city. However, some motorized-mode using populations in DAs do experience an increase in $V_i^m$: these DAs are often relatively proximate to schools but more immediately outside walking-range. Under a competitive and constraint calculation, these DAs benefit from the losses in spatial availability that are predominately experienced by the non-motorized populations within Hamilton Central. 

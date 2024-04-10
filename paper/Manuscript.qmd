@@ -6,6 +6,8 @@ linenumbers: true
 numbersections: true
 format: pdf
 editor: source
+execute: 
+  freeze: auto
 author:
   - name: "Anastasia Soukhov"
     email: "soukhoa@mcmaster.ca"
@@ -35,7 +37,7 @@ keywords: [accessibility; spatial availability; carbon emissions; journey-to-sch
 ```{r knitr-setup, include=FALSE}
 knitr::opts_chunk$set(
   echo = FALSE,
-  cache = TRUE,
+  cache = FALSE,
   warning = FALSE,
   message = FALSE,
   comment = '', 

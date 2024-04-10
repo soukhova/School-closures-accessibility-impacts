@@ -35,7 +35,7 @@ keywords: [accessibility; spatial availability; carbon emissions; journey-to-sch
 ```{r knitr-setup, include=FALSE}
 knitr::opts_chunk$set(
   echo = FALSE,
-  cache = FALSE,
+  cache = TRUE,
   warning = FALSE,
   message = FALSE,
   comment = '', 
@@ -1378,6 +1378,10 @@ By quantifying the spatial availability, environmental, and active-travel implic
 Like many other localities, Hamilton is not immune to top-down financial efficient policy decisions to determine community infrastructure is underutilized and it be closed. From the perspective of the provincial government of Ontario, the school closures which occurred in Hamilton resulted in operational savings-per-student but we demonstrate how this resulted in both families and students paying a price through spatial availability, lost potential walk minutes, and increased GHG emissions. In the case of Hamilton Central, where households have the highest prevalence of LIM-AT in the city, those households suffer the most disproportionate decrease in motorized spatial availability and increase in percentage increase in emissions per capacity. As public schools should serve all students; the determination of spatial availability and spatial equity of impact, is critical to better inform decision-makers when evaluating school consolidation policies.
 
 Ultimately, this case study furnishes evidence that consolidation of schools was particularly ill-timed: with the advent of the COVID-19 pandemic, the education system lacked the resiliency to accommodate reduced classroom capacities and left parents who once lived within active transportation distance to schools relying on motorized transportation for their children. These top-down austerity measures left the Hamilton local school system more vulnerable to the impacts of COVID-19 by undervaluing the societal role of schools in neighbourhoods. By identifying the impact of school consolidation policies in Ontario we anticipate that researchers and decision-makers will have better information to center the wellbeing of all residents, including students, and the planet in urban planning policies.  
+
+# Appendix
+
+The regression model for the OTGC for schools goes here.
 
 # References
 

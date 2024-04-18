@@ -3,7 +3,7 @@ title: "The cost of school consolidations: impacts of reduced accessibility"
 bibliography: mybibfile.bib
 linenumbers: true
 numbersections: true
-format: pdf
+format: docx
 editor: source
 author:
   - name: "Anastasia Soukhov"

@@ -130,9 +130,15 @@ RED_LU_2016 <- st_make_valid(RED_LU_2016)
 
 Transfer the GeoUID from the DAs (I.e., their DA IDs) that intersect with the residential land use parcel centroids to the RED_LU sf object. (we use 'over' here instead of st_intersection because it is way faster)
 ```{r}
-RED_LU_centroids_2011 <- sp::over(as_Spatial(st_centroid(RED_LU_2011)),as_Spatial(cen_data_2011_1 |> select(GeoUID)))
-RED_LU_centroids_2011<- cbind(RED_LU_centroids_2011,st_centroid(RED_LU_2011))
+RED_LU_centroids_2011 <- sp::over(as_Spatial(st_centroid(RED_LU_2011)),as_Spatial(cen_data_2011_1 |> dplyr::select(GeoUID)))
+
+RED_LU_centroids_2011_w2016ID <- sp::over(as_Spatial(st_centroid(RED_LU_2011)),as_Spatial(cen_data_2016_1 |> dplyr::select(GeoUID) |> rename("GeoUID_2016" = "GeoUID")))
+
+RED_LU_centroids_2011 <- cbind(RED_LU_centroids_2011_w2016ID,
+                              RED_LU_centroids_2011,
+                              st_centroid(RED_LU_2011))
 ```
+
 ```{r}
 RED_LU_centroids_2016 <- sp::over(as_Spatial(st_centroid(RED_LU_2016)),as_Spatial(cen_data_2016_1 |> select(GeoUID)))
 
@@ -141,7 +147,7 @@ RED_LU_centroids_2016<- cbind(RED_LU_centroids_2016,st_centroid(RED_LU_2016))
 
 Now transfer the TAZ ids to the RED centroids -- this is so we can pull the proportion of motor/non-motorized trips. 
 ```{r}
-ggh_taz <- st_read("data-inputs/TTS/tts06_83_region.shp") |> st_transform(st_crs(cen_data_2011_hamiltononly))
+ggh_taz <- st_read("data-inputs/TTS/tts06_83_region.shp") |> st_transform(st_crs(cen_data_2011_1))
 ```
 Now add the TAZ IDs column to the residential parcel id
 ```{r}

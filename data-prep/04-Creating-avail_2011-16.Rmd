@@ -203,6 +203,7 @@ OD_2011 %>%
 
 ```{r}
 #now let's add the communtiy names to the TAZ and summarize the % of students who use what mode by community. 
+#NOTE: ham_taz is from 03-travel-times-TTS.qmd... add
 ggh_taz_communities <- st_intersection(st_centroid(ham_taz) |> st_transform(st_crs(ggh_taz)), 
                                        ham_community_bounds |> st_transform(st_crs(ggh_taz))) |>
   dplyr::select(c("GTA06", "REGION", "COMMUNITY_")) 

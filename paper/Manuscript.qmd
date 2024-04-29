@@ -64,6 +64,19 @@ library(units) # Measurement Units for R Vectors
 ```
 
 ```{r, include=FALSE}
+#boundaries for mapping
+hamilton_communities <- st_read(paste0(here::here(),"/data-prep/data-inputs/Boundaries/Community_Boundaries.shp")) |> mutate(COMMUNITY_ = ifelse(COMMUNITY_ == "Hamilton", "Hamilton-Central", COMMUNITY_))
+
+ham_bound <- st_read(paste0(here::here(),"/data-prep/data-inputs/Boundaries/City_Boundary.shp"))
+
+hydro_p_LakeOntario <- st_read(paste0(here::here(),"/data-prep/data-inputs/Boundaries/hydro_p_LakeOntario.shp")) |> st_transform(crs=4326)
+
+ham_bay <- st_read(paste0(here::here(),"/data-prep/data-inputs/Boundaries/Waterbodies.shp")) |> st_transform(crs=4326) |> filter(FEATURE_TY == "Lake")
+
+ham_streets <- st_read(paste0(here::here(),"/data-prep/data-inputs/Boundaries/Street_Centreline.shp")) |> st_transform(crs=4326) |> filter(ROAD_CLASS %in% c("Provincial Highway", "Parkway", "Arterial")) #no collectors, arterial, Local
+```
+
+```{r, include=FALSE}
 load(file = paste0(here::here(),"/data-prep/data-products/cen_data_2011_hamiltononly.Rdata"))
 cen_data_2011_hamiltononly <- cen_data_2011_1 |> filter(Region.Name == "Hamilton") #NOTE: GEOUID 35250242, 35250133, 35250457 do not have any child population
 rm("cen_data_2011_1")
@@ -160,23 +173,44 @@ tmap_defaults <-
   tm_layout(legend.position = c("left", "top")) #legend.hist.size = 10, 
 
 catchment_schools_plot <-
+   tm_shape(ham_bay, bbox=hamilton_communities) + tm_polygons(col="skyblue", border.alpha = 0) +
+  tm_shape(hydro_p_LakeOntario, bbox=hamilton_communities) + tm_polygons(col="skyblue", border.alpha = 0)+
   tm_shape(ALL_SCHOOLS_CATCH_Elem_extra) +
-  tm_polygons(col = "OTGC", border.alpha=0.1, palette = "Greys",
+  tm_polygons(col = "OTGC", border.alpha=0.1, palette = "RdPu",
               labels = c("[181-318)", "[318-406)", "[406-566)","[566-1417]"),
               breaks = c(181, 318, 406, 566, 1417),
               title = "On the ground\ncapacity (OTGC)")+
   tm_facets(by=c("System","Year"))+
   tm_shape(ALL_SCHOOLS_Elem_formapping) +
-  tm_dots(col = "Status", size=0.1, title = "School status between\n2011 and 2016",
-          palette = c("#ffd14d", "black", "darkgreen","#0E86D4","#90EE90"),
-          labels = c("No change","Closed before 2016", "Expanded before 2016","Moved before 2016","New after 2011")          
+  tm_symbols(shape = "Status",
+             size=0.15,
+          title.shape = "School status",
+          shapes = c(24,25,22,21,23),
+          shapes.labels = c(
+          "Expanded after 2011",
+          "Moved before 2016",
+          "New after 2011",
+          "No change btwn 2011-16",
+          "Closed before 2016")
   ) +
-  tm_facets(by=c("Year","System"))+
+  tm_facets(by=c("System","Year"))+
+  tm_credits(c("52 schools\n(18,771 OTGC)","49 schools\n(18,039 OTGC)",
+                "95 schools\n(41,796 OTGC)","88 schools\n(40,249 OTGC)"),
+             position = c("LEFT", "BOTTOM")) +
   tmap_defaults +
-  tm_layout(panel.labels = list(c('HWDCSB (Catholic Public)','HWDSB (Public)'),c('2011','2016')))
+  tm_layout(bg.color = "grey",
+            panel.labels = list(c('HWDCSB (Catholic Public)','HWDSB (Public)'),
+                                c('2011','2016')),
+            panel.label.bg.color = "white")
+   
+catchment_schools_plot
+```
 
+```{r descriptive-catchment-schools-plot2, eval=FALSE}
 tmap_save(catchment_schools_plot, paste0(here::here(),"/Figures/catchment_schools_plot.png"), height=7, width=12, dpi=600)
 ```
+
+<!-- Number of schools? Yes Also, make the symbols that map the schools bigger, and use different shapes in addition to different colors. As an alternative, the OTGC could be the color, and the school category the shape. -->
 
 ```{r,include=FALSE}
 load(file = paste0(here::here(),"/data-prep/data-products/avail_2011.RData"))
@@ -211,6 +245,7 @@ avail_2016 %>%
 ```
 
 ```{r}
+#calc spatial availability and other associated variables at the DA 2011 level
 SAvail_im_DA2011 <- avail_2011 %>%
   group_by(GeoUID, 
            mode) %>%
@@ -229,6 +264,7 @@ SAvail_im_DA2011 <- avail_2011 %>%
          V_i_kid_popadj_LIMAT = ifelse(is.na(V_i_kid_popadj_LIMAT) | is.nan(V_i_kid_popadj_LIMAT), 0, V_i_kid_popadj_LIMAT)) |>
   filter(GeoUID != 35250242 & GeoUID != 35250133 & GeoUID != 35250457 ) #these GeoUID's have 0 kid population, so let's drop so we don't have zeros
 
+#calc spatial availability and other associated variables at the DA 2016 level
 SAvail_im_DA2016 <- avail_2016 %>%
   group_by(GeoUID, 
            mode) %>%
@@ -254,23 +290,119 @@ SAvail_im_DA2011 <- SAvail_im_DA2011 |>
 
 SAvail_im_DA2016 <- SAvail_im_DA2016 |>
   left_join(cen_data_2016_hamiltononly |> filter(Region.Name == "Hamilton") |> dplyr::select(GeoUID), by="GeoUID") |> st_set_geometry("geometry")
-```
-```{r}
-#Create 1 sf with data joined, no changes
+
+#Create 1 sf with data joined (no changes, just 2011 and 2016)
 SAvail_im_DA <-
   rbind(SAvail_im_DA2011 |> mutate(year ="2011"),
         SAvail_im_DA2016 |> mutate(year ="2016")) |>
   mutate(mode = case_when(mode == "c" ~ "motorized",
                           mode == "w" ~ "non-motorized"))
+```
 
-#calc changes between the years - make that 1 sf
-SAvail_im_DA_changes <- full_join(SAvail_im_DA2011|>st_drop_geometry(),
-                                  SAvail_im_DA2016, by=c("GeoUID", "mode")) |>
-  transmute(GeoUID,
+```{r}
+#calc changes between the years - but at the 2016 DA level 
+SAvail_im_DA2011_forGeoUID2016 <- avail_2011 %>%
+  group_by(GeoUID_2016, 
+           mode) %>%
+  summarize(COMMUNITY = first(COMMUNITY),
+            total_tt = sum(travel_time_p50*kid_popadj),
+            V_im = sum(V_ij),
+            kid_popadj_m = sum(kid_popadj),
+            DA_pop_5to14 = mean(DA_pop_5to14, na.rm=T),
+            DA_prev_LIMAT_under18 = mean(DA_prev_LIMAT_under18),
+            .groups = "drop") |>
+  mutate(emissions_total_car_tt = ifelse(mode == "c", 0.1*total_tt, 0),
+         v_im_kid_popadj = V_im/kid_popadj_m,
+         v_im_kid_popadj_LIMAT = v_im_kid_popadj*(DA_prev_LIMAT_under18/100),
+         v_im_kid_popadj_LIMAT = ifelse(is.na(v_im_kid_popadj_LIMAT) | is.nan(v_im_kid_popadj_LIMAT), 0, v_im_kid_popadj_LIMAT),
+         V_i_kid_popadj_LIMAT = V_im*(DA_prev_LIMAT_under18/100),
+         V_i_kid_popadj_LIMAT = ifelse(is.na(V_i_kid_popadj_LIMAT) | is.nan(V_i_kid_popadj_LIMAT), 0, V_i_kid_popadj_LIMAT))
+
+
+SAvail_im_DA_changes <- full_join(SAvail_im_DA2011_forGeoUID2016,
+                                  SAvail_im_DA2016, by=c("GeoUID_2016"="GeoUID", 
+                                                         "mode")) %>%
+  transmute(GeoUID_2016,
             mode = case_when(mode == "c" ~ "motorized",
                              mode == "w" ~ "non-motorized"),
             COMMUNITY = dplyr::coalesce(COMMUNITY.x, COMMUNITY.y),
             c_total_tt = total_tt.y - total_tt.x, #2016 minus 2011 tt
+            c_total_ttperkid = (total_tt.y/kid_popadj_m.y) - (total_tt.x/kid_popadj_m.x),
+            c_V_im = V_im.y -V_im.x,
+            c_V_im_perc = (V_im.y -V_im.x)/V_im.x,
+            c_kid_popadj_m = kid_popadj_m.y - kid_popadj_m.x,
+            c_DA_pop_5to14 = DA_pop_5to14.y - DA_pop_5to14.x,
+            c_DA_prev_LIMAT_under18 = DA_prev_LIMAT_under18.y - DA_prev_LIMAT_under18.x,
+            c_emissions_total_car_tt = emissions_total_car_tt.y - emissions_total_car_tt.x,
+            c_v_im_kid_popadj = v_im_kid_popadj.y - v_im_kid_popadj.x,
+            c_v_im_kid_popadj_perc = (v_im_kid_popadj.y - v_im_kid_popadj.x)/v_im_kid_popadj.x,
+            c_v_im_kid_popadj_LIMAT = v_im_kid_popadj_LIMAT.y - v_im_kid_popadj_LIMAT.x,
+            c_V_i_kid_popadj_LIMAT = V_i_kid_popadj_LIMAT.y - V_i_kid_popadj_LIMAT.x) |>
+  left_join(cen_data_2016_hamiltononly|>dplyr::select(c("GeoUID")), 
+            by=c("GeoUID_2016" = "GeoUID")) %>% st_as_sf
+
+```
+
+
+```{r}
+#calc changes between the years - but between communities with geom for mapping
+ham_community_bounds <- ham_community_bounds |> 
+  mutate(COMMUNITY = case_when(COMMUNITY_ == "Ancaster" ~ "AN",
+                               COMMUNITY_ == "Dundas" ~ "DU",
+                               COMMUNITY_ == "Flamborough" ~ "FL",
+                               COMMUNITY_ == "Glanbrook" ~ "GL",
+                               COMMUNITY_ == "Hamilton" ~ "HA",
+                               COMMUNITY_ == "Stoney Creek" ~ "SC"))
+
+SAvail_im_COMM2011 <- avail_2011 %>% 
+  group_by(COMMUNITY, 
+           mode) %>%
+  summarize(total_tt = sum(travel_time_p50*kid_popadj),
+            V_im = sum(V_ij),
+            kid_popadj_m = sum(kid_popadj),
+            DA_pop_5to14 = mean(DA_pop_5to14, na.rm=T),
+            DA_prev_LIMAT_under18 = mean(DA_prev_LIMAT_under18),
+            .groups = "drop") |>
+  mutate(emissions_total_car_tt = ifelse(mode == "c", 0.1*total_tt, 0),
+         v_im_kid_popadj = V_im/kid_popadj_m,
+         v_im_kid_popadj_LIMAT = v_im_kid_popadj*(DA_prev_LIMAT_under18/100),
+         v_im_kid_popadj_LIMAT = ifelse(is.na(v_im_kid_popadj_LIMAT) | is.nan(v_im_kid_popadj_LIMAT), 0, v_im_kid_popadj_LIMAT),
+         V_i_kid_popadj_LIMAT = V_im*(DA_prev_LIMAT_under18/100),
+         V_i_kid_popadj_LIMAT = ifelse(is.na(V_i_kid_popadj_LIMAT) | is.nan(V_i_kid_popadj_LIMAT), 0, V_i_kid_popadj_LIMAT)) 
+
+SAvail_im_COMM2016 <- avail_2016 %>%
+  group_by(COMMUNITY, 
+           mode) %>%
+  summarize(total_tt = sum(travel_time_p50*kid_popadj),
+            V_im = sum(V_ij),
+            kid_popadj_m = sum(kid_popadj),
+            DA_pop_5to14 = mean(DA_pop_5to14, na.rm=T),
+            DA_prev_LIMAT_under18 = mean(DA_prev_LIMAT_under18),
+            .groups = "drop") |>
+  mutate(emissions_total_car_tt = ifelse(mode == "c", 0.1*total_tt, 0),
+         v_im_kid_popadj = V_im/kid_popadj_m,
+         v_im_kid_popadj = ifelse(is.na(v_im_kid_popadj) | is.nan(v_im_kid_popadj), 0, v_im_kid_popadj),
+         v_im_kid_popadj_LIMAT = v_im_kid_popadj*(DA_prev_LIMAT_under18/100),
+         v_im_kid_popadj_LIMAT = ifelse(is.na(v_im_kid_popadj_LIMAT) | is.nan(v_im_kid_popadj_LIMAT), 0, v_im_kid_popadj_LIMAT),
+         V_i_kid_popadj_LIMAT = V_im*(DA_prev_LIMAT_under18/100),
+         V_i_kid_popadj_LIMAT = ifelse(is.na(V_i_kid_popadj_LIMAT) | is.nan(V_i_kid_popadj_LIMAT), 0, V_i_kid_popadj_LIMAT)) 
+
+#add the geometries -- census DAs
+SAvail_im_COMM2011 <- SAvail_im_COMM2011 |>
+  left_join(ham_community_bounds |> dplyr::select(c("COMMUNITY_","COMMUNITY")), by=c("COMMUNITY"))|> st_set_geometry("geometry")
+
+SAvail_im_COMM2016 <- SAvail_im_COMM2016 |>
+  left_join(ham_community_bounds |> dplyr::select(c("COMMUNITY_","COMMUNITY")), by=c("COMMUNITY"))|> st_set_geometry("geometry")
+
+
+#calc changes between the years - make that 1 sf
+SAvail_im_COMM_changes <- full_join(SAvail_im_COMM2011|>st_drop_geometry(),
+                                  SAvail_im_COMM2016, by=c("COMMUNITY", "mode")) |>
+  transmute(COMMUNITY,
+            mode = case_when(mode == "c" ~ "motorized",
+                             mode == "w" ~ "non-motorized"),
+            c_total_tt = total_tt.y - total_tt.x, #2016 minus 2011 tt
+            c_total_ttperkid = (total_tt.y/kid_popadj_m.y) - (total_tt.x/kid_popadj_m.x),
             c_V_im = V_im.y -V_im.x,
             c_V_im_perc = (V_im.y -V_im.x)/V_im.x,
             c_kid_popadj_m = kid_popadj_m.y - kid_popadj_m.x,
@@ -281,169 +413,57 @@ SAvail_im_DA_changes <- full_join(SAvail_im_DA2011|>st_drop_geometry(),
             c_v_im_kid_popadj_perc = (v_im_kid_popadj.y - v_im_kid_popadj.x)/v_im_kid_popadj.x,
             c_v_im_kid_popadj_LIMAT = v_im_kid_popadj_LIMAT.y - v_im_kid_popadj_LIMAT.x,
             c_V_i_kid_popadj_LIMAT = V_i_kid_popadj_LIMAT.y - V_i_kid_popadj_LIMAT.x,
-            geometry) |> st_as_sf()
-
-```
-
-```{r}
-#repeat but for all 1 mode
-SAvail_i_DA2011 <- avail_2011 %>%
-  group_by(GeoUID) %>%
-  summarize(COMMUNITY = first(COMMUNITY),
-            total_tt = sum(travel_time_p50*kid_popadj, na.rm = T),
-            V_i = sum(V_ij, na.rm = T),
-            DA_pop_5to14 = mean(DA_pop_5to14, na.rm=T),
-            kid_pop_DAavg = mean(kid_pop, na.rm = T),
-            DA_prev_LIMAT_under18 = mean(DA_prev_LIMAT_under18, na.rm = T),
-            .groups = "drop") |>
-  filter(GeoUID != 35250242 & GeoUID != 35250133 & GeoUID != 35250457 ) #these GeoUID's have 0 kid population, so let's drop so we don't have zeros
-
-SAvail_i_DA2016 <- avail_2016 %>%
-  group_by(GeoUID) %>%
-  summarize(COMMUNITY = first(COMMUNITY),
-            total_tt = sum(travel_time_p50*kid_popadj),
-            V_i = sum(V_ij, na.rm = T),
-            DA_pop_5to14 = mean(DA_pop_5to14, na.rm=T),
-            kid_pop_DAavg = mean(kid_pop, na.rm = T),
-            DA_prev_LIMAT_under18 = mean(DA_prev_LIMAT_under18, na.rm = T),
-            .groups = "drop") |>
-  filter(GeoUID != 35250398 & GeoUID != 35250133 & GeoUID != 35250427 ) #these GeoUID's have 0 kid population, so let's drop so we don't have zeros
-
-#add the geometries -- census DAs
-SAvail_i_DA2011 <- SAvail_i_DA2011 |>
-  left_join(cen_data_2011_hamiltononly |> filter(Region.Name == "Hamilton") |> dplyr::select(GeoUID), by="GeoUID") |> mutate(Year = "2011") |> st_set_geometry("geometry")
-
-SAvail_i_DA2016 <- SAvail_i_DA2016 |>
-  left_join(cen_data_2016_hamiltononly |> filter(Region.Name == "Hamilton") |> dplyr::select(GeoUID), by="GeoUID") |> mutate(Year = "2016") |> st_set_geometry("geometry")
-
-#join them together!
-SAvail_i_DA_extra <- rbind(SAvail_i_DA2011, SAvail_i_DA2016)
-rm(SAvail_i_DA2011,SAvail_i_DA2016)
-```
-
-```{r}
-#now do this at the community level
-ham_community_bounds <- ham_community_bounds |> 
-  mutate(COMMUNITY = case_when(COMMUNITY_ == "Ancaster" ~ "AN",
-                               COMMUNITY_ == "Dundas" ~ "DU",
-                               COMMUNITY_ == "Flamborough" ~ "FL",
-                               COMMUNITY_ == "Glanbrook" ~ "GL",
-                               COMMUNITY_ == "Hamilton" ~ "HA",
-                               COMMUNITY_ == "Stoney Creek" ~ "SC"))
-
-SAvail_im_COMM2011 <- SAvail_im_DA2011 %>% st_drop_geometry() |>
-  group_by(COMMUNITY, 
-           mode) %>%
-  summarize(total_tt = sum(total_tt, na.rm=T),
-            V_im = sum(V_im, na.rm=T),
-            kid_popadj_m = sum(kid_popadj_m, na.rm=T),
-            COMM_prev_LIMAT_under18 = mean(DA_prev_LIMAT_under18, na.rm=T),
-            emissions_total_car_tt = sum(emissions_total_car_tt, na.rm=T),
-            .groups = "drop") |>
-  mutate(v_im_kid_popadj = V_im/kid_popadj_m,
-         v_im_kid_popadj_LIMAT = v_im_kid_popadj*(COMM_prev_LIMAT_under18/100),
-         v_im_kid_popadj_LIMAT = ifelse(is.na(v_im_kid_popadj_LIMAT) | is.nan(v_im_kid_popadj_LIMAT), 0, v_im_kid_popadj_LIMAT),
-         V_i_kid_popadj_LIMAT = V_im*(COMM_prev_LIMAT_under18/100),
-         V_i_kid_popadj_LIMAT = ifelse(is.na(V_i_kid_popadj_LIMAT) | is.nan(V_i_kid_popadj_LIMAT), 0, V_i_kid_popadj_LIMAT))  |> left_join(ham_community_bounds |> dplyr::select(-c("OBJECTID")), by=c("COMMUNITY")) |> st_set_geometry("geometry")
-
-SAvail_im_COMM2016 <- SAvail_im_DA2016 %>% st_drop_geometry() |>
-  group_by(COMMUNITY, 
-           mode) %>%
-  summarize(total_tt = sum(total_tt, na.rm=T),
-            V_im = sum(V_im, na.rm=T),
-            kid_popadj_m = sum(kid_popadj_m, na.rm=T),
-            COMM_prev_LIMAT_under18 = mean(DA_prev_LIMAT_under18, na.rm=T),
-            emissions_total_car_tt = sum(emissions_total_car_tt, na.rm=T),
-            .groups = "drop") |>
-  mutate(v_im_kid_popadj = V_im/kid_popadj_m,
-         v_im_kid_popadj_LIMAT = v_im_kid_popadj*(COMM_prev_LIMAT_under18/100),
-         v_im_kid_popadj_LIMAT = ifelse(is.na(v_im_kid_popadj_LIMAT) | is.nan(v_im_kid_popadj_LIMAT), 0, v_im_kid_popadj_LIMAT),
-         V_im_kid_popadj_LIMAT = V_im*(COMM_prev_LIMAT_under18/100),
-         V_im_kid_popadj_LIMAT = ifelse(is.na(V_im_kid_popadj_LIMAT) | is.nan(V_im_kid_popadj_LIMAT), 0, V_im_kid_popadj_LIMAT))  |> left_join(ham_community_bounds |> dplyr::select(-c("OBJECTID")), by=c("COMMUNITY")) |> st_set_geometry("geometry")
-```
-
-```{r}
-#repeat above but with just i, this is to get the correct LIM value.
-SAvail_i_COMM2011 <- SAvail_im_DA2011 %>% st_drop_geometry() |>
-  group_by(COMMUNITY) %>%
-  summarize(COMM_prev_LIMAT_under18 = mean(DA_prev_LIMAT_under18, na.rm=T),
-            .groups = "drop") 
-
-SAvail_i_COMM2016 <- SAvail_im_DA2016 %>% st_drop_geometry() |>
-  group_by(COMMUNITY) %>%
-  summarize(COMM_prev_LIMAT_under18 = mean(DA_prev_LIMAT_under18, na.rm=T),
-            .groups = "drop") 
-
-#calc changes between the years - make that 1 sf
-SAvail_i_COMM_changes <- full_join(SAvail_i_COMM2011 |> st_drop_geometry(),
-                                   SAvail_i_COMM2016, by=c("COMMUNITY")) |>
-  transmute(COMMUNITY,
-            prev_LIMAT_2011 = COMM_prev_LIMAT_under18.x,
-            prev_LIMAT_2016 = COMM_prev_LIMAT_under18.y,
-            c_prev_LIMAT_perc = ((COMM_prev_LIMAT_under18.y - COMM_prev_LIMAT_under18.x)/
-                                   COMM_prev_LIMAT_under18.x )|> scales::percent())
-```
-
-
-```{r}
-#calc changes between the years - make that 1 sf
-SAvail_im_COMM_changes <- full_join(SAvail_im_COMM2011|>st_drop_geometry(),
-                                    SAvail_im_COMM2016, by=c("COMMUNITY", "mode")) |>
-  transmute(COMMUNITY,
-            mode = case_when(mode == "c" ~ "motorized",
-                             mode == "w" ~ "non-motorized"),
-            COMMUNITY_ = dplyr::coalesce(COMMUNITY_.x, COMMUNITY_.y),
-            kid_2011 = kid_popadj_m.x,
-            kid_2016 = kid_popadj_m.y,
-            c_kid_perc = ((kid_popadj_m.y - kid_popadj_m.x)/kid_popadj_m.x) |> scales::percent(),
-            kid_proportion_2011 = (kid_2011/sum(kid_2011)),
-            kid_proportion_2016 = (kid_2016/sum(kid_2016)),
-            c_kid_proportion_perc = ((kid_proportion_2016 - kid_proportion_2011)/kid_proportion_2011)
-            |> scales::percent(),
-            kid_proportion_2011_perc = (kid_proportion_2011) |> scales::percent(),
-            kid_proportion_2016_perc = (kid_proportion_2016) |> scales::percent(),
-            V_im_2011 = V_im.x,
-            V_im_2016 = V_im.y,
-            c_V_im_perc = ((V_im.y -V_im.x)/V_im.x) |> scales::percent(),
-            V_im_proportion_2011 = (V_im.x/sum(V_im.x)),
-            V_im_proportion_2016 = (V_im.y/sum(V_im.y)),
-            c_V_im_proportion_perc = ((V_im_proportion_2016 - V_im_proportion_2011)/V_im_proportion_2011)
-            |> scales::percent(),
-            V_im_proportion_2011_perc = (V_im_proportion_2011) |> scales::percent(),
-            V_im_proportion_2016_perc = (V_im_proportion_2016) |> scales::percent(),
-            v_im_2011 = v_im_kid_popadj.x,
-            v_im_2016 = v_im_kid_popadj.y,
-            c_v_im_perc = ((v_im_kid_popadj.y - v_im_kid_popadj.x)/v_im_kid_popadj.x) |> scales::percent(),
-            total_tt_2011 = total_tt.x,
-            total_tt_2016 = total_tt.y,
-            total_tt_proportion_2011 = (total_tt.x/sum(total_tt.x)),
-            total_tt_proportion_2016 = (total_tt.y/sum(total_tt.y)),
-            c_total_tt_proportion_perc = ((total_tt_proportion_2016 - total_tt_proportion_2011)/total_tt_proportion_2011)
-            |> scales::percent(),
-            total_tt_proportion_2011 = (total_tt_proportion_2011) |> scales::percent(),
-            total_tt_proportion_2016 = (total_tt_proportion_2016) |> scales::percent(),
-            c_total_tt_perc = ((total_tt.y - total_tt.x)/
-                                 total_tt.x)|> scales::percent(),
-            total_tt_perkid_2011 = total_tt.x/kid_2011,
-            total_tt_perkid_2016 = total_tt.y/kid_2016,
-            c_total_ttperkid_perc = ((total_tt_perkid_2016 - total_tt_perkid_2011)/
-                                       total_tt_perkid_2011)|> scales::percent(),
-            emissions_2011 = emissions_total_car_tt.x,
-            emissions_2016 = emissions_total_car_tt.y,
-            c_emissions_perc = ((emissions_total_car_tt.y - emissions_total_car_tt.x)/
-                                  emissions_total_car_tt.x)|> scales::percent(),
-            emissions_proportion_2011 = (emissions_2011/sum(emissions_2011)),
-            emissions_proportion_2016 = (emissions_2016/sum(emissions_2016)),
-            c_emissions_proportion = ((emissions_proportion_2016 - emissions_proportion_2011)/emissions_proportion_2011)
-            |> scales::percent(),
-            emissions_proportion_2011_perc = (emissions_proportion_2011) |> scales::percent(),
-            emissions_proportion_2016_perc = (emissions_proportion_2016) |> scales::percent(),
-            emissions_perkid_2011 = emissions_total_car_tt.x/kid_popadj_m.x,
-            emissions_perkid_2016 = emissions_total_car_tt.y/kid_popadj_m.y,
-            c_emissions_perkid_perc = ((emissions_perkid_2016 - emissions_perkid_2011)/
-                                         emissions_perkid_2011)|> scales::percent(),
-            geometry) |> 
-  left_join(SAvail_i_COMM_changes, by="COMMUNITY") |> st_as_sf() 
+            geometry,
+            # kid_2011 = kid_popadj_m.x,
+            # kid_2016 = kid_popadj_m.y,
+            # c_kid_perc = ((kid_popadj_m.y - kid_popadj_m.x)/kid_popadj_m.x) |> scales::percent(),
+            # kid_proportion_2011 = (kid_2011/sum(kid_2011)),
+            # kid_proportion_2016 = (kid_2016/sum(kid_2016)),
+            # c_kid_proportion_perc = ((kid_proportion_2016 - kid_proportion_2011)/kid_proportion_2011)
+            # %>% scales::percent(),
+            # kid_proportion_2011_perc = (kid_proportion_2011) |> scales::percent(),
+            # kid_proportion_2016_perc = (kid_proportion_2016) |> scales::percent(),
+            # V_im_2011 = V_im.x,
+            # V_im_2016 = V_im.y,
+            # c_V_im_perc = ((V_im.y -V_im.x)/V_im.x) |> scales::percent(),
+            # V_im_proportion_2011 = (V_im.x/sum(V_im.x)),
+            # V_im_proportion_2016 = (V_im.y/sum(V_im.y)),
+            # c_V_im_proportion_perc = ((V_im_proportion_2016 - V_im_proportion_2011)/V_im_proportion_2011)
+            # %>% scales::percent(),
+            # V_im_proportion_2011_perc = (V_im_proportion_2011) |> scales::percent(),
+            # V_im_proportion_2016_perc = (V_im_proportion_2016) |> scales::percent(),
+            # v_im_2011 = v_im_kid_popadj.x,
+            # v_im_2016 = v_im_kid_popadj.y,
+            # c_v_im_perc = ((v_im_kid_popadj.y - v_im_kid_popadj.x)/v_im_kid_popadj.x) |> scales::percent(),
+            # total_tt_2011 = total_tt.x,
+            # total_tt_2016 = total_tt.y,
+            # total_tt_proportion_2011 = (total_tt.x/sum(total_tt.x)),
+            # total_tt_proportion_2016 = (total_tt.y/sum(total_tt.y)),
+            # c_total_tt_proportion_perc = ((total_tt_proportion_2016 - total_tt_proportion_2011)/total_tt_proportion_2011)
+            # %>% scales::percent(),
+            # total_tt_proportion_2011 = (total_tt_proportion_2011) |> scales::percent(),
+            # total_tt_proportion_2016 = (total_tt_proportion_2016) |> scales::percent(),
+            # c_total_tt_perc = ((total_tt.y - total_tt.x)/
+            #                      total_tt.x)|> scales::percent(),
+            # total_tt_perkid_2011 = total_tt.x/kid_2011,
+            # total_tt_perkid_2016 = total_tt.y/kid_2016,
+            # c_total_ttperkid_perc = ((total_tt_perkid_2016 - total_tt_perkid_2011)/
+            #                            total_tt_perkid_2011)|> scales::percent(),
+            # emissions_2011 = emissions_total_car_tt.x,
+            # emissions_2016 = emissions_total_car_tt.y,
+            # c_emissions_perc = ((emissions_total_car_tt.y - emissions_total_car_tt.x)/
+            #                       emissions_total_car_tt.x)|> scales::percent(),
+            # emissions_proportion_2011 = (emissions_2011/sum(emissions_2011)),
+            # emissions_proportion_2016 = (emissions_2016/sum(emissions_2016)),
+            # c_emissions_proportion = ((emissions_proportion_2016 - emissions_proportion_2011)/emissions_proportion_2011)
+            # %>% scales::percent(),
+            # emissions_proportion_2011_perc = (emissions_proportion_2011) |> scales::percent(),
+            # emissions_proportion_2016_perc = (emissions_proportion_2016) |> scales::percent(),
+            # emissions_perkid_2011 = emissions_total_car_tt.x/kid_popadj_m.x,
+            # emissions_perkid_2016 = emissions_total_car_tt.y/kid_popadj_m.y,
+            # c_emissions_perkid_perc = ((emissions_perkid_2016 - emissions_perkid_2011)/
+            #                              emissions_perkid_2011)|> scales::percent()
+            ) |> st_as_sf()
 ```
 
 ```{r student-popabs-lowincperc-poprate-plot, eval=FALSE}
@@ -453,99 +473,123 @@ tmap_defaults <-
   tm_layout(legend.position = c("left", "top")) #legend.hist.size = 10, 
 
 student_pop_absolute_plot <-
+    tm_shape(ham_bay, bbox=hamilton_communities) + tm_polygons(col="skyblue", border.alpha = 0) +
+  tm_shape(hydro_p_LakeOntario, bbox=hamilton_communities) + tm_polygons(col="skyblue", border.alpha = 0)+
   tm_shape(SAvail_i_DA_extra |> mutate(extra_col_for_panel = "HAMILTON")) +
   tm_polygons(col = "DA_pop_5to14", border.alpha=0, 
-              palette = "Greys",
+              palette = "Greens",
               labels = c("[0-40)", "[40-50)", "[50-75)","[75-835]"),
               breaks = c(0, 40, 50, 75, 835),
-              title = "Population aged 5 to 14"
+              title = "Pop. aged 5 to 14"
   )+
   tm_facets(by=c("Year"), ncol=2, nrow=1)+
+    tm_credits(c("City total: 58,265","City total: 58,865"),
+             position = c("LEFT", "BOTTOM")) +
   tmap_defaults +
-  tm_layout(panel.label.height = 0.8)
+  tm_layout(bg.color = "grey",
+            panel.label.bg.color = "white",
+            panel.label.height = 0.8)
 
 
 student_pop_rate_plot <-
+  tm_shape(ham_bay, bbox=hamilton_communities) + tm_polygons(col="skyblue", border.alpha = 0) +
+  tm_shape(hydro_p_LakeOntario, bbox=hamilton_communities) + tm_polygons(col="skyblue", border.alpha = 0)+
   tm_shape(SAvail_i_DA_extra) +
   tm_polygons(col = "kid_pop_DAavg", border.alpha=0, 
               palette = "Blues",
               labels = c("[0-0.0018)", "[0.0018-0.0025)", "[0.0025-0.0038)","[0.0038-0.59]"),
               breaks = c(0, 0.0018, 0.0025, 0.0038, 0.60),
-              title = "Average pop. aged 5 to 14\nper residential unit"
+              title = "Avg. pop. aged 5 to 14\nper residential unit"
   )+
   tm_facets(by=c("Year"), ncol=2, nrow=1)+
+  
   tmap_defaults +
-  tm_layout(panel.show=FALSE)
+  tm_layout(bg.color = "grey",
+            panel.show=FALSE)
 
 LIMAT_under18_DA_plot <-
+  tm_shape(ham_bay, bbox=hamilton_communities) + tm_polygons(col="skyblue", border.alpha = 0) +
+  tm_shape(hydro_p_LakeOntario, bbox=hamilton_communities) + tm_polygons(col="skyblue", border.alpha = 0)+
   tm_shape(SAvail_i_DA_extra) +
   tm_polygons(col = "DA_prev_LIMAT_under18", border.alpha=0, 
               palette = "Reds",
               labels = c("[0-4.3)", "[4.3-13.0)", "[13.0-30.8)","[30.8-100)"),
               breaks = c(0, 4.30, 13.00, 30.8, 150),
+              colorNA = "black",
               textNA = "Unavailable",
-              title = "Proportion of LIM-AT households\n with children < 18"
+              title = "Prop. of LIM-AT households\n with dependents < 18"
   )+
   tm_facets(by=c("Year"), ncol=2, nrow=1)+
   tmap_defaults  +
-  tm_layout(panel.show=FALSE)
+  tm_layout(bg.color = "grey",
+            panel.show=FALSE)
 
 stud_pop_rate_LIM_plot <- tmap_arrange(student_pop_absolute_plot, student_pop_rate_plot, LIMAT_under18_DA_plot, nrow = 3)
 
-tmap_save(stud_pop_rate_LIM_plot, paste0(here::here(),"/Figures/stud_pop_rate_LIM_plot.png"), height=7, width=12, dpi=600)
+stud_pop_rate_LIM_plot
+```
+
+```{r student-popabs-lowincperc-poprate-plot2, eval=FALSE}
+tmap_save(stud_pop_rate_LIM_plot, paste0(here::here(),"/Figures/stud_pop_rate_LIM_plot.png"), height=10.5, width=12, dpi=600)
 ```
 
 ```{r importing-taz-and-associated-flows, include=FALSE}
-#Read the boundaries of the traffic analysis zones (retrieved from the TTS 2016):
-ggh_taz <- st_read(paste0(here::here(), "/data-prep/data-inputs/TTS/tts06_83_region.shp"),
-                   quiet = TRUE) %>% 
-  st_transform(crs = 32617)
+#reading boundaries of TAZs and PDs from the TTS2016R package (same TAZ for both 2011 and 2016)
+library(TTS2016R) # A R package of the 2016 TTS
+data(ggh_taz)
+data(ggh_pd)
+# 
+# #Read the boundaries of the traffic analysis zones (retrieved from the TTS 2016):
+# ggh_taz <- st_read(paste0(here::here(), "/data-prep/data-inputs/TTS/tts06_83_region.shp"),
+#                    quiet = TRUE) %>% 
+#   st_transform(crs = 32617)
+# 
+# # Prepare traffic analysis zones:
+# ggh_taz <- ggh_taz %>%
+#   transmute(GTA06 = as.character(GTA06),
+#             AREA = st_area(geometry) %>% 
+#               set_units(km^2) %>% 
+#               drop_units())
+# #Extract the IDs for all TAZ:
+# ghta_taz_id <- ggh_taz$GTA06
+# 
+# #Read the boundaries of the traffic analysis zones (retrieved from the TTS 2016):
+# ggh_pd <- st_read(paste0(here::here(), "/data-prep/data-inputs/TTS/tts06_pd_83.shp"),
+#                   quiet = TRUE) %>%
+#   st_transform(crs = 32617)
+# 
+# #Adding region names to the object as they are not included in the origin data: (http://dmg.utoronto.ca/pdf/tts/2016/2016TTS_Conduct.pdf)
+# 
+# ggh_pd <- ggh_pd %>%
+#   mutate(REGION_name = 
+#            ifelse(REGION == 1, "Toronto", 
+#                   ifelse(REGION == 2, "Durham", 
+#                          ifelse(REGION == 3, "York", 
+#                                 ifelse(REGION == 4, "Peel", 
+#                                        ifelse(REGION == 5, "Halton", 
+#                                               ifelse(REGION == 6, "Hamilton", 
+#                                                      ifelse(REGION == 11, "Niagara", 
+#                                                             ifelse(REGION == 12, "Waterloo", 
+#                                                                    ifelse(REGION == 13, "Guelph", 
+#                                                                           ifelse(REGION == 14, "Wellington", 
+#                                                                                  ifelse(REGION == 15, "Orangeville", 
+#                                                                                         ifelse(REGION == 16, "Barrie", 
+#                                                                                                ifelse(REGION == 17, "Simcoe", 
+#                                                                                                       ifelse(REGION == 18, "Kawartha Lakes", 
+#                                                                                                              ifelse(REGION == 19, "Peterborough City", 
+#                                                                                                                     ifelse(REGION == 20, "Peterborough County", 
+#                                                                                                                            ifelse(REGION == 21, "Orillia", 
+#                                                                                                                                   ifelse(REGION == 22, "Dufferin", 
+#                                                                                                                                          ifelse(REGION == 23, "Brantford", 
+#                                                                                                                                                 ifelse(REGION == 24, "Brant", "NOOOO")))))))))))))))))))))
+# 
+# # add 'REGION' from the planning distract object to the `ggh_taz`. 
+# #buffering to clean up the edges of these objects -> there wre issues using st_join. 
+# ggh_taz <- st_buffer(ggh_taz, dist=0)
+# ggh_pd <- st_buffer(ggh_pd, dist=0)
+# 
+# ggh_taz <- st_join(ggh_taz, ggh_pd %>% transmute(REGION),left = TRUE, largest = TRUE)
 
-# Prepare traffic analysis zones:
-ggh_taz <- ggh_taz %>%
-  transmute(GTA06 = as.character(GTA06),
-            AREA = st_area(geometry) %>% 
-              set_units(km^2) %>% 
-              drop_units())
-#Extract the IDs for all TAZ:
-ghta_taz_id <- ggh_taz$GTA06
-
-#Read the boundaries of the traffic analysis zones (retrieved from the TTS 2016):
-ggh_pd <- st_read(paste0(here::here(), "/data-prep/data-inputs/TTS/tts06_pd_83.shp"),
-                  quiet = TRUE) %>%
-  st_transform(crs = 32617)
-
-#Adding region names to the object as they are not included in the origin data: (http://dmg.utoronto.ca/pdf/tts/2016/2016TTS_Conduct.pdf)
-
-ggh_pd <- ggh_pd %>%
-  mutate(REGION_name = 
-           ifelse(REGION == 1, "Toronto", 
-                  ifelse(REGION == 2, "Durham", 
-                         ifelse(REGION == 3, "York", 
-                                ifelse(REGION == 4, "Peel", 
-                                       ifelse(REGION == 5, "Halton", 
-                                              ifelse(REGION == 6, "Hamilton", 
-                                                     ifelse(REGION == 11, "Niagara", 
-                                                            ifelse(REGION == 12, "Waterloo", 
-                                                                   ifelse(REGION == 13, "Guelph", 
-                                                                          ifelse(REGION == 14, "Wellington", 
-                                                                                 ifelse(REGION == 15, "Orangeville", 
-                                                                                        ifelse(REGION == 16, "Barrie", 
-                                                                                               ifelse(REGION == 17, "Simcoe", 
-                                                                                                      ifelse(REGION == 18, "Kawartha Lakes", 
-                                                                                                             ifelse(REGION == 19, "Peterborough City", 
-                                                                                                                    ifelse(REGION == 20, "Peterborough County", 
-                                                                                                                           ifelse(REGION == 21, "Orillia", 
-                                                                                                                                  ifelse(REGION == 22, "Dufferin", 
-                                                                                                                                         ifelse(REGION == 23, "Brantford", 
-                                                                                                                                                ifelse(REGION == 24, "Brant", "NOOOO")))))))))))))))))))))
-
-# add 'REGION' from the planning distract object to the `ggh_taz`. 
-#buffering to clean up the edges of these objects -> there wre issues using st_join. 
-ggh_taz <- st_buffer(ggh_taz, dist=0)
-ggh_pd <- st_buffer(ggh_pd, dist=0)
-
-ggh_taz <- st_join(ggh_taz, ggh_pd %>% transmute(REGION),left = TRUE, largest = TRUE)
 ham_taz <- ggh_taz %>% dplyr::filter(REGION==6) #Filter out everything other than Planning District 6 = Hamilton
 ```
 
@@ -593,20 +637,31 @@ rm(desire_lines_ham_2011, desire_lines_ham_2016)
 ```
 
 ```{r ploting-od-taz-flows, eval=FALSE}
-car_OD_flow_plot <-  tm_shape(od_trips_perc_car |> mutate(mode = "motorized"), bbox=SAvail_i_DA_extra) +
+tmap_defaults <-
+  tm_scale_bar(position = c("LEFT", "BOTTOM"), breaks = c(0, 5, 10, 15))+
+  tm_compass(size = 1.5, position = c("right", 'top')) +
+  tm_layout(legend.position = c("left", "top")) #legend.hist.size = 10, 
+
+car_OD_flow_plot <-  
+    tm_shape(ham_bay, bbox=hamilton_communities) + tm_polygons(col="skyblue", border.alpha = 0) +
+  tm_shape(hydro_p_LakeOntario, bbox=hamilton_communities) + tm_polygons(col="skyblue", border.alpha = 0)+
+  tm_shape(od_trips_perc_car |> mutate(mode = "motorized"), bbox=SAvail_i_DA_extra) +
   tm_polygons(col = "TAZOrig_car_perc", border.alpha = 0.4, border.col = "grey20", lwd=0.2,
               palette = "Greys",
               breaks = c(0, .25, .50, .75, 1),
               title = "Proportion of mode use",
               textNA = "Unavailable",
-              colorNA = "white")+
+              colorNA = "black")+
   #tm_shape(SAvail_i_DA_extra) + tm_borders(alpha = 0.4, col = "grey20", lwd=0.2)+
   tm_shape(ham_taz) + tm_borders(alpha=0.4, col = "grey40", lwd=0.2) +
-  tm_shape(ham_community_bounds) + tm_borders(alpha = 0.8, col = "lightblue", lwd=2)+
+  tm_shape(ham_community_bounds %>% st_cast("MULTILINESTRING")) + 
+  tm_lines(col = "COMMUNITY_", 
+           palette = c("#365C8DFF", "#277F8EFF", "#1FA187FF", "#4AC16DFF", "#9FDA3AFF", "#FDE725FF"),
+           title.col = "Hamilton communities", lwd = 1.5) + 
   tm_shape(ham_taz_centroids) + tm_dots(alpha=0.5, col="darkblue", size=0.01) +
   tm_shape(desire_lines_ham |> mutate(mode = "motorized")) +
-  tm_lines(palette = "Reds", breaks = c(6, 22, 26, 49, 353),
-           title.col = "Number of trips (motorized)",
+  tm_lines(palette = "Reds", breaks = c(6, 22, 26, 52, 353),
+           title.col = "Number of trips",
            col = "TAZOrig_car_trips",
            alpha = 0.9,
            scale = 3,
@@ -614,39 +669,53 @@ car_OD_flow_plot <-  tm_shape(od_trips_perc_car |> mutate(mode = "motorized"), b
            legend.lwd.show = FALSE) +
   tm_facets(by = c("mode","Year"), nrow=1)+
   tmap_defaults +
-  tm_layout(panel.label.height = 0.8)
+  tm_layout(bg.color = "grey",
+            panel.label.bg.color = "white",
+            panel.label.height = 0.8)
 
-walk_OD_flow <- tm_shape(od_trips_perc_walk |> mutate(mode = "non-motorized"), bbox=SAvail_i_DA_extra) +
+
+walk_OD_flow <- tm_shape(ham_bay, bbox=hamilton_communities) + tm_polygons(col="skyblue", border.alpha = 0) +
+  tm_shape(hydro_p_LakeOntario, bbox=hamilton_communities) + tm_polygons(col="skyblue", border.alpha = 0)+
+  tm_shape(od_trips_perc_walk |> mutate(mode = "non-motorized"), bbox=SAvail_i_DA_extra) +
   tm_polygons(col = "TAZOrig_walk_perc", border.alpha = 0.4, border.col = "grey20", lwd=0.2,
               palette = "Greys",
               breaks = c(0, .25, .50, .75, 1),
               title = "Proportion of mode use",
               textNA = "Unavailable",
-              colorNA = "white",
+              colorNA = "black",
               legend.show=FALSE)+
   #tm_shape(SAvail_i_DA_extra) + tm_borders(alpha = 0.4, col = "cornflowerblue", lwd=0.2)+
   tm_shape(ham_taz) + tm_borders(alpha=0.4, col = "grey40", lwd=0.2) +
-  tm_shape(ham_community_bounds) + tm_borders(alpha = 0.8, col = "lightblue", lwd=2)+
+  tm_shape(ham_community_bounds %>% st_cast("MULTILINESTRING")) + 
+  tm_lines(col = "COMMUNITY_", 
+           palette = c("#365C8DFF", "#277F8EFF", "#1FA187FF", "#4AC16DFF", "#9FDA3AFF", "#FDE725FF"),
+           title.col = "Hamilton communities", lwd = 1.5, legend.col.show=FALSE) + 
   tm_shape(ham_taz_centroids) + tm_dots(alpha=0.5, col="darkblue", size=0.01) +
   tm_shape(desire_lines_ham |> filter(TAZOrig_walk_trips >= 1) 
            |> mutate(mode = "non-motorized")) +
-  tm_lines(palette = "Greens", breaks = c(12, 23, 44, 67, 174),
+  tm_lines(palette = "Reds", breaks = c(6, 22, 26, 52, 353),
            title.col = "Number of trips (non-motorized)",
            col = "TAZOrig_walk_trips",
            alpha = 0.9,
            scale = 4,
            lwd = "all",
+           legend.col.show = FALSE,
            legend.lwd.show = FALSE) +
   tm_facets(by = c("mode","Year"), nrow=1)+
   tmap_defaults +
-  tm_layout(panel.label.height = c(0.8,0,0)) +
+  tm_layout(bg.color = "grey",
+            panel.label.bg.color = "white",
+            panel.label.height = c(0.8,0,0)) +
   tm_add_legend(type = "line", 
                 col = c("grey40","lightblue"),
                 labels = c("TAZ boundary","Community boundary"))+
   tm_add_legend(type = "symbol",
                 col = "darkblue",
                 labels = "TAZ centroid")
+
 OD_flow_plot <- tmap_arrange(car_OD_flow_plot, walk_OD_flow, nrow = 2)
+OD_flow_plot 
+
 tmap_save(OD_flow_plot, paste0(here::here(),"/Figures/OD_flow_plot.png"), height=7, width=12, dpi=600)
 ```
 
@@ -762,120 +831,326 @@ TLD_empirical_wtheo_curve_plot <- ggplot() +
   geom_histogram(data = od_trips_perc_tt,
                  aes(x = x, 
                      y = ..density..),
-                 colour = "grey80",
-                 alpha = 0.5,
+                 colour = "grey70",
+                 fill = "grey70",
                  boundary = 0,
                  binwidth = 3) +
   geom_vline(data = q_1, mapping = aes(xintercept = x), colour = "grey60") +
   geom_vline(data = q_2, mapping = aes(xintercept = x), colour = "grey60") +
   geom_vline(data = q_3, mapping = aes(xintercept = x), colour = "grey60") +
-  geom_line(data = tld_theoretical, aes(x = t, y = f), colour = "blue", size=0.8) + 
-  xlab("Estimated TTS travel time (minutes)") +
-  scale_x_continuous(breaks = seq(0,40,10), expand=c(0,0))+
+  geom_line(data = tld_theoretical, aes(x = t, y = f), colour = "blue", size=0.8, alpha=0.6) + 
+  xlab("Estimated travel time associated with TTS OD flows (minutes)") +
+  ylab("Density") +
+  scale_x_continuous(breaks = seq(0,45,10), expand=c(0,0))+
   scale_y_continuous(breaks = seq(0,0.12,0.04), limits = c(0,0.12))+
   facet_grid(~mode~year)+
   geom_text(data = q_1, 
-            mapping = aes(x = x, y = y, label = label), colour = "grey20", size=3) +
+            mapping = aes(x = x, y = y, label = label), colour = "grey20", size=4) +
   geom_text(data = q_2,
-            mapping = aes(x = x, y = y, label = label), colour = "grey20", size=3) +
+            mapping = aes(x = x, y = y, label = label), colour = "grey20", size=4) +
   geom_text(data = q_3,
-            mapping = aes(x = x, y = y, label = label), colour = "grey20", size=3) +
-  theme_classic()
+            mapping = aes(x = x, y = y, label = label), colour = "grey20", size=4) +
+  theme_classic() +
+  theme(axis.title = element_text(size = 11),
+        panel.border = element_rect(colour = "grey80", fill=NA),
+        strip.text = element_text(size=11))
 TLD_empirical_wtheo_curve_plot
+```
+
+```{r ploting-empirical-and-theo-curve-TLD-tts2, eval=FALSE}
 ggsave(paste0(here::here(),"/Figures/TLD_empirical_wtheo_curve_plot.png"), height=7, width=12, dpi=600)
+```
+```{r}
+ALL_SCHOOLS_Elem_formapping2 <- ALL_SCHOOLS_Elem_formapping |> mutate(Mode = "motorized")
+ALL_SCHOOLS_Elem_formapping3 <- ALL_SCHOOLS_Elem_formapping |> mutate(Mode = "non-motorized")
+ALL_SCHOOLS_Elem_formapping2 <- rbind(ALL_SCHOOLS_Elem_formapping2, ALL_SCHOOLS_Elem_formapping3)
+rm(ALL_SCHOOLS_Elem_formapping3)
 ```
 
 ```{r, eval=FALSE}
-Vim_20112016_plot <-  tm_shape(SAvail_im_DA, bbox=SAvail_im_DA) +
+Vim_20112016_plot <-  
+  tm_shape(ham_bay, bbox=hamilton_communities) + tm_polygons(col="skyblue", border.alpha = 0) +
+  tm_shape(hydro_p_LakeOntario, bbox=hamilton_communities) + tm_polygons(col="skyblue", border.alpha = 0)+
+  tm_shape(SAvail_im_DA, bbox=SAvail_im_DA) +
   tm_polygons(col = "V_im", border.alpha = 0, border.col = "grey20", lwd=0.2,
-              palette = "Greys",
+              palette = "Purples",
               style="quantile", n=4,
-              title = expression(V[i]^m*' (quartiles)'),
-              textNA = "Unavailable",
-              colorNA = "white")+
+              labels = c("[0-0.2)", "[0.2-12.8)", "[12.8-56.4)", "[56.4-672.9)"),
+              title = expression(V[i]^m),
+              textNULL = "Unavailable",
+              colorNULL = "black")+
   tm_facets(by = c("mode","year"), nrow=1)+
-  tm_shape(ALL_SCHOOLS_Elem_formapping) +
-  tm_dots(col = "Status", size=0.03, title = "School status between\n2011 and 2016",
-          palette = c("ivory", "black", "darkgreen","#0E86D4","#90EE90"),
-          labels = c("No change","Closed before 2016", "Expanded before 2016","Moved before 2016","New after 2011"), legend.show=FALSE) +
-  tm_shape(ham_community_bounds) + tm_borders(alpha = 0.8, col = "lightblue", lwd=1.5)+
+  tm_shape(ham_community_bounds %>% st_cast("MULTILINESTRING")) + 
+  tm_lines(col = "COMMUNITY_", 
+           palette = c("#365C8DFF", "#277F8EFF", "#1FA187FF", "#4AC16DFF", "#9FDA3AFF", "#FDE725FF"),
+           title.col = "Hamilton communities", lwd = 2, legend.col.show = FALSE) + 
+  tm_shape(ALL_SCHOOLS_Elem_formapping2) +
+  tm_symbols(shape = "Status",
+             size=0.1,
+             alpha=0.5,
+          title.shape = "School status",
+          shapes = c(24,25,22,21,23),
+          shapes.labels = c(
+          "Expanded after 2011",
+          "Moved before 2016",
+          "New after 2011",
+          "No change btwn 2011-16",
+          "Closed before 2016"),
+          legend.shape.show = FALSE
+  ) +
+  tm_facets(by=c("Mode","Year"))+
+  tm_credits(c("60,220 spatial availability \n(99.4% of the 60,567 city-wide OTGC)",
+               "58,101 spatial availability\n(99.7% of the 58,287 city-wide OTGC)",
+                "347 spatial availability \n(0.6% of the 60,567 city-wide OTGC)",
+               "186 spatial availability\n(0.3% of the 58,287 city-wide OTGC)"),
+             position = c("LEFT", "BOTTOM")) +
   tmap_defaults +
-  tm_layout(panel.label.height = 0.8)
+  tm_layout(bg.color = "grey",
+            panel.label.bg.color = "white",
+            panel.label.height = 0.8)
 
-vvim_20112016_plot <-  tm_shape(SAvail_im_DA, bbox=SAvail_im_DA) +
+vvim_20112016_plot <-  
+  tm_shape(ham_bay, bbox=hamilton_communities) + tm_polygons(col="skyblue", border.alpha = 0) +
+  tm_shape(hydro_p_LakeOntario, bbox=hamilton_communities) + tm_polygons(col="skyblue", border.alpha = 0)+
+  tm_shape(SAvail_im_DA, bbox=SAvail_im_DA) +
   tm_polygons(col = "v_im_kid_popadj", border.alpha = 0, border.col = "grey20", lwd=0.2,
               palette = "RdYlGn",
               midpoint = 1.0,
               title = expression(v[i]^m),
-              breaks = c(0, 0.5, 1, 1.5, 2, 2.1), #note the highest value is ~12, I'm breaking the values early for the purpose of visualisation
-              labels = c("[0-0.5)", "[0.5-1)", "[1-1.5)", "[1.5-2)", "[>2)"),
-              textNA = "Unavailable",
-              colorNA = "white")+
+              # style="quantile", n=4,
+              breaks = c(0, 0.62, 0.9, 1.22, 2.1), #note the highest value is ~10.29, I'm breaking the values early for the purpose of visualisation
+              labels = c("[0-0.62)", "[0.62-0.9)", "[0.9-1.22)", "[1.22-10.26)"),
+              textNULL = "Unavailable",
+              colorNULL = "black")+
   tm_facets(by = c("mode","year"), nrow=1)+
-  tm_shape(ALL_SCHOOLS_Elem_formapping) +
-  tm_dots(col = "Status", size=0.03, title = "School status between\n2011 and 2016",
-          palette = c("ivory", "black", "darkgreen","#0E86D4","#90EE90"),
-          labels = c("No change","Closed before 2016", "Expanded before 2016","Moved before 2016","New after 2011")          ) +
-  tm_shape(ham_community_bounds) + tm_borders(alpha = 0.8, col = "lightblue", lwd=1.5)+
+  tm_shape(ham_community_bounds %>% st_cast("MULTILINESTRING")) + 
+  tm_lines(col = "COMMUNITY_", 
+           palette = c("#365C8DFF", "#277F8EFF", "#1FA187FF", "#4AC16DFF", "#9FDA3AFF", "#FDE725FF"),
+           title.col = "Hamilton communities", lwd = 2) + 
+  tm_shape(ALL_SCHOOLS_Elem_formapping2) +
+  tm_symbols(shape = "Status",
+             size=0.1,
+             alpha=0.5,
+          title.shape = "School status",
+          shapes = c(24,25,22,21,23),
+          shapes.labels = c(
+          "Expanded after 2011",
+          "Moved before 2016",
+          "New after 2011",
+          "No change btwn 2011-16",
+          "Closed before 2016")
+  ) +
+  tm_facets(by=c("Mode","Year"))+
+  tm_credits(c("1.09 avg. spatial availability per capita",
+               "1.05 avg. spatial availability per capita",
+                "0.85 avg. spatial availability per capita",
+               "0.71 avg. spatial availability per capita"),
+             position = c("LEFT", "BOTTOM")) +
   tmap_defaults +
-  tm_layout(panel.label.height = 0.8)
+  tm_layout(bg.color = "grey",
+            panel.label.bg.color = "white",
+            panel.label.height = 0.8)
 
 Vim_vvim_20112016_plot <- tmap_arrange(Vim_20112016_plot, vvim_20112016_plot, nrow=2)
-
-tmap_save(Vim_vvim_20112016_plot, paste0(here::here(),"/Figures/Vim_vvim_20112016_plot.png"), height=7, width=12, dpi=600)
 ```
 
+```{r, eval=FALSE}
+tmap_save(Vim_vvim_20112016_plot, paste0(here::here(),"/Figures/Vim_vvim_20112016_plot.png"), height=12, width=12, dpi=600)
+```
 
 ```{r, eval=FALSE}
-Vim_20112016_CHANGE_plot <-  tm_shape(SAvail_im_DA_changes, bbox=SAvail_im_DA) +
+tmap_defaults <-
+  tm_scale_bar(position = c("LEFT", "BOTTOM"), breaks = c(0, 5, 10, 15))+
+  tm_compass(size = 1.5, position = c("right", 'top')) +
+  tm_layout(legend.position = c("left", "top")) #legend.hist.size = 10, 
+
+Vim_20112016_CHANGE_plot <-  
+  tm_shape(ham_bay, bbox=hamilton_communities) + tm_polygons(col="skyblue", border.alpha = 0) +
+  tm_shape(hydro_p_LakeOntario, bbox=hamilton_communities) + tm_polygons(col="skyblue", border.alpha = 0)+
+  tm_shape(SAvail_im_DA_changes, bbox=SAvail_im_DA) +
   tm_polygons(col = "c_V_im", border.alpha = 0, border.col = "grey20", lwd=0.2,
-              palette = "-PuOr", midpoint=0,
-              breaks = c(-5, -4, -3, -2, -1, 0, 1, 2,3,4,5),
-              labels = c("[>-5 to -4)", "[-4 to -3)", "[-3 to -2)","[-2 to -1)","[-1 to 0)", "[0 to 1)", 
-                         "[1 to 2)", "[2 to 3)", "[3 to 4)", "[4 to <5)" ),
+              palette = "RdYlBu", midpoint=0,
+              # style="quantile", n=4,
+              breaks = c(-5, -4.1, -0.2, 0, 5),
+              labels = c("[-208 to -4.1)", "[-4.1 to -0.2)", "[-0.2 to 0)","[0 to 283.6)"),
               title = expression("Change in "*V[i]^m),
-              textNA = "Unavailable",
+              textNA = "No V in 2016 or 2011",
               colorNA = "white")+
   tm_facets(by = c("mode"), nrow=1)+
+  tm_shape(ham_community_bounds %>% st_cast("MULTILINESTRING")) + 
+  tm_lines(col = "COMMUNITY_", 
+           palette = c("#365C8DFF", "#277F8EFF", "#1FA187FF", "#4AC16DFF", "#9FDA3AFF", "#FDE725FF"),
+           title.col = "Hamilton communities", lwd = 2, 
+           legend.col.show = FALSE) + 
   tm_shape(ALL_SCHOOLS_Elem_formapping |> 
              filter(Status != "NoChange" & Status != "Moved")|>
              mutate(Status_change = case_when(Status == "Removed" ~ "Closed",
                                               (Status == "Expanded" | Status == "New" ) ~ "New or Expanded"))) +
-  tm_dots(col = "Status_change", size=0.05, title = "Schools that changed status",
-          palette = c("black", "#90EE90"), legend.show=FALSE) +
-  tm_shape(ham_community_bounds) + tm_borders(alpha = 0.8, col = "lightblue", lwd=2)+
+  tm_symbols(shape = "Status_change",
+             size=0.1,
+             alpha=0.5,
+          title.shape = "Schools that changed status",
+          shapes = c(22,23),
+          shapes.labels = c(
+          "New or expanded after 2011",
+          "Closed before 2016"),
+          legend.shape.show = FALSE) +
+  tm_facets(by=c("Year"))+
   tmap_defaults +
-  tm_layout(panel.label.height = 0.8)
+  tm_layout( bg.color = "grey",
+             panel.label.bg.color = "white",
+             panel.label.height = 0.8)
 
-#tmap_save(Vim_20112016_CHANGE_plot, "Figures/Vim_20112016_CHANGE_plot.png", height=7, width=12, dpi=600)
-
-vvim_20112016_CHANGE_plot <- tm_shape(SAvail_im_DA_changes, bbox=SAvail_im_DA) +
+vvim_20112016_CHANGE_plot <-
+  tm_shape(ham_bay, bbox=hamilton_communities) + tm_polygons(col="skyblue", border.alpha = 0) +
+  tm_shape(hydro_p_LakeOntario, bbox=hamilton_communities) + tm_polygons(col="skyblue", border.alpha = 0)+
+  tm_shape(SAvail_im_DA_changes, bbox=SAvail_im_DA) +
   tm_polygons(col = "c_v_im_kid_popadj", border.alpha = 0, border.col = "grey20", lwd=0.2,
-              palette = "RdYlGn", midpoint=0,
+              palette = "RdYlBu", midpoint=0,
               breaks = c(-0.1, -0.05, 0.00, 0.05, 0.1),
               labels = c("[>-0.1 to -0.05)", "[-0.05 to 0.00)", "[0.00 to 0.05)", "[0.05 to <0.1)"),
               title = expression("Change in "*v[i]^m),
               textNA = "Unavailable",
               colorNA = "white")+
   tm_facets(by = c("mode"), nrow=1)+
+  tm_shape(ham_community_bounds %>% st_cast("MULTILINESTRING")) + 
+  tm_lines(col = "COMMUNITY_", 
+           palette = c("#365C8DFF", "#277F8EFF", "#1FA187FF", "#4AC16DFF", "#9FDA3AFF", "#FDE725FF"),
+           title.col = "Hamilton communities", lwd = 2) + 
   tm_shape(ALL_SCHOOLS_Elem_formapping |> 
              filter(Status != "NoChange" & Status != "Moved")|>
              mutate(Status_change = case_when(Status == "Removed" ~ "Closed",
                                               (Status == "Expanded" | Status == "New" ) ~ "New or Expanded"))) +
-  tm_dots(col = "Status_change", size=0.05, title = "Schools that changed status",
-          palette = c("black", "#90EE90")) +
-  tm_shape(ham_community_bounds) + tm_borders(alpha = 0.8, col = "lightblue", lwd=2)+
+  tm_symbols(shape = "Status_change",
+             size=0.1,
+             alpha=0.5,
+          title.shape = "Schools that changed status",
+          shapes = c(22,23),
+          shapes.labels = c(
+          "New or expanded after 2011",
+          "Closed before 2016")
+  ) +
+  tm_facets(by=c("Year"))+
   tmap_defaults +
-  tm_layout(panel.label.height = 0.8)
+  tm_layout( bg.color = "grey",
+             panel.label.bg.color = "white",
+             panel.label.height = 0.8,
+             panel.show = FALSE)
 
 Vim_vvim_20112016_CHANGE_plot <- tmap_arrange(Vim_20112016_CHANGE_plot, vvim_20112016_CHANGE_plot, nrow=2)
 
+```
+
+```{r, eval=FALSE}
 tmap_save(Vim_vvim_20112016_CHANGE_plot, 
           paste0(here::here(),"/Figures/Vim_vvim_20112016_CHANGE_plot.png"),
           height=7,
           width=12, 
           dpi=600)
 ```
+
+
+```{r, eval=FALSE}
+tmap_defaults <-
+  tm_scale_bar(position = c("LEFT", "BOTTOM"), breaks = c(0, 5, 10, 15))+
+  tm_compass(size = 1.5, position = c("right", 'top')) +
+  tm_layout(legend.position = c("left", "top")) #legend.hist.size = 10, 
+
+ttim_20112016_CHANGE_plot <-  
+  tm_shape(ham_bay, bbox=hamilton_communities) + tm_polygons(col="skyblue", border.alpha = 0) +
+  tm_shape(hydro_p_LakeOntario, bbox=hamilton_communities) + tm_polygons(col="skyblue", border.alpha = 0)+
+  tm_shape(SAvail_im_DA_changes, bbox=SAvail_im_DA) +
+  tm_polygons(col = "c_total_tt", border.alpha = 0, border.col = "grey20", lwd=0.2,
+              palette = "RdYlBu", midpoint=0,
+             # style="quantile", n=4,
+              breaks = c(-60, -47, -3.1, 0, 10),
+              labels = c("[-1971 to -47)", "[-47 to -3.1)", "[-3.1 to 0)","[0 to 10)"),
+              title = expression("Change in travel time minutes"),
+              textNA = "No V in 2016 or 2011",
+              colorNA = "white")+
+  tm_facets(by = c("mode"), nrow=1)+
+  tm_shape(ham_community_bounds %>% st_cast("MULTILINESTRING")) + 
+  tm_lines(col = "COMMUNITY_", 
+           palette = c("#365C8DFF", "#277F8EFF", "#1FA187FF", "#4AC16DFF", "#9FDA3AFF", "#FDE725FF"),
+           title.col = "Hamilton communities", lwd = 2, 
+           legend.col.show = FALSE) + 
+  tm_shape(ALL_SCHOOLS_Elem_formapping |> 
+             filter(Status != "NoChange" & Status != "Moved")|>
+             mutate(Status_change = case_when(Status == "Removed" ~ "Closed",
+                                              (Status == "Expanded" | Status == "New" ) ~ "New or Expanded"))) +
+  tm_symbols(shape = "Status_change",
+             size=0.1,
+             alpha=0.5,
+          title.shape = "Schools that changed status",
+          shapes = c(22,23),
+          shapes.labels = c(
+          "New or expanded after 2011",
+          "Closed before 2016"),
+          legend.shape.show = FALSE) +
+  tm_facets(by=c("Year"))+
+  tmap_defaults +
+  tm_layout( bg.color = "grey",
+             panel.label.bg.color = "white",
+             panel.label.height = 0.8)
+ttim_20112016_CHANGE_plot
+```
+
+
+```{r, eval=FALSE}
+GHGim_20112016_CHANGE_plot <-
+  tm_shape(ham_bay, bbox=hamilton_communities) + tm_polygons(col="skyblue", border.alpha = 0) +
+  tm_shape(hydro_p_LakeOntario, bbox=hamilton_communities) + tm_polygons(col="skyblue", border.alpha = 0)+
+  tm_shape(SAvail_im_DA_changes, bbox=SAvail_im_DA) +
+  tm_polygons(col = "c_emissions_total_car_tt", border.alpha = 0, border.col = "grey20", lwd=0.2,
+              palette = "RdYlBu", midpoint=0,
+              style="quantile", n=4,
+              #breaks = c(-0.1, -0.05, 0.00, 0.05, 0.1),
+              #labels = c("[>-0.1 to -0.05)", "[-0.05 to 0.00)", "[0.00 to 0.05)", "[0.05 to <0.1)"),
+              title = expression("Change in GHG emissions (kg CO2e for home-school trips)"),
+              textNA = "Unavailable",
+              colorNA = "white")+
+  tm_facets(by = c("mode"), nrow=1)+
+  tm_shape(ham_community_bounds %>% st_cast("MULTILINESTRING")) + 
+  tm_lines(col = "COMMUNITY_", 
+           palette = c("#365C8DFF", "#277F8EFF", "#1FA187FF", "#4AC16DFF", "#9FDA3AFF", "#FDE725FF"),
+           title.col = "Hamilton communities", lwd = 2) + 
+  tm_shape(ALL_SCHOOLS_Elem_formapping |> 
+             filter(Status != "NoChange" & Status != "Moved")|>
+             mutate(Status_change = case_when(Status == "Removed" ~ "Closed",
+                                              (Status == "Expanded" | Status == "New" ) ~ "New or Expanded"))) +
+  tm_symbols(shape = "Status_change",
+             size=0.1,
+             alpha=0.5,
+          title.shape = "Schools that changed status",
+          shapes = c(22,23),
+          shapes.labels = c(
+          "New or expanded after 2011",
+          "Closed before 2016")
+  ) +
+  tm_facets(by=c("Year"))+
+  tmap_defaults +
+  tm_layout( bg.color = "grey",
+             panel.label.bg.color = "white",
+             panel.label.height = 0.8,
+             panel.show = FALSE)
+
+ttim_GHGim_20112016_CHANGE_plot <- tmap_arrange(ttim_20112016_CHANGE_plot, GHGim_20112016_CHANGE_plot, nrow=2)
+ttim_GHGim_20112016_CHANGE_plot
+```
+
+```{r, eval=FALSE}
+tmap_save(ttim_GHGim_20112016_CHANGE_plot, 
+          paste0(here::here(),"/Figures/ttim_GHGim_20112016_CHANGE_plot.png"),
+          height=7,
+          width=12, 
+          dpi=600)
+```
+
+
+
+
+
+
 
 ```{r, eval=FALSE}
 walk_OD_flow <- tm_shape(od_trips_perc_walk |> mutate(mode = "non-motorized"), bbox=SAvail_i_DA_extra) +
@@ -1135,7 +1410,7 @@ The results of the research indicate that, overall, school seats became less spa
 
 # Background
 
-Hamilton is a mid-size city (\~570,000 pop) with rural, suburban and urban characteristics in the province of Ontario, Canada [@governmentofcanadaProfileTableCensus2022]. In 2013, the Hamilton-Wentworth District School Board (HWDSB),, the largest public English school board in the city, released its Long Term Facilities Master Plan [@hwdsbLongTermFacilities2013]. To ensure "equitable, affordable and sustainable learning facilities", the Master Plan indicated that 80% of it's elementary schools (i.e., schools attended by students aged 5 to 13) would be subjected to accommodation evaluations, including an "Accommodation Review" whose outcome historically has led to school closures/consolidation [@hwdsbLongTermFacilities2013; @craggsBoardEvaluatingFuture2013; @seasonsSchoolClosurePolicy2014]. These decisions by the school board were in part motivated by a search for operational savings based on projected reductions in student population and under-utilized school capacity [@craggsAxeCouldFall2012]. However, the case of Hamilton and the HWDSB was unlike others in the province: the HWDSB underwent an unprecedented number of Accommodation Reviews relative to other school boards [@seasons2014ARCCatalogues2014]. 
+Hamilton is a mid-size city (\~570,000 pop) with rural, suburban and urban characteristics in the province of Ontario, Canada [@governmentofcanadaProfileTableCensus2022]. In 2013, the Hamilton-Wentworth District School Board (HWDSB), the largest public English school board in the city, released its Long Term Facilities Master Plan [@hwdsbLongTermFacilities2013]. To ensure "equitable, affordable and sustainable learning facilities", the Master Plan indicated that 80% of it's elementary schools (i.e., schools attended by students aged 5 to 13) would be subjected to accommodation evaluations, including an "Accommodation Review" whose outcome historically has led to school closures/consolidation [@hwdsbLongTermFacilities2013; @craggsBoardEvaluatingFuture2013; @seasonsSchoolClosurePolicy2014]. These decisions by the school board were in part motivated by a search for operational savings based on projected reductions in student population and under-utilized school capacity [@craggsAxeCouldFall2012]. However, the case of Hamilton and the HWDSB was unlike others in the province: the HWDSB underwent an unprecedented number of Accommodation Reviews relative to other school boards [@seasons2014ARCCatalogues2014]. 
 
 Though the Accommodation Review guidelines outline a community-focused process to deliberate a school's future viability to students, the community and the economy [@seasonsSchoolClosurePolicy2014; @ministryofeducationPupilAccommodationReview2006], concerned residents felt a wholesome breakdown of costs to repair schools was not made consistently available [@kleinhuisSeriousConcernsSchool2013]. Further, others pointed to flawed incentive structures motivating the HWDSB: "By closing three schools the HWDSB would have a strong case with the Ministry of Education to receive full funding for a new school" [@kleinhuisSeriousConcernsSchool2013]. Along with insufficient funding to maintain schools in a state of good repair [@auditorgeneralofontarioAnnualReport20152015], the operational savings as a case for school closures is a long-standing critique of the school "funding formula" established by the conservative provincial government in 1998 [@mackenzieBlueprintFixOntario2018; @irwinSchoolClosure2012]. With the backdrop of budget cuts, the funding formula pits financing of school maintenance and student needs against the financial compensation of staff and powers of local school boards as they depend on the province for the allocation of resources [@mackenzieBlueprintFixOntario2018].
 
@@ -1177,9 +1452,9 @@ OTGC_{Catholic} =F^{0.471}-e^{0.00003*DistCBD}+e^{2.333*Elem_b}
 
 ```{r}
 #| label: fig-Fig1
-#| fig-cap: "The school catchments, estimated on the ground capacities (OTGCs) of schools summed per catchment, and school status for both public and public catholic school boards for year 2011 and 2016. OTGCs is presented by quartiles."
+#| fig-cap: "The school catchments, estimated On The Ground Capacity (OTGC) of schools summed per catchment, and school status for both public and public catholic school boards for year 2011 and 2016. OTGC scale is presented by quartiles."
 #| echo: false
-#| out-width: "140%"
+#| out-width: "120%"
 
 
 knitr::include_graphics(paste0(here::here(),"/Figures/catchment_schools_plot.png"))
@@ -1196,7 +1471,7 @@ The third source of data consists of centroids of residential parcels in 2011 an
 
 ```{r}
 #| label: fig-Fig2
-#| fig-cap: "The magnitude (top row) and rate per residential unit (middle row) of elementary aged student population per DA in 2011 and 2016. The proportion of low-income households with children under 18 years old is also shown (bottom row). All scales are represented in quartiles."
+#| fig-cap: "The magnitude (top row) and rate per residential unit (middle row) of elementary aged student population per DA in 2011 and 2016. Bottom row: the proportion of low-income households (prevelance of low-income after-tax, LIM-AT, measured by the 2011 and 2016 Canadian Census) with dependents under 18 years old shown. All scales are represented in quartiles."
 #| echo: false
 #| out-width: "140%"
 
@@ -1205,13 +1480,13 @@ knitr::include_graphics(paste0(here::here(),"/Figures/stud_pop_rate_LIM_plot.png
 
 ## Estimated travel times and emissions 
 
-It is assumed that children can go to any elementary school, but there is a preference for facilities that are closer. Based on this assumption, the fourth source of data is information regarding the mode-used and origin-destination locations of home-to-school trips from the 2011 and 2016 TTS [@data_management_group_tts_2018]. The TTS is a travel survey conducted in the Greater Golden Horseshoe Area in Ontario every 5 years. With a target 5% sampling rate, the survey is expanded to be representative at the traffic analysis zone (TAZ) level of geography. TAZ are spatial units created for the purpose of the TTS; a few DAs typically nest within each TAZ. The trip-level travel data extract for this paper represent `r od_trips_perc_2011$TAZOrig_car_trips |> sum() |> prettyNum(big.mark = ",")` and `r od_trips_perc_2016$TAZOrig_car_trips |> sum() |> prettyNum(big.mark = ",")` motorized trips (mode used includes private care passenger, school bus, taxi, and transit) and `r od_trips_perc_2011$TAZOrig_walk_trips |> sum() |> prettyNum(big.mark = ",")` and `r od_trips_perc_2016$TAZOrig_walk_trips |> sum() |> prettyNum(big.mark = ",")` non-motorized trips (mode used includes walk and cycling) for 5 to 13 year olds from home to school in 2011 and 2016 respectively. The travel times for motorized and non-motorized travel are estimated using the {r5r} [@Pereira2021r5r] package, which interfaces with the java-based R5 routing engine developed separately by Conveyal [@conveyalConveyalR5Routing2022]. Motorized and non-motorized travel times are estimated for all TAZ centroids to all TAZ centroids and these estimated travel times are tied to the associated OD trips. The travel times and the intensity of modal home-to-school flows are visualised in @fig-Fig3 along with the boundaries of the TAZ and DAs. As can be seen in @fig-Fig3, not all TAZs capture an elementary school trip by both modes. For this reason, the proportion of modal-split is aggregated at the community level. Hamilton (Ancaster `r community_car_perc_2011$TAZOrig_car_perc[1] |> percent()`-`r community_car_perc_2016$TAZOrig_car_perc[1] |> percent()`, Dundas `r community_car_perc_2011$TAZOrig_car_perc[2] |> percent()`-`r community_car_perc_2016$TAZOrig_car_perc[2] |> percent()`, Flamborough `r community_car_perc_2011$TAZOrig_car_perc[3] |> percent()`-`r community_car_perc_2016$TAZOrig_car_perc[3] |> percent()`, Glanbrook `r community_car_perc_2011$TAZOrig_car_perc[4] |> percent()`-`r community_car_perc_2016$TAZOrig_car_perc[4] |> percent()`, Hamilton Central `r community_car_perc_2011$TAZOrig_car_perc[5] |> percent()`-`r community_car_perc_2016$TAZOrig_car_perc[5] |> percent()`, and Stoney Creek `r community_car_perc_2011$TAZOrig_car_perc[6] |> percent()`-`r community_car_perc_2016$TAZOrig_car_perc[6] |> percent()`). <!--Do we maybe need to discuss how this lack of data for each TAZ impacted the calculations? [AP]: No. Unrelated: did you use information from TTS2016R? Or can you add it to the data package? And then cite your data paper.-->
+It is assumed that children can go to any elementary school, but there is a preference for facilities that are closer. Based on this assumption, the fourth source of data is information regarding the mode-used and origin-destination locations of home-to-school trips from the 2011 and 2016 TTS [@data_management_group_tts_2018]. The TTS is a travel survey conducted in the Greater Golden Horseshoe Area in Ontario every 5 years. With a target 5% sampling rate, the survey is expanded to be representative at the traffic analysis zone (TAZ) level of geography. TAZ are spatial units created for the purpose of the TTS and pulled from the R data package {TTS2016R} [@soukhovTTS2016RDataSet2023]; a few DAs typically nest within each TAZ. The trip-level travel data extract for this paper represent `r od_trips_perc_2011$TAZOrig_car_trips |> sum() |> prettyNum(big.mark = ",")` and `r od_trips_perc_2016$TAZOrig_car_trips |> sum() |> prettyNum(big.mark = ",")` motorized trips (mode used includes private care passenger, school bus, taxi, and transit) and `r od_trips_perc_2011$TAZOrig_walk_trips |> sum() |> prettyNum(big.mark = ",")` and `r od_trips_perc_2016$TAZOrig_walk_trips |> sum() |> prettyNum(big.mark = ",")` non-motorized trips (mode used includes walk and cycling) for 5 to 13 year olds from home to school in 2011 and 2016 respectively. The travel times for motorized and non-motorized travel are estimated using the {r5r} [@Pereira2021r5r] package, which interfaces with the java-based R5 routing engine developed separately by Conveyal [@conveyalConveyalR5Routing2022]. Motorized and non-motorized travel times are estimated for all TAZ centroids to all TAZ centroids and these estimated travel times are tied to the associated OD trips. The travel times and the intensity of modal home-to-school flows are visualised in @fig-Fig3 along with the boundaries of the TAZ and DAs. As can be seen in @fig-Fig3, not all TAZs capture an elementary school trip by both modes. For this reason, the proportion of modal-split is aggregated at the community level. Hamilton (Ancaster `r community_car_perc_2011$TAZOrig_car_perc[1] |> percent()`-`r community_car_perc_2016$TAZOrig_car_perc[1] |> percent()`, Dundas `r community_car_perc_2011$TAZOrig_car_perc[2] |> percent()`-`r community_car_perc_2016$TAZOrig_car_perc[2] |> percent()`, Flamborough `r community_car_perc_2011$TAZOrig_car_perc[3] |> percent()`-`r community_car_perc_2016$TAZOrig_car_perc[3] |> percent()`, Glanbrook `r community_car_perc_2011$TAZOrig_car_perc[4] |> percent()`-`r community_car_perc_2016$TAZOrig_car_perc[4] |> percent()`, Hamilton Central `r community_car_perc_2011$TAZOrig_car_perc[5] |> percent()`-`r community_car_perc_2016$TAZOrig_car_perc[5] |> percent()`, and Stoney Creek `r community_car_perc_2011$TAZOrig_car_perc[6] |> percent()`-`r community_car_perc_2016$TAZOrig_car_perc[6] |> percent()`). <!--Do we maybe need to discuss how this lack of data for each TAZ impacted the calculations? [AP]: No. Unrelated: did you use information from TTS2016R? Or can you add it to the data package? And then cite your data paper. [AS]: fantastic idea! Added! for now I just have the TAZ boundaries in TTS2016R. The package can be expanded to include school travel but I'd need to add the full GTHA region. For this analysis I only exported Hamilton (PD region 6) beginning/ending trips.-->
 
 ```{r}
 #| label: fig-Fig3
-#| fig-cap: "The origin-destination flows from home-based motorized and non-motorized school trips for students between 5-13 years old as retrieved from TTS 2011 and 2016 mapped atop proportion of TAZ non/motorized modal share, DA boundaries, and community boundaries."
+#| fig-cap: "The origin-destination flows from home-based motorized and non-motorized school trips for students between 5-13 years old as retrieved from TTS 2011 and 2016. Flows are mapped atop the proportion of TAZ non/motorized modal share from the TTS 2011 and 2016, DA boundaries, and Hamilton community boundaries."
 #| echo: false
-#| out-width: "140%"
+#| out-width: "120%"
 
 knitr::include_graphics(paste0(here::here(),"/Figures/OD_flow_plot.png"))
 ```
@@ -1222,7 +1497,7 @@ and
 mean(OD_2011|>filter(mode=="w" & travel_time_p50 <= 27)|>pull(travel_time_p50), weights=OD_2011|>filter(mode=="w")|>pull(kid_popadj))
 -->
 
-These travel time matrices along with the origin-destination flows were used to create modal trip length distribution (TLD) functions. Analysis of the TLD is a useful technique to calibrate impedance functions as they are a representation of the propensity of travel by trip length [@horbachov_theoretical_2018; @batista_estimation_2019]. The empirical TLD is used to fit a density distribution using maximum likelihood and moment matching techniques and the Nelder-Mead and Brent methods for direct optimization available within the {fitdistrplus} `R` package [@fitdistrplus_2015]. Based on goodness-of-fit criteria and diagnostics <!-- should I include the diagonostic plots in the appendix? q-q, etc..? I don't think its entirely necessary as the empirical is graphed over the theoretical line in the following figure. [AP] Agreed-->, the gamma and exponential distributions were selected for the motorized and non-motorized modal distributions respectively. The gamma distribution is defined by the shape ($\alpha$) parameter of `r round(gamma2011_motor$estimate[1], 3)` (2011) and `r round(gamma2016_motor$estimate[1], 3)` (2016) and the rate ($\beta$) of `r round(gamma2011_motor$estimate[2], 3)` (2011) and `r round(gamma2016_motor$estimate[2], 3)` (2016). The exponential distribution is defined by the rate ($\beta$) parameter of `r round(exp2011_nonmotor$estimate[1], 3)` (2011) and `r round(exp2016_nonmotor$estimate[1], 3)` (2016). The TLDs for the motorized and non-motorized trips are shown in @fig-Fig4. For reference, the gamma distribution and the exponential distribution function are displayed in the following Equation (\ref{eq:exp-dist})) and (\ref{eq:gamma-dist})) where $x$ is $c_{ij}$:
+These travel time matrices along with the origin-destination flows were used to create modal trip length distribution (TLD) functions. Analysis of the TLD is a useful technique to calibrate impedance functions as they are a representation of the propensity of travel by trip length [@horbachov_theoretical_2018; @batista_estimation_2019]. The empirical TLD is used to fit a density distribution using maximum likelihood and moment matching techniques and the Nelder-Mead and Brent methods for direct optimization available within the {fitdistrplus} `R` package [@fitdistrplus_2015]. Based on goodness-of-fit criteria and diagnostics <!-- should I include the diagnostic plots in the appendix? q-q, etc..? I don't think its entirely necessary as the empirical is graphed over the theoretical line in the following figure. [AP] Agreed-->, the gamma and exponential distributions were selected for the motorized and non-motorized modal distributions respectively. The gamma distribution is defined by the shape ($\alpha$) parameter of `r round(gamma2011_motor$estimate[1], 3)` (2011) and `r round(gamma2016_motor$estimate[1], 3)` (2016) and the rate ($\beta$) of `r round(gamma2011_motor$estimate[2], 3)` (2011) and `r round(gamma2016_motor$estimate[2], 3)` (2016). The exponential distribution is defined by the rate ($\beta$) parameter of `r round(exp2011_nonmotor$estimate[1], 3)` (2011) and `r round(exp2016_nonmotor$estimate[1], 3)` (2016). The TLDs for the motorized and non-motorized trips are shown in @fig-Fig4. For reference, the gamma distribution and the exponential distribution function are displayed in the following Equation (\ref{eq:exp-dist})) and (\ref{eq:gamma-dist})) where $x$ is $c_{ij}$:
 
 ```{=tex}
 \begin{equation}
@@ -1249,7 +1524,6 @@ f(x, \alpha, \beta) = \frac {x^{\alpha-1}e^{-\frac{x}{\beta}}}{ \beta^{\alpha}\G
 
 knitr::include_graphics(paste0(here::here(),"/Figures/TLD_empirical_wtheo_curve_plot.png"))
 ```
-<!--maybe bigger font here?-->
 
 The sixth and final data source relates to motorized GHG well-to-wheel estimations. It assumed that all non-motorized trips produce no emissions and those that are motorized take the average emission factor of 0.1 kg CO2e per minute travel. This emission factor is assumed based on an average speed of 40 km/h, the 2,380 g $CO_{2}e$ produced when 1 L of gasoline is combusted, and an internal combustion engine passenger vehicle fuel efficiency of 7 g/100km as discussed in @soukhovOccupancyGHGEmissions2022.
 
@@ -1304,7 +1578,7 @@ F^{tm}_{ij} = \frac{F^{pm}_{i} \cdot F^{cm}_{ij}}{\sum_{i} F^{pm}_{i} \cdot F^{c
 
 It should be noted that, when summed over all spatial units in the region, the population-based allocation factors $F^{pm}_{i}$ always equal 1 (i.e., $\sum_{m}\sum_{i} F^{pm}_{i}= 1$), likewise for impedance-based allocation factors $F^{cm}_{i}$ (i.e., $\sum_{m}\sum_{i} F^{cm}_{ij} = 1$).
 
-Hansen-type accessibility is not designed to preserve the number of opportunities in the region, it simply counts the intensity of opportunities that those in a zone can potentially interact with (weighted by the friction of distance). Also, as discussed in @soukhovIntroducingSpatialAvailability2023, popular competitive accessibility measures such as the 2SFCA [@shenLocationCharacteristicsInnercity1998; @luoMeasuresSpatialAccessibility2003] are internally inconsistent, and the only way it preserves the number of opportunities is if the effect of the impedance function is ignored when expanding the values of opportunities per capita to obtain the total number of opportunities. On the other hand, the proportional allocation procedure associated with calculating multi-modal spatial availability $V_i^m$ consistently returns a number of opportunities available to populations by mode that matches the total number of opportunities in the region when summed. By doing this consistently, it is possible to define a measure of multi-modal spatial availability per capita ($P$) as presented in Equation (\ref{eq:SA-per-capita}) for use as a benchmark to compare against the regional opportunities per capita ($\frac{\sum_{j} O_j}{\sum_{i} P_i}$).
+Hansen-type accessibility is not designed to preserve the number of opportunities in the region, it simply counts the intensity of opportunities that those in a zone can potentially interact with (weighted by the friction of distance). Also, as discussed in @soukhovIntroducingSpatialAvailability2023, popular competitive accessibility measures such as the 2SFCA [@josephMeasuringPotentialPhysical1982; @weibullAxiomaticApproachMeasurement1976; @shenLocationCharacteristicsInnercity1998; @luoMeasuresSpatialAccessibility2003] are internally inconsistent, and the only way it preserves the number of opportunities is if the effect of the impedance function is ignored when expanding the values of opportunities per capita to obtain the total number of opportunities. On the other hand, the proportional allocation procedure associated with calculating multi-modal spatial availability $V_i^m$ consistently returns a number of opportunities available to populations by mode that matches the total number of opportunities in the region when summed. By doing this consistently, it is possible to define a measure of multi-modal spatial availability per capita as presented in Equation (\ref{eq:SA-per-capita}) for use as a benchmark to compare against the regional opportunities per capita ($\frac{\sum_{j} O_j}{\sum_{i} P_i}$).
 
 ```{=tex}
 \begin{equation}
@@ -1313,40 +1587,44 @@ v_i^m = \frac{V_i^m}{P_i^m}
 \end{equation}
 ```
 
-This paper uses the multi-modal spatial availability $V_i^m$ and spatial availability per student $v_i^m$ measures to quantify accessibility changes for the following reasons. First, all residential locations are associated to their respective census DA, TTS TAZ, and community boundary (@fig-Fig3) based on spatial location. Each parcel is assigned a number of 'potential' motorized and non-motorized student aged population from these different data sources to calculate a motorized and non-motorized population balancing factor $F_{i}^{pm}$. For each parcel the following is retained: the 2011 and 2016 census average elementary-aged student population per parcel (@fig-Fig2 second row) and the average motorized and non-motorized split as informed by the TTS aggregated by community (@fig-Fig3). Second, the school capacity $O_j$ is estimated and associated with each school (@fig-Fig1). All residential locations are assumed to be able to access all schools by either motorized or non-motorized mode. All origins (residential locations) can reach all schools by motorized mode, but few residential locations can reach schools within a 27 minute non-motorized trip. 
+This paper uses the multi-modal spatial availability $V_i^m$ and spatial availability per student $v_i^m$ measures to quantify accessibility changes for the following reasons. 
 
-Third, the motorized and non-motorized impedance-balancing factors $F_{ij}^{cm}$ are calculated using a mode-specific impedance function (@fig-Fig4) based on the respective travel times for each origin (parcel) to school combination. Finally, outputs from all three stages are joined together. $F_{i}^{pm}$ joined with $F_{ij}^{cm}$ yields the total balancing factor $F^{tm}_{ij}$ which serves to proportionally allocate the school capacity $O_j$ to each parcel. The value is multi-modal spatial availability $V_i^m$ which can be interpreted as the number of school-seats that are available to the mode-using population at that parcel. $V_i^m$ is then summed and represented at the DA and community level along with the calculated $v_i^m$ for interpretation.
+First, all residential parcels are associated to their respective census DA, TTS TAZ, and community boundary based on spatial location (aggregated by DA and shown as a per capita rate in the second row of @fig-Fig2). Each parcel is assigned a number of 'potential' motorized and non-motorized student aged population (from DA) and modal share (from TTS) to calculate a motorized and non-motorized population balancing factor $F_{i}^{pm}$. For each parcel the following is retained: the 2011 and 2016 census average elementary-aged student population per parcel (@fig-Fig2 second row) and the average motorized and non-motorized split as informed by the TTS aggregated by community (@fig-Fig3). 
+
+Second, the school capacity $O_j$ is estimated and associated with each school (@fig-Fig1). All residential locations are assumed to be able to access all schools by either motorized or non-motorized mode. All origins (residential locations) can reach all schools by motorized mode, but few residential locations can reach schools within a 27 minute non-motorized trip. 
+
+Third, the motorized and non-motorized impedance-balancing factors $F_{ij}^{cm}$ are calculated using a mode-specific impedance function (@fig-Fig4) based on the respective estimated travel times for each origin (parcel) to school combination (OD flows retained from the TTS). Using network estimated travel time sensitive to observed parcel origin to school destination flows conceptually addresses the aggregation error that could result from using less granular zonal units to represent origin/destinations [@kaneParcelsPointsProximity2020; @kwanSpaceTimeIntegralMeasures1998; @hewkoMeasuringNeighbourhoodSpatial2002]. Finally, outputs from all three stages are joined together. $F_{i}^{pm}$ joined with $F_{ij}^{cm}$ yields the total balancing factor $F^{tm}_{ij}$ which serves to proportionally allocate the school capacity $O_j$ to each parcel. The value is multi-modal spatial availability $V_i^m$ which can be interpreted as the number of school-seats that are available to the mode-using population at that parcel. $V_i^m$ is then summed and represented at the DA and community level along with the calculated $v_i^m$ for interpretation.
 
 # Results
 
 ```{r}
-#| label: fig-Fig6
-#| fig-cap: "Multi-modal spatial availability (greys) and spatial availability per mode-using student (diverging reds and greens) aggregated at the level of DA for 2011 and 2016."
+#| label: fig-Fig5
+#| fig-cap: "Multi-modal spatial availability (purples) and spatial availability per mode-using student (diverging reds and greens) aggregated at the DA level for 2011 and 2016. Scales are represented in quartiles."
 #| echo: false
-#| out-width: "140%"
+#| out-width: "120%"
 #| 
 knitr::include_graphics(paste0(here::here(),"/Figures/Vim_vvim_20112016_plot.png"))
 ```
 
-<!--I'll make this plot longer-->
 
-The motorized and non-motorized spatial availabilities of school seats $V_i$ for both 2011 and 2016 are presented in the top half of @fig-Fig6. Though they show different magnitudes, both populations using non- and motorized modes have higher spatial availability when they are more proximate to schools. Hence, all DAs have higher values within Hamilton Central and those more proximate to schools in less-urban communities. Trends appear similar for both 2011 and 2016: proximate populations using motorized modes benefit from the ability to reach more distant destinations than non-motorized modes. When $V_i^m$ is divided by the number of students by mode in that DA, $v_i^m$ is derived (bottom half of @fig-Fig6). A similar spatial distribution seen in $V_i^m$ can be seen in $v_i^m$ plots, but as a rate of student population. If our aim is to provide sufficient availability to schools for both motorized and non-motorized populations (i.e., greater than 1.0 $v_i^m$ school-seat availability per student), this rate is only achieved in the core of the city for motorized modes, and notably only for non-motorized populations in DAs that are in less-densely populated rural areas that are school proximate and certain pockets of Hamilton Central. The majority of schools closed were within Hamilton Central, so non-motorized populations in DAs within Hamilton Central were the most negatively impacted by losses in availability while certain motorized populations captured these losses as availability gains. 
+The motorized and non-motorized spatial availabilities of school seats $V_i$ for both 2011 and 2016 are presented in the top half of @fig-Fig5. It is worth noting that the sum of $V_i^m$ values in a year for both motorized and non-motorized population equals the city-wide OTGC (across both public and catholic school boards) in that year. This is a result of $V_i^m$ proportional allocation mechanism, singly-constraining opportunities through the proportion allocation balancing factors. In this way, $V_i^m$ results can be interpreted as a proportion of the total OTGC in that year. Though the top four plots of @fig-Fig5 demonstrate different magnitudes, both populations using non- and motorized modes have higher spatial availability when they are more proximate to schools. Hence, all DAs have higher values within Hamilton Central and those more proximate to schools in less-urban communities. Trends appear similar for both 2011 and 2016: proximate populations using motorized modes benefit from the ability to reach more distant destinations than non-motorized modes.
+
+When $V_i^m$ is divided by the number of students by mode in that DA, $v_i^m$ is derived (bottom four plots in @fig-Fig5). The $v_i^m$ plots demonstrate different spatial distribution trends than $V_i^m$ plots. If our aim is to provide sufficient availability to schools for both motorized and non-motorized populations (i.e., greater than 1.0 $v_i^m$ school-seat availability per student), this rate is only achieved in the core of the city for motorized modes (greens and yellows). Notably, this rate only is available to non-motorized populations in DAs that are in less-densely populated rural areas that are school proximate and very few pockets of Hamilton Central. The majority of schools closed were within Hamilton Central, so non-motorized populations in DAs within Hamilton Central were the most negatively impacted by losses in availability while certain motorized populations captured these losses as availability gains. 
 
 ```{r}
-#| label: fig-Fig7
-#| fig-cap: "Change in multi-modal spatial availability and spatial availability per mode-using student between 2016 and 2011 at the level of DA of the 2016 Canadian Census."
+#| label: fig-Fig6
+#| fig-cap: "Change in multi-modal spatial availability and spatial availability per mode-using student between 2016 and 2011 at the 2016 DA Canadian Census aggregation. Scales are represented in quartiles."
 #| echo: false
 
 knitr::include_graphics(paste0(here::here(),"/Figures/Vim_vvim_20112016_CHANGE_plot.png"))
 ```
+<!-- TO DO: Fig6 will be 8 plots (1 for each mode) of 1) change in V_im, v_im, active transportation minutes, GHG emissions. The geometry will be in 2016 DAs. -->
 
-<!--The colours combos I choose here are absolutely ugly ;( but besides that, do you agree that V_im and v_im should use different colour palettes?-->
+To emphasize how spatial availability changed between 2016 and 2011, the change in $V_i^m$ and $v_i^m$ is visualised for both modes in @fig-Fig6. Overall, a decrease in both $V_i^m$ and $v_i^m$ can be seen across both modes around closed schools (black points). An increase near new or expanded schools (green points) is not as notable as overall fewer school seats were added relative to increases in the school-aged population, leading to increased competition for these resources. For non-motorized mode-using populations, $V_i^m$ decreases across the city. However, some motorized-mode using populations in DAs do experience an increase in $V_i^m$: these DAs are often relatively proximate to schools but more immediately outside walking-range. Under competitive and constrained calculations, these DAs benefit from the losses in spatial availability that are predominately experienced by the non-motorized populations within Hamilton Central. 
 
-To emphasize how spatial availability changed between 2016 and 2011, the change in $V_i^m$ and $v_i^m$ is visualised for both modes in @fig-Fig7. Overall, a decrease in both $V_i^m$ and $v_i^m$ can be seen across both modes around closed schools (black points). An increase near new or expanded schools (green points) is not as notable as overall fewer school seats were added relative to increases in the school-aged population, leading to increased competition for these resources. For non-motorized mode-using populations, $V_i^m$ decreases across the city. However, some motorized-mode using populations in DAs do experience an increase in $V_i^m$: these DAs are often relatively proximate to schools but more immediately outside walking-range. Under competitive and constrained calculations, these DAs benefit from the losses in spatial availability that are predominately experienced by the non-motorized populations within Hamilton Central. 
 
-<!--Antonio, what do you think, maybe worth adding a plot of GHG emissions or change in tt? This will provide us some higher level summary stats. Moataz asked about this as well regarding the figures in the Results section. [AP] Yes, please add those statistics to support the discussion. -->
 
-<!--Antonio, what do you think, add a table with summaries of LIMAT, Kid pop, V_im change, v_im change, total travel time change, and emission changed by community and mode? We should discuss to decide what's the best presentation. [AP]: Best presentation: spatial availability by quartiles of the relevant dimensions (e.g., LIMAT) -->
+<!-- TO DO: add tables to show availability by mode in 2011 and 2016 with changes, as well as lost minutes of active travel time, emissions, and LIM-AT. Tabulate by communtity and city-wide. [AP]: Check Elise's equity in accessibility to bike share paper, see table 1 there. -->
 
 ```{r}
 # SAvail_im_COMM_changes |> filter(mode == "motorized") |> st_drop_geometry() |> 
@@ -1388,16 +1666,12 @@ Conversely, communities with the lowest LIM-AT benefit the most, notably in gain
 
 Across the city, those who commute by non-motorized mode see the most dramatic drop in spatial availability across the city. In all communities, spatial availability decreases at greater levels than population. Notably, in Dundas (2nd highest LIM-AT), the only school in the community closed leaving the population in the community with no other option but to use motorized modes. Glanbrook (lowest LIM-AT), which experienced a sharp increase in student population along with non-motorized using population, suffered a lose in non-motorized spatial availability despite seeing the highest increase in motorized spatial availability. Overall, the gain in motorized spatial availability resulted in a further erosion of non-motorized spatial availability. This erosion results in a lose in active transport trips and an increase in emissions city-wide (`r SAvail_im_COMM_changes |> st_drop_geometry() |> transmute(em = (sum(emissions_2011))/(sum(kid_2011)) ) |> sum() |> round(digit=2)`kg $CO_2e$ per home-to-school potential student-trip in 2011 to `r SAvail_im_COMM_changes |> st_drop_geometry() |> transmute(em = (sum(emissions_2016))/(sum(kid_2016)) ) |> sum() |> round(digit=2)` in 2016). 
 
-<!-- Is this worth further developing or perhaps just remove, what do you think? I think further. [AP]: tables to show availability by mode in 2011 and 2016 with changes, as well as lost minutes of active travel time and emissions. Check Elise's equity in accessibility to bike share paper, see table 1 there. -->
-Study limitations:
 
-- potential students per households, potential trips to all schools
-- estimated travel times, direct car or walk trip (shortest path). Not necessarily car, could be transit or school bus. Walking shortest-paths are also optimistic for children's travel: could be unsafe and not taken in reality and/or alternative more pleasant paths are taken.
-- estimated emissions. GHG emissions per minute of driving varies extensively depending on operating conditions and vehicle characteristics [@soukhovOccupancyGHGEmissions2022].
 
-<!-- Add this additional paper: it discusses the potential impact of mode-switching on GHG emissions reductions [@pantelakiImpactHomeschoolCommuting2024].
+The advantage of spatial availability is the constrained opportunities (singly constrained). This means we can:
+- calculate availability at the finest spatial resolution
+- we can aggregate it whichever spatial unit is most meaningful for interpretation. Here we demonstrate aggregations at the DA, then at neighbourhood community boundaries, and then city wide per mode. This can be used to communicate changes in spatial availability and other related potential mobility externalities like lose active transportation minutes and emissions. 
 
-Also, access to schools has broader implications; it has a relationship to residential and job choices [@pietrabissaSchoolAccessCity2023] and housing prices [@merrallWhatSchoolWorth2023] ? Shall I further elaborate in the discussion?-->
 
 # Conclusion
 
@@ -1408,6 +1682,16 @@ By quantifying the spatial availability, environmental, and active-travel implic
 Like many other localities, Hamilton is not immune to top-down financial efficient policy decisions to determine community infrastructure is underutilized and it be closed. From the perspective of the provincial government of Ontario, the school closures which occurred in Hamilton resulted in operational savings-per-student but we demonstrate how this resulted in both families and students paying a price through spatial availability, lost potential walk minutes, and increased GHG emissions. In the case of Hamilton Central, where households have the highest prevalence of LIM-AT in the city, those households suffer the most disproportionate decrease in motorized spatial availability and increase in percentage increase in emissions per capacity. As public schools should serve all students; the determination of spatial availability and spatial equity of impact, is critical to better inform decision-makers when evaluating school consolidation policies.
 
 Ultimately, this case study furnishes evidence that consolidation of schools was particularly ill-timed: with the advent of the COVID-19 pandemic, the education system lacked the resiliency to accommodate reduced classroom capacities and left parents who once lived within active transportation distance to schools relying on motorized transportation for their children. These top-down austerity measures left the Hamilton local school system more vulnerable to the impacts of COVID-19 by undervaluing the societal role of schools in neighbourhoods. By identifying the impact of school consolidation policies in Ontario we anticipate that researchers and decision-makers will have better information to center the wellbeing of all residents, including students, and the planet in urban planning policies.  
+
+Study limitations:
+
+- potential students per households, potential trips to all schools
+- estimated travel times, direct car or walk trip (shortest path). Not necessarily car, could be transit or school bus. Walking shortest-paths are also optimistic for children's travel: could be unsafe and not taken in reality and/or alternative more pleasant paths are taken.
+- estimated emissions. GHG emissions per minute of driving varies extensively depending on operating conditions and vehicle characteristics [@soukhovOccupancyGHGEmissions2022].
+
+<!-- Add this additional paper: it discusses the potential impact of mode-switching on GHG emissions reductions [@pantelakiImpactHomeschoolCommuting2024].
+
+Also, access to schools has broader implications; it has a relationship to residential and job choices [@pietrabissaSchoolAccessCity2023] and housing prices [@merrallWhatSchoolWorth2023] ? Shall I further elaborate in the discussion?-->
 
 # References
 

@@ -2,35 +2,29 @@
 % Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
 % Date and time: Thu, Apr 25, 2024 - 1:03:02 PM
 \begin{table}[!htbp] \centering 
-  \caption{OTGC Regression results} 
+  \caption{Estimated on-the-ground capacity (OTGC) (units of school seats available per school) regression results for public and public-catholic school boards in Hamilton, Canada for years 2011 and 2016.} 
   \label{TabA1-OTGC} 
 \begin{tabular}{@{\extracolsep{5pt}}lcc} 
 \\[-1.8ex]\hline 
 \hline \\[-1.8ex] 
  & \multicolumn{2}{c}{\textit{Dependent variable:}} \\ 
-\\[-1.8ex] & \multicolumn{2}{c}{log(capacity)} \\ 
-\\[-1.8ex] & (1) & (2)\\ 
+\\[-1.8ex] & \multicolumn{2}{c}{log(OTGC)} \\ 
+\\[-1.8ex] & (Public) & (Catholic)\\ 
 \hline \\[-1.8ex] 
- log(footprint) & 0.346$^{***}$ & 0.471$^{***}$ \\ 
+ log(F) & 0.346$^{***}$ & 0.471$^{***}$ \\ 
   & (0.107) & (0.153) \\ 
   & & \\ 
- Grades.JKto5\_6 & 3.123$^{***}$ &  \\ 
+ JrElem & 3.123$^{***}$ &  \\ 
   & (0.834) &  \\ 
   & & \\ 
- Grades.JKto8 & 3.752$^{***}$ &  \\ 
-  & (0.861) &  \\ 
-  & & \\ 
- Grades.6to8 & 3.068$^{***}$ &  \\ 
+ MidElem & 3.068$^{***}$ &  \\ 
   & (0.893) &  \\ 
   & & \\ 
- Grades.9to12 & 4.094$^{***}$ &  \\ 
-  & (0.978) &  \\ 
+ Elem & 3.752$^{***}$ &  2.333$^{*}$\\ 
+  & (0.861) & (1.212) \\ 
   & & \\ 
- Type.Elementary &  & 2.333$^{*}$ \\ 
-  &  & (1.212) \\ 
-  & & \\ 
- Type.Secondary &  & 2.936$^{**}$ \\ 
-  &  & (1.398) \\ 
+ Sec & 4.094$^{***}$ &  2.936$^{**}$ \\ 
+  & (0.978) & (1.398) \\ 
   & & \\ 
  urban.dist & $-$0.00003$^{***}$ & $-$0.00003$^{**}$ \\ 
   & (0.00001) & (0.00001) \\ 

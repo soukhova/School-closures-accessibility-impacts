@@ -1,6 +1,6 @@
 {
   "R": {
-    "Version": "4.3.3",
+    "Version": "4.3.2",
     "Repositories": [
       {
         "Name": "CRAN",
@@ -113,6 +113,22 @@
         "utils"
       ],
       "Hash": "df49e3306f232ec28f1604e36a202847"
+    },
+    "TTS2016R": {
+      "Package": "TTS2016R",
+      "Version": "0.0.1-1",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "TTS2016R",
+      "RemoteUsername": "soukhova",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "0efdebafbb1a0033e60777c4b4f679eeff381e8a",
+      "Requirements": [
+        "R",
+        "magrittr"
+      ],
+      "Hash": "038183d8b3bd4a5a0289e188ea0ab341"
     },
     "V8": {
       "Package": "V8",
@@ -486,6 +502,13 @@
         "stats"
       ],
       "Hash": "f20c47fd52fae58b4e377c37bb8c335b"
+    },
+    "commonmark": {
+      "Package": "commonmark",
+      "Version": "1.9.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "5d8225445acb167abf7797de48b2ee3c"
     },
     "concaveman": {
       "Package": "concaveman",
@@ -1197,6 +1220,31 @@
       ],
       "Hash": "ac107251d9d9fd72f0ca8049988f1d7f"
     },
+    "huxtable": {
+      "Package": "huxtable",
+      "Version": "5.5.6",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "R6",
+        "assertthat",
+        "commonmark",
+        "fansi",
+        "generics",
+        "glue",
+        "htmltools",
+        "memoise",
+        "rlang",
+        "stats",
+        "stringi",
+        "stringr",
+        "tidyselect",
+        "utils",
+        "xml2"
+      ],
+      "Hash": "48dbfa5ddc717a71fdac8dbad89d1756"
+    },
     "ids": {
       "Package": "ids",
       "Version": "1.0.1",
@@ -1504,6 +1552,17 @@
         "tools"
       ],
       "Hash": "18e9c28c1d3ca1560ce30658b22ce104"
+    },
+    "miscTools": {
+      "Package": "miscTools",
+      "Version": "0.6-28",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "digest"
+      ],
+      "Hash": "1f36c0edc10a5a5f512e424cb576a754"
     },
     "modelr": {
       "Package": "modelr",

@@ -1747,6 +1747,27 @@ Ultimately, this case study furnishes evidence that consolidation of schools was
 
 As with all studies, our work is associated with limitations on how results should be interpreted. The calculated spatial availability assumes any residential parcel can have a student (at the DA rate of students per residential unit) so all parcels are assigned a DA rate weighted by how many residential units are contained within the parcel. Each parcel can also visit any school, though travel times based on observed origin-destination behaviour (from the TTS) are more likely through the use of the empirical travel impedance functions. In this way, the spatial availability demonstrates what _potential interaction_ a student could have based on historic and average travel behaviour and shortest network-path travel times if residing in point in space. This representation is average, and by design obfuscates considerations that could make non-average and shortest-path travel unrealistic such as safety and built-environment concerns [@leeNeighborhoodEnvironmentsUtilitarian2021; @yumitaSchoolCommutingBarriers2021] nor considers significant non-transportation factors [@palmRolePublicTransit2020]. Further, this study does not consider transit, school-bus, or cycling modes which have implications on how the GHG emissions estimation can be interpreted. Transit and school bus modes often taken more circuitous routes [@yumitaSchoolCommutingBarriers2021] but pool students thereby reducing emissions. Cycling reduces travel time over the same walking distance at no extra emitted GHG. Lastly, this study also ascribes a static emission factor to represent motorized travel minutes based on an average diesel passenger car. In reality, GHG emissions emitted per minute of driving varies extensively depending on operating conditions and vehicle characteristics [@soukhovOccupancyGHGEmissions2022]. In these ways, the assumptions made are to illustrate _potential_ and _average_ changes that resulted in a backdrop of school consolidation/closures to illustrate accessibility-related impacts for the city of Hamilton.
 
+# Declarations
+
+**Ethical approval**
+Not applicable
+
+**Participate consent**
+Not applicable
+
+**Competing interests**
+The authors declare there are no personal or financial conflicts of interest. 
+
+**Authors' contributions**
+A.S., A.P., C.D.H., and M.M. all contributed to the study conception and design. Material preparation, data collection
+and formal analysis were performed by A.S., A.P, and C.D.H. All visuals and the first draft of the manuscript was written by A.S. A.S., A.P., C.D.H., and M.M. commented on earlier versions of the manuscript. A.S., A.P., C.D.H., and M.M.  reviewed the final manuscript.
+
+**Funding declaration**
+This work was supported by the Mobilizing Justice Partnership and the Canada Graduate Scholarships—Doctoral Program from the Social Sciences and Humanities Research Council of Canada (SSHRC).
+
+**Availability of data and materials**
+The manuscript text, code, analysis and data supporting this work is available in the lead author's GitHub repository : https://github.com/soukhova/School-closures-accessibility-impacts
+
 \pagebreak
 
 # References

@@ -3,6 +3,7 @@ title: "Testing-doc"
 output: html_document
 date: "2024-02-14"
 ---
+<!-- NOT USED IN THE MANUSCRIPT -->
 ```{r}
 rm(list=ls())
 ```

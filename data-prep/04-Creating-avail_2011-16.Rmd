@@ -419,7 +419,7 @@ rm(output_OD_walk_elem1,output_OD_walk_elem2,output_OD_walk_elem3,output_OD_walk
 ```
 
 ```{r}
-load(file="data-inputs/Parcels/RED_LU_centroids_2016.RData") #parcels
+load(file="data-inputs/Parcels/RED_LU_centroids_2011.RData") #parcels
 
 #drop all parcel points that do not have a GeoUID (i.e., a DA identifier -- this means they fall outside of Hamilton). It's 10 for 2011 and 11 for 2016
 RED_LU_centroids_2016 <- RED_LU_centroids_2016 %>% drop_na(GeoUID) %>%

@@ -1,0 +1,337 @@
+---
+title: "05-Exploring-avail_2021"
+format: html
+---
+library:
+```{r}
+#install.packages("sf")
+library(dplyr)
+library(sf)
+# if(!require(remotes)){
+#     install.packages("remotes")
+#     library(remotes)
+# }
+#remotes::install_github("soukhova/HamONdests")
+library(hamONdests)
+```
+
+
+```{r sp_avail-function}
+#defining the spatial availability function, this prints all the intermediates
+sp_avail_detailed <- function(x, o_id, d_id, pop, opp, pop_type, r, f, alpha = 1){
+  
+  o_id <- rlang::enquo(o_id)
+  d_id <- rlang::enquo(d_id)
+  pop <- rlang::enquo(pop)
+  opp <- rlang::enquo(opp)
+  pop_type <- rlang::enquo(pop_type)
+  r <- rlang::enquo(r)
+  f <- rlang::enquo(f)
+  
+  sum_pop <- x %>%
+    dplyr::distinct(!!o_id, !!pop_type,
+                    .keep_all = TRUE) %>%
+    dplyr::mutate(sum_pop = !!r*(!!pop)^alpha) %>%
+    dplyr::pull(sum_pop) %>%
+    sum()
+  
+  f_p <- dplyr::pull(x, !!r) * dplyr::pull(x, !!pop)^alpha / sum_pop
+  
+  sum_impedance <- x %>%
+    dplyr::group_by(!!d_id) %>%
+    dplyr::summarize(sum_impedance = sum(!!f))
+  
+  x <- x %>%
+    dplyr::left_join(sum_impedance,
+                     by = rlang::as_name(d_id))
+  
+  f_c <- dplyr::pull(x, !!f) / x$sum_impedance
+  
+  x$f_c <- f_c
+  x$f_p <- f_p
+  
+  sum_pa <- x %>%
+    dplyr::group_by(!!d_id) %>%
+    dplyr::summarize(sum_pa= sum(f_p * f_c))
+  
+  x <- x %>%
+    dplyr::left_join(sum_pa,
+                     by = rlang::as_name(d_id))
+  f_t <- (f_p * f_c) / dplyr::pull(x, sum_pa)
+  
+  x %>%
+    dplyr::mutate(V_ij = !!opp * !!f_t)
+}
+```
+
+All schools, including 2024 schools. Supercedes the hamonDESTs package:
+```{r}
+load(file="data-products/SCHOOLS.Rdata") #for this paper, the schools under analysis
+```
+
+Load census
+```{r}
+load(file="data-products/cen_data_2011_hamiltononly.Rdata")
+cen_data_2011_hamiltononly <- cen_data_2011_1 |> filter(`Region Name` == "Hamilton") #NOTE: GEOUID 35250242, 35250133, 35250457 do not have any child population
+rm("cen_data_2011_1")
+load(file="data-products/cen_data_2016_hamiltononly.Rdata")
+cen_data_2016_hamiltononly <- cen_data_2016_1 |> filter(`Region Name` == "Hamilton") #NOTE: GEOUID 35250133, 35250398, 35250427 do not have any child population
+rm("cen_data_2016_1")
+load(file="data-products/cen_data_2021_hamiltononly.Rdata")
+cen_data_2021_hamiltononly <- cen_data_2021_1 
+rm("cen_data_2021_1")
+
+ham_city_bound <- st_read("data-inputs/Boundaries/City_Boundary.shp") |> st_transform(st_crs(cen_data_2011_hamiltononly))
+ham_community_bounds <- st_read("data-inputs/Boundaries/Community_Boundaries.shp") |> st_transform(st_crs(cen_data_2011_hamiltononly))
+ggh_taz <- st_read("data-inputs/TTS/tts06_83_region.shp") |> st_transform(st_crs(cen_data_2011_hamiltononly))
+```
+
+```{r}
+cen_data_2011_hamiltononly <- 
+  cen_data_2011_hamiltononly %>% dplyr::select( #removing the variables we don't need for this analysis
+  -c("Shape Area", "Quality Flags", "Type", "CD_UID", "NHS Non-Return Rate", "CSD_UID", "CT_UID", "CT_UID","NHS Non Return Rate", "v_CA11N_2564: Median after-tax household income $", "v_CA11F_17: 15 to 19 years")) %>%
+  rename( #renaming the variables
+    "DA_households" = "Households",
+    "DA_dwellings" = "Dwellings",
+    "DA_tot_pop" = "Population",
+    "DA_med_AT_family_income" = "v_CA11N_2458: Median after-tax family income $",
+    "DA_med_AT_lone-family_income" = "v_CA11N_2476: Median after-tax family income $",
+    "DA_prev_LIMAT_under18" = "v_CA11N_2609: Less than 18 years %",
+    "DA_pop_5to9" = "v_CA11F_11: 5 to 9 years",
+    "DA_pop_10to14" = "v_CA11F_14: 10 to 14 years") %>%
+  mutate(DA_pop_5to14 = DA_pop_5to9+(DA_pop_10to14)) |> #*0.9)) %>%
+  dplyr::select(-c("DA_pop_5to9","DA_pop_10to14"))
+```
+
+
+```{r}
+cen_data_2016_hamiltononly <- 
+  cen_data_2016_hamiltononly %>% dplyr::select( #removing the variables we don't need for this analysis
+  -c("Shape Area",  "Type", "CD_UID", "CSD_UID", "CT_UID", "CT_UID", "v_CA16_2398: Median after-tax income of households in 2015 ($)",  "v_CA16_64: 15 to 19 years"  )) %>%
+  rename( #renaming the variables
+    "DA_households" = "Households",
+    "DA_dwellings" = "Dwellings",
+    "DA_tot_pop" = "Population",
+    "DA_med_AT_family_income" = "v_CA16_2448: Median after-tax income of economic families in 2015 ($)",
+    "DA_med_AT_lone-family_income" = "v_CA16_2460: Median after-tax income of lone-parent economic families in 2015 ($)",
+         "DA_prev_LIMAT_under18" = "v_CA16_2543: 0 to 17 years (%)",
+         "DA_pop_5to9" = "v_CA16_25: 5 to 9 years",
+         "DA_pop_10to14" = "v_CA16_43: 10 to 14 years") %>% mutate(DA_pop_5to14 = DA_pop_5to9+(DA_pop_10to14)) |> #*0.9)) %>%
+         dplyr::select(-c("DA_pop_5to9","DA_pop_10to14"))
+```
+
+
+```{r}
+cen_data_2021_hamiltononly <- 
+  cen_data_2021_hamiltononly %>% dplyr::select( #removing the variables we don't need for this analysis
+  -c("Shape Area",  "Type", "CD_UID", "CSD_UID", "CT_UID", "CT_UID", "v_CA21_566: Median after-tax income in 2020 among recipients ($)" ,"v_CA21_71: 15 to 19 years")) %>%
+  rename( #renaming the variables
+    "DA_households" = "Households",
+    "DA_dwellings" = "Dwellings",
+    "DA_tot_pop" = "Population",
+    "DA_med_AT_family_income" = "v_CA21_966: Median after-tax income of economic family in 2020 ($)",
+    "DA_med_AT_lone-family_income" = "v_CA21_978: Median after-tax income of one-parent economic families in 2020 ($)",
+    "DA_prev_LIMAT_under18" =  "v_CA21_1043: 0 to 17 years",
+    "DA_pop_5to9" = "v_CA21_32: 5 to 9 years",
+    "DA_pop_10to14" = "v_CA21_50: 10 to 14 years") %>%
+    mutate(DA_pop_5to14 = DA_pop_5to9+(DA_pop_10to14)) |> #*0.9)) %>%
+         dplyr::select(-c("DA_pop_5to9","DA_pop_10to14"))
+```
+
+load TTS travel impedance functions, and format SCHOOLS to refer to the TTS IDS (add GTA06 IDs to schools - "GTA06_Dest"):
+```{r}
+load(file="data-products/TTS_gamma2016_motor.Rdata")
+load(file="data-products/TTS_exp2016_nonmotor.Rdata")
+
+#formatting
+cols_TAZIDs <- sp::over(as_Spatial(SCHOOLS |> st_transform(st_crs(ggh_taz))),
+                              as_Spatial(ggh_taz |> dplyr::select(GTA06) |> rename("GTA06_Dest" = "GTA06")))
+
+SCHOOLS <- cbind(SCHOOLS,cols_TAZIDs)
+rm(cols_TAZIDs)
+```
+
+Loading travel times in 2021 and modal split in 2016:
+```{r}
+load(file="data-products/OD_tt_car_2021_1.Rdata")
+load(file="data-products/OD_tt_car_2021_2.Rdata")
+load(file="data-products/OD_tt_car_2021_3.Rdata")
+load(file="data-products/OD_tt_car_2021_4.Rdata")
+
+load(file="data-products/OD_tt_walk_2021_1.Rdata")
+load(file="data-products/OD_tt_walk_2021_2.Rdata")
+load(file="data-products/OD_tt_walk_2021_3.Rdata")
+load(file="data-products/OD_tt_walk_2021_4.Rdata")
+
+load(file="data-inputs/TTS/od_trips_perc_2016.Rdata")
+
+#renaming travel time matrices 
+ttm_car_2021 <- bind_rows(output_OD_car1, output_OD_car2, output_OD_car3, output_OD_car4) %>% mutate(mode = "c")
+rm(output_OD_car1, output_OD_car2, output_OD_car3, output_OD_car4) 
+
+ttm_walk_2021 <- bind_rows(output_OD_walk_elem1,output_OD_walk_elem2,output_OD_walk_elem3,output_OD_walk_elem4) %>% mutate(mode = "w")
+rm(output_OD_walk_elem1,output_OD_walk_elem2,output_OD_walk_elem3,output_OD_walk_elem4)
+```
+
+load centroids:
+```{r}
+load(file="data-inputs/Parcels/RED_LU_centroids_2021.RData") #parcels
+
+#drop all parcel points that do not have a GeoUID (i.e., a DA identifier -- this means they fall outside of Hamilton). It's 10 for 2011,  11 for 2016, and 11 for 2021
+RED_LU_centroids_2021 <- RED_LU_centroids_2021 %>% drop_na(GeoUID) %>%
+  group_by(ID) %>%
+  dplyr::select(c("ID","GeoUID_2016","GeoUID","GTA06_Orig","WARD","COMMUNITY","URBAN_RURA","LUC1","LUC2","LUC1_DESCR","TYPE","geometry"))
+```
+
+Add census data to the parcel centroids:
+```{r}
+RED_LU_centroids_2021 <- RED_LU_centroids_2021 %>%
+  merge(cen_data_2021_hamiltononly %>% st_drop_geometry(), by="GeoUID") 
+```
+
+```{r}
+#create OD matrix -- each parcel to each school, and then drop all OD pairs that don't have a travel time ()
+OD_2021 <- RED_LU_centroids_2021 %>% 
+  cross_join(SCHOOLS %>% st_drop_geometry() |> filter(Year_2 == "2016 and 2021" | Year_2 == "2021") %>%
+               dplyr::select(c("SchoolID", "OTGC2021", "GTA06_Dest")))
+#add travel time, per mode
+test <- OD_2021 %>% mutate(ID = as.character(ID),
+                           SchoolID = as.character(SchoolID)) %>%
+  left_join(ttm_car_2021, by=c("ID" = "from_id",
+                               "SchoolID" = "to_id")) %>% 
+  drop_na(travel_time_p50)  ##CHECK!! USE test$OTGC2021 |> unique() to see if ~133 schools have unique capacities..
+```
+
+```{r}
+OD_2021 <- OD_2021 %>% mutate(ID = as.character(ID),
+                           SchoolID = as.character(SchoolID)) %>%
+  left_join(ttm_walk_2021 |> filter(travel_time_p50 <= 27), 
+            by=c("ID" = "from_id",
+                 "SchoolID" = "to_id")) %>% 
+  drop_na(travel_time_p50) 
+
+OD_2021 <- rbind(test,OD_2021)
+rm(test, ttm_car_2021, ttm_walk_2021)
+```
+
+```{r}
+#reduce dimensions
+OD_2021 <- OD_2021 %>% dplyr::select(-c("LUC1","LUC1_DESCR", "LUC2", "DA_dwellings", "CMA_UID", "Region Name", "geometry","Area (sq km)"))
+
+# Check the mean and median travel times by mode, the first is at the level of zn1259 and the second is at zn208
+OD_2021 %>% 
+  group_by(mode) %>% 
+  summarize(mean_tt = mean(travel_time_p50),
+            median_tt = median(travel_time_p50),
+            min_tt = min(travel_time_p50),
+            max_tt = max(travel_time_p50))
+```
+```{r}
+#buffering to clean up the edges of these objects -> there wre issues using st_join. 
+sf_use_s2(FALSE)
+ggh_taz <- ggh_taz |> st_make_valid()
+ggh_taz <- st_buffer(ggh_taz, dist=0)
+ham_taz <- ggh_taz %>% dplyr::filter(REGION==6) #Filter out everything other than Planning District 6 = Hamilton
+```
+
+```{r}
+#now let's add the communtiy names to the TAZ and summarize the % of students who use what mode by community. 
+ggh_taz_communities <- st_intersection(st_centroid(ham_taz),
+                                       ham_community_bounds) |>
+  dplyr::select(c("GTA06", "REGION", "COMMUNITY_")) 
+
+od_trips_perc_2016 <- od_trips_perc_2016 %>%
+  left_join(ggh_taz_communities |> st_drop_geometry() |>
+              mutate(GTA06 = as.character(GTA06)), 
+            by=c("Origin"="GTA06"))
+
+od_trips_perc_comm_2016 <- od_trips_perc_2016 %>% group_by(COMMUNITY_) %>%
+  summarize(TAZOrig_car_trips = sum(TAZOrig_car_trips),
+            TAZOrig_walk_trips = sum(TAZOrig_walk_trips)) %>% 
+  mutate(TAZOrig_car_perc = TAZOrig_car_trips/(TAZOrig_car_trips + TAZOrig_walk_trips),
+         COMMUNITY = case_when(COMMUNITY_ == "Ancaster" ~ "AN",
+                                                         COMMUNITY_ == "Dundas" ~ "DU",
+                                                         COMMUNITY_ == "Flamborough" ~ "FL",
+                                                         COMMUNITY_ == "Glanbrook" ~ "GL",
+                                                         COMMUNITY_ == "Hamilton" ~ "HA",
+                                                         COMMUNITY_ == "Stoney Creek" ~ "SC")) |>
+  dplyr::select(-c("COMMUNITY_"))
+
+od_trips_perc_comm_2016
+```
+
+```{r}
+# Lets add the % of car-mode used to the full OD list and then start transforming the frame for Spatial Availability calc.
+OD_2021 <- OD_2021 |> left_join(od_trips_perc_comm_2016 |>
+                                  dplyr::select(c("TAZOrig_car_perc", "COMMUNITY")),
+                                by = "COMMUNITY") %>%
+  mutate(
+  DA_pop_5to14 = ifelse(is.na(DA_pop_5to14), 0, DA_pop_5to14),
+  DA_households = ifelse(is.na(DA_households), 0, DA_households))
+
+#'mode_count' identifies if a OD pair (ID to SchoolID) is either just car (1) or car and walk (2). Join this to the full OD list.
+OD_2021_mode_count <- OD_2021 |>
+  group_by(ID, SchoolID) %>% 
+  summarise(mode_count = n())
+
+OD_2021 <- OD_2021 %>% left_join(OD_2021_mode_count, by = c("ID", "SchoolID"))
+rm(OD_2021_mode_count)
+```
+
+```{r}
+#now, here we make the assumption on how many students live in each parcel. So since we assume that any parcel could potentially go to any school - I think it makes sense to also assume that the most granular level of population data we have (DA-level) is equally assigned to each parcel and then equally assigned to each OD flow based on it's mode-split (on average ~80/20 car/walk). 
+
+#Count the number of ID's for each OD pair -- this can be seen as the number of 'trips' being made from a parcel. There are 147 elementary schools in 2011 -- all parcels can reach all schools by car in 60 mins. So if a parcel only has 1 mode_count (car) it will have a "DA_ID_count" of 147 (the number of OD home-to-all-school trips). This is the number that the rate of Students in DA per OD flows in the DA ("IDs_in_a_DA_count") is multipled by.
+DA_ID_count <- OD_2021 |> group_by(ID) |> summarise(DA_ID_count = n()) 
+OD_2021 <- OD_2021 |> left_join(DA_ID_count, by="ID")
+
+#Here we calculate the number of OD trips per O (ID) that occur in each DA. This is how much the # of students in a DA is divded by for each OD. 
+IDs_in_a_DA_count <- OD_2021 |> group_by(GeoUID) |> summarise(IDs_in_a_DA_count = sum(DA_ID_count)) 
+OD_2021 <- OD_2021 |> left_join(IDs_in_a_DA_count, by="GeoUID")
+
+#We calculate the _kid-pop_ per parcel and then we adjusted it based on if the OD flow is 'walking' or 'car'
+OD_2021 <- OD_2021 |> mutate(kid_pop = DA_pop_5to14/IDs_in_a_DA_count*DA_ID_count, 
+               kid_pop = ifelse(is.na(kid_pop) | is.nan(kid_pop) | kid_pop == Inf, 0, kid_pop),
+               kid_popadj = case_when(mode == "w" & mode_count == 2 ~ (1.0000000-TAZOrig_car_perc)*2*kid_pop,
+                                         mode == "c" & mode_count == 2 ~ (TAZOrig_car_perc)*2*kid_pop,
+                                         mode == "c" & mode_count == 1 ~ kid_pop),
+                  kid_popadj = ifelse(is.na(kid_popadj) | is.nan(kid_popadj) | kid_popadj == Inf, 0, kid_popadj))
+```
+
+```{r}
+#checks!, these should be the total number of kids (^the code above) -- 62195
+sum(cen_data_2021_hamiltononly$DA_pop_5to14, na.rm=TRUE) 
+
+OD_2021$kid_pop %>% sum()
+OD_2021$kid_popadj %>% sum()
+OD_2021 |> group_by(GeoUID) |> summarize(DA_pop_5to14 = mean(DA_pop_5to14)) |> dplyr::select(DA_pop_5to14) |> sum()
+```
+
+```{r}
+#now add the impedance function, etc to the full OD 
+OD_2021 <- OD_2021 |> mutate(
+  travel_time_p50 = ifelse(travel_time_p50 == 0, 0.5, travel_time_p50),
+  r = 1,
+  f = ifelse(mode == "c", stats::dgamma(
+    travel_time_p50, gamma2016_motor$estimate["shape"], gamma2016_motor$estimate["rate"]), 
+    stats::dexp(
+      travel_time_p50, exp2016_nonmotor$estimate["rate"])))
+```
+
+```{r}
+#calculate spatial availability. 
+avail_2021 <- sp_avail_detailed(OD_2021, ID, SchoolID, kid_popadj, OTGC2021, mode, r, f, alpha = 1)
+save(avail_2021, file="data-products/avail_2021.RData")
+save(OD_2021, file="data-products/OD_2021.RData")
+```
+
+```{r}
+#checks, yes!
+OD_2021$OTGC2021 |> unique() |> sum()
+avail_2021$V_ij |> sum(na.rm=T)
+```
+
+
+```{r}
+rm(OD_2021)
+```

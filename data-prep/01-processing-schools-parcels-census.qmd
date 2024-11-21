@@ -26,12 +26,11 @@ set_cancensus_api_key("CensusMapper_53e5295237d9965a06425f1138ee6db7", install=T
 list_census_regions('CA11') %>%
    filter(name == c("Hamilton")) 
 list_census_regions('CA16') %>%
+   filter(name == c("Hamilton"))
+list_census_regions('CA21') %>%
    filter(name == c("Hamilton")) #from this result we see the code for the Hamilton CMA is 35537
 ```
 
-```{r}
-find_census_vectors("prevalence of low income", dataset = "CA16", type = "total", query_type = "keyword", interactive = FALSE)
-```
 
 ```{r import census data 2011}
 # Let's call the DA-level data by their vector IDs. Note, to retrieve all vector IDs you need, visit https://censusmapper.ca/, go to the API tab, and search for Variables and their corresponding IDs for your region and aggergation level of interest. Very user-friendly GUI! 
@@ -63,20 +62,37 @@ cen_data_2016_1 <- get_census(dataset='CA16', regions=list(CMA="35537"),
 save(cen_data_2016_1, file="data-inputs/Census-data/cen_data_2016_1.RData")
 ```
 
-Hamilton CMA is larger than the hamilton boundary. Clip the census data and resave:
+Repeat for 2021 incomes:
+```{r}
+cen_data_2021_1 <- get_census(dataset='CA21', regions=list(CMA="35537"),
+                           vectors=c("v_CA21_566", #Median after-tax income in 2020 among recipients ($),
+                                     "v_CA21_966", #Median after-tax income of economic family in 2020 ($)
+                                     "v_CA21_978", #Median after-tax income of 1-parent economic families in 2020 ($)
+                                     "v_CA21_1043", #	Income; Low Income Measures; Prevalence of low income based on the Low-income measure, after tax (LIM-AT) (%); 0 to 17 years (%)
+                                     "v_CA21_32", # population age 5-9
+                                     "v_CA21_50", #population age 10-14
+                                     "v_CA21_71"), #population age 15-19
+                           level='DA', use_cache = FALSE, geo_format = 'sf')
+
+save(cen_data_2021_1, file="data-inputs/Census-data/cen_data_2021_1.RData")
+```
+
+Hamilton CMA includes Burlington and Grimbsy. Filter those out and re-save:
 ```{r}
 ham_city_bound <- ham_city_bound |> st_transform(st_crs(cen_data_2011_1))
 ham_community_bounds <- ham_community_bounds |> st_transform(st_crs(cen_data_2011_1))
 
-cen_data_2011_1 <- st_intersection(ham_city_bound |> select(geometry), cen_data_2011_1)
-cen_data_2016_1 <- st_intersection(ham_city_bound |> select(geometry), cen_data_2016_1)
+cen_data_2011_1 <- cen_data_2011_1 |> filter(CD_UID == 3525) |> st_as_sf()
+cen_data_2016_1 <- cen_data_2016_1 |> filter(CD_UID == 3525)|> st_as_sf()
+cen_data_2021_1 <- cen_data_2021_1 |> filter(CD_UID == 3525)|> st_as_sf()
 
 save(cen_data_2011_1, file="data-products/cen_data_2011_hamiltononly.RData")
 save(cen_data_2016_1, file="data-products/cen_data_2016_hamiltononly.RData")
+save(cen_data_2021_1, file="data-products/cen_data_2021_hamiltononly.RData")
 ```
 
 # Schools and catchments:
-Available through the hamONdests package (https://github.com/soukhova/hamONdests):
+2011 and 2016 schools available through the hamONdests package (https://github.com/soukhova/hamONdests):
 ```{r}
 library(hamONdests)
 data(Schools_2011_2016)
@@ -107,12 +123,252 @@ school_catchments_map <- tm_shape(cen_data_2011_1 %>% rename("LIM-ATperc_0to17" 
 tmap_leaflet(school_catchments_map, add.titles = TRUE)
 ```
 
-# Parcels
+```{r}
+ALL_SCHOOLS_Elem <- Schools_2011_2016 %>% filter(Level == "Elementary") %>%
+  st_transform(crs = 32617)
+rm("Schools_2011_2016")
 
+SCHOOL_Elem_2016 <- ALL_SCHOOLS_Elem |> filter(Year == "2011 and 2016" | Year == "2016")
+```
+
+Schools (as of 2024) are retrieved from Hamilton Open Data:
+```{r}
+SCHOOL_Elem_2024 <- st_read("data-inputs/Educational_Institutions-2024/Educational_Institutions.shp")
+SCHOOL_Elem_2024 <- SCHOOL_Elem_2024 |> filter(CATEGORY == "Elementary School" | CATEGORY == "Middle School" ) |> mutate(SCHOOL_ID = as.character(SCHOOL_ID)) %>%
+  st_transform(crs = 32617)
+```
+
+Identifying the schools (ID and Names) that are different between 2011-16 and 2024. To do so, I will spatially compare 2016 to 2024. We want to identify which schools were closed between 2016 and 2024, and which ones opened. 
+```{r}
+#creating a 100m buffer around school points
+SCHOOL_Elem_2024_buff <- SCHOOL_Elem_2024 |> st_buffer(100)
+
+SCHOOLS_2024_and_2016 <- st_intersection(SCHOOL_Elem_2024_buff, SCHOOL_Elem_2016) |> select(c("SchoolID","OBJECTID","NAME","Name")) |> mutate(Year = "2016 and 2024")
+```
+
+There are apparently 123 schools that are common between 2024 and 2016. I manually check this list, and we're taking the 2016 names into the 2021 analysis. 
+```{r}
+SCHOOLS_2024_and_2016 |> st_drop_geometry()
+```
+NOTE: 
+- Ancaster Senior became Frank Panabaker Elementary School (South Campus) and Fessenden Elementary School became Frank Panabaker Elementary School (North Campus) in 2019 -- effectively they are the same school in 2019 but under the same 'management' now, so keep names as is (https://en.wikipedia.org/wiki/Frank_Panabaker_Elementary_School)
+
+- Glen Echo, Glen Brae, Sir Isaac Brock, and Elizabeth Bagshaw elementary schools closed -- and "Viola Desmond Elementary School" opened in September 2021 on the site of Glen Brae. Let's make Glen Brae as "Removed", and add new school named "Viola Desmond" as SchoolID 156.202021, ELEM 0, urban.dist 7948.096, footprint 3,902 m²
+(https://www.hwdsb.on.ca/sirwilfridlaurier/2021/05/19/viola-desmond-elementary-school-update/)
+
+- Ryerson was renamed "Kanétskare Elementary School" in September 2022, nothing else changed. For this analysis, keep Ryerson name. (https://www.hwdsb.on.ca/kanetskare/renaming/)
+- C.H. Bray was renamed "Spring Valley Elementary School" in September 2019, nothing else changed. For this analysis, keep C.H. Bray name. (https://www.hwdsb.on.ca/blog/new-school-names-for-the-schools-on-the-c-h-bray-and-beverly-community-centre-sites/)
+- G.R. Allan was expanded and renamed to "Cootes Paradise Elementary School" in 2014. For this analysis, keep G.R. Allan name. (https://www.hwdsb.on.ca/cootesparadise/files/2014/09/Agenda-insert-for-CP-2017-2018.pdf)
+
+Let's join add new columns, "Year_2" and "Status_2" and "footprint2021" corresponding to what happened between 2016-2021 for these 123 common schools.
+```{r}
+test_ALL_SCHOOLS_ELEM <- ALL_SCHOOLS_Elem |> mutate(Year_2 = ifelse(SchoolID %in% SCHOOLS_2024_and_2016$SchoolID, "2016 and 2021", NA),
+                           Status_2 = ifelse(!is.na(Year_2), "NoChange", NA),
+                           Status_2 = ifelse(SchoolID == "156", "Removed", Status_2),
+                           footprint2021 = ifelse(SchoolID =="156", 3902, footprint2016))
+
+test <- test_ALL_SCHOOLS_ELEM |> filter (SchoolID == "156") |> #takes the geometry and urban.dist of Glen Brae
+  mutate(SchoolID = "156.2021",
+         Name = "Viola Desmond",
+         ELEM = "ELEM",
+         MID = "MID",
+         Year_2 = "2021",
+         Status_2 = "New",
+         footprint2021 =3902)
+
+test[,c(3,4,7,8,9,10,11,12,18,19)] <- NA
+
+test_ALL_SCHOOLS_ELEM <- rbind(test_ALL_SCHOOLS_ELEM, test)
+```
+
+Now, what schools are NOT in common? Check each one.
+```{r}
+full_join(SCHOOL_Elem_2024,
+          SCHOOLS_2024_and_2016|> st_drop_geometry(), by="OBJECTID") |> filter(is.na(Year)) |> st_drop_geometry()
+```
+Update the schools that remained the same into 2021:
+```{r}
+test_ALL_SCHOOLS_ELEM <- test_ALL_SCHOOLS_ELEM |> 
+  mutate(Year_2 = ifelse(SchoolID %in% c("16","176","4362"), "2016 and 2021", Year_2),
+         Status_2 = ifelse(SchoolID %in% c("16","176","4362"), "NoChange", Status_2),
+         footprint2021 = ifelse(SchoolID %in% c("16","176","4362"), footprint2016, footprint2021))
+```
+
+Update the schools that changed locations or opened up between 2016-2021:
+```{r}
+test_ALL_SCHOOLS_ELEM <- test_ALL_SCHOOLS_ELEM |> 
+  mutate(Year_2 = ifelse(SchoolID %in% c("3564"), "2021", Year_2),
+         Status_2 = ifelse(SchoolID %in% c("3564"), "Moved", Status_2))
+
+test<- SCHOOL_Elem_2024 |> filter(NAME == "Our Lady of the Assumption Elementary School") |> select("geometry") |> st_as_sf()
+test <- test_ALL_SCHOOLS_ELEM |> filter (SchoolID == "3564") |>
+  mutate(SchoolID = "3564.2021",
+         Name = "Our Lady of the Assumption",
+         Year_2 = "2021",
+         Status_2 = "New",
+         MID = "MID",
+         footprint2021 = 4093,
+         geometry = test$geometry)
+
+test[,c(3,4,7,8,9,10,11,12,18,19)] <- NA
+
+test1<- SCHOOL_Elem_2024 |> filter(NAME == "Rockton Elementary School") |> select("geometry") |> st_as_sf()
+test1 <- test_ALL_SCHOOLS_ELEM |> filter (SchoolID == "10") |>
+  mutate(SchoolID = "374",
+         Name = "Rockton Elementary School",
+         Year_2 = "2021",
+         Status_2 = "New",
+         footprint2021 = (30.29*19.42 + 20.5*100 + 29.43*53.6),
+         geometry = test1$geometry)
+test1[,c(3,4,7,8,9,10,11,12,18,19)] <- NA
+
+test2<- SCHOOL_Elem_2024 |> filter(NAME == "South Meadow Elementary School") |> select("geometry") |> st_as_sf()
+test2 <- test_ALL_SCHOOLS_ELEM |> filter (SchoolID == "10") |>
+  mutate(SchoolID = "273",
+         Name = "South Meadow Elementary School",
+         Year_2 = "2021",
+         Status_2 = "New",
+         footprint2021 = 3639,
+         geometry = test2$geometry)
+test2[,c(3,4,7,8,9,10,11,12,18,19)] <- NA
+
+test3<- SCHOOL_Elem_2024 |> filter(NAME == "Tiffany Hills Elementary School") |> select("geometry") |> st_as_sf()
+test3 <- test_ALL_SCHOOLS_ELEM |> filter (SchoolID == "10") |>
+  mutate(SchoolID = "425",
+         Name = "Tiffany Hills Elementary School",
+         Year_2 = "2021",
+         Status_2 = "New",
+         footprint2021 = 3124,
+         geometry = test3$geometry)
+test3[,c(3,4,7,8,9,10,11,12,18,19)] <- NA
+
+test4<- SCHOOL_Elem_2024 |> filter(NAME == "Our Lady of Hope Elementary School") |> select("geometry") |> st_as_sf()
+test4 <- test_ALL_SCHOOLS_ELEM |> filter (SchoolID == "10") |>
+  mutate(SchoolID = "647",
+         Name = "Our Lady of Hope Elementary School",
+         Year_2 = "2021",
+         Status_2 = "New",
+         footprint2021 = 3157,
+         geometry = test4$geometry)
+test4[,c(3,4,7,8,9,10,11,12,18,19)] <- NA
+
+test5<- SCHOOL_Elem_2024 |> filter(NAME == "Shannen Koostachin Elementary School") |> select("geometry") |> st_as_sf()
+test5 <- test_ALL_SCHOOLS_ELEM |> filter (SchoolID == "10") |>
+  mutate(SchoolID = "416",
+         Name = "Shannen Koostachin Elementary School",
+         Year_2 = "2021",
+         Status_2 = "New",
+         footprint2021 = (29*119 + 24*20),
+         geometry = test5$geometry)
+test5[,c(3,4,7,8,9,10,11,12,18,19)] <- NA
+
+test_ALL_SCHOOLS_ELEM <- rbind(test_ALL_SCHOOLS_ELEM, test, test1, test2, test3, test4, test5)
+```
+
+Update schools that were removed:
+```{r}
+test_ALL_SCHOOLS_ELEM <- test_ALL_SCHOOLS_ELEM |> 
+  mutate(Year_2 = ifelse(SchoolID %in% c("3564","32","106","344","407",
+                                         "281","272",
+                                         "352","162", "405", "117"),
+                         "2016", Year_2),
+         Status_2 = ifelse(SchoolID %in% c("3564","32","106","344","407",
+                                         "281","272",
+                                         "352","162", "405", "117"),
+                           "Removed", Status_2),
+         footprint2021 = ifelse(SchoolID %in% c("3564","32","106","344","407",
+                                         "281","272",
+                                         "352","162", "405", "117"),
+                                NA, footprint2021))
+```
+(Our lady of the assumption closed its old location but moved to a new location (bigger) https://www.thespec.com/news/rebuilt-our-lady-of-the-assumption-catholic-elementary-school-opens/article_599fb9fe-fa59-5f85-bb1e-4d618e621bfb.html)
+(32,106,344,407 -- replaced with Rockton school https://12ft.io/proxy?q=https%3A%2F%2Fwww.thespec.com%2Fnews%2Fprescribed-process-through-the-ministry-4-former-flamborough-area-school-buildings-up-for-sale%2Farticle_f7983aeb-5f6c-5717-b875-fd3a13c5d5e1.html)
+(South Meadow and associated -- https://www.hwdsb.on.ca/blog/stoney-creeks-new-memorial-school-to-be-renamed-south-meadow/)
+(Tiffany falls opens -- https://www.hwdsb.on.ca/blog/hwdsb-to-open-tiffany-hills-school-on-january-9-2017-to-address-ancaster-growth/)
+(R.L. Hyslop is closed -- https://www.hwdsb.on.ca/wp-content/uploads/2021/07/Notice-for-Public-Information-R.L.-Hyslop.pdf)
+(Glen echo is closed -- https://www.thespec.com/news/hamilton-public-boards-sale-of-glen-echo-school-a-punch-in-the-gut/article_57915796-dab5-53af-a936-89d43aa427b5.html)
+(Sir Isaac Brook is closed -- https://www.thespec.com/news/new-policy-puts-sir-isaac-brock-school-name-in-crosshairs/article_c3ad138f-1e0f-5929-bdb9-c3d862ec5cd6.html)
+
+Update the urban.dist for the moved / new schools in 2021:
+```{r}
+# add a 'proxy' for age of construction. Assuming schools constructed closer to the CBD (the lat-long coordinate of "King St W and James St S: (43.256684, -79.869039)) is older and further away is newer.
+urban_pt <- st_sfc(st_point(c(-79.869039, 43.256684)), crs=4326)
+
+NEW_MOVED_SCHOOLS_2021_WSG84 <- st_transform(test_ALL_SCHOOLS_ELEM |> filter(Year_2 == "2021" & (Status_2 == "New" | Status_2 == "Moved")),crs=4326)
+NEW_MOVED_SCHOOLS_2021_WSG84$urban.dist <- st_distance(NEW_MOVED_SCHOOLS_2021_WSG84, y = urban_pt)
+```
+
+Now estimate OTGC2021 for these 7 locations. First load the models and reformat the dataframes:
+```{r}
+load("data-products/OTG_fit_DSB.rda") #created Nov. 19.2024 in the hamONdests package
+load("data-products/OTG_fit_CDSB.rda")
+
+#Create dummy variables corresponding to Grades (for Public) and for Type (for Catholic)
+NEW_MOVED_SCHOOLS_2021_WSG84 <- NEW_MOVED_SCHOOLS_2021_WSG84 %>%
+  mutate(Grades.JKto5_6 = ifelse((ELEM == "ELEM" & MID == "0" & HIGH == "0"), 1, 0),
+         Grades.JKto8 = ifelse((ELEM == "ELEM" & MID == "MID" & HIGH == "0"), 1, 0),
+         Grades.6to8 = ifelse((ELEM == "0" & MID == "MID" & HIGH == "0"), 1, 0),
+         Grades.9to12 = ifelse((ELEM == "0" & MID == "0" & HIGH == "HIGH"), 1, 0),
+         Type.Elementary = ifelse(Level == "Elementary", 1, 0),
+         Type.Secondary = ifelse(Level == "High", 1, 0))
+
+NEW_MOVED_SCHOOLS_2021_WSG84
+```
+
+Now predict the public schools:
+```{r}
+DSB_OTGC <- NEW_MOVED_SCHOOLS_2021_WSG84 |> filter(System == "Public")
+
+#add a field with index numbers for merging predicted OTGC 
+DSB_OTGC$rowID <- 1:nrow(DSB_OTGC)
+
+t <- as.data.frame(DSB_OTGC) %>%
+  transmute(footprint = footprint2021,Grades.JKto5_6,Grades.6to8,Grades.JKto8,Grades.9to12,urban.dist)
+t$urban.dist <- as.matrix(t$urban.dist)
+
+t2 <- predict(OTG_fit_DSB, newdata = t)
+t2 <- data.frame(OTGC2021 = exp(t2))
+t2$rowID <- 1:nrow(t2)
+
+DSB_OTGC <- merge(DSB_OTGC, t2, by= "rowID", all.x=TRUE ) |> select(c("SchoolID","OTGC2021")) |> st_drop_geometry()
+```
+
+Predict the 1 catholic school:
+```{r}
+CDSB_OTGC <- NEW_MOVED_SCHOOLS_2021_WSG84 |> filter(System == "Catholic")
+
+#add a field with index numbers for merging predicted OTGC 
+CDSB_OTGC$rowID <- 1:nrow(CDSB_OTGC)
+
+t <- as.data.frame(CDSB_OTGC) %>%
+  transmute(footprint = footprint2021,Type.Elementary,Type.Secondary, urban.dist)
+t$urban.dist <- as.matrix(t$urban.dist)
+
+t2 <- predict(OTG_fit_CDSB, newdata = t)
+t2 <- data.frame(OTGC2021 = exp(t2))
+t2$rowID <- 1:nrow(t2)
+
+CDSB_OTGC <- merge(CDSB_OTGC, t2, by= "rowID", all.x=TRUE ) |> select(c("SchoolID","OTGC2021")) |> st_drop_geometry()
+```
+
+Add the 2021 OTGCs to the schools database:
+```{r}
+SCHOOLS <- left_join(test_ALL_SCHOOLS_ELEM, rbind(DSB_OTGC,CDSB_OTGC), by="SchoolID")
+```
+Also, to the OTGC2021 column, for schools that existed in 2016 and exist in 2021, copy the OTGC of 2016. 
+```{r}
+SCHOOLS <- SCHOOLS |> mutate(OTGC2021 = ifelse(Year_2 == "2016 and 2021", OTGC2016, OTGC2021))
+                             
+save(SCHOOLS,file="data-products/SCHOOLS.Rdata") #for this paper, the schools under analysi
+```
+
+# Parcels
 Read shapefile as "sf" and drop all non-residential parcels:
 ```{r}
 load(file="data-inputs/Census-data/cen_data_2011_1.RData")
 load(file="data-inputs/Census-data/cen_data_2016_1.RData")
+load(file="data-inputs/Census-data/cen_data_2021_1.RData")
+
 RED_LU_2011 <- st_read("data-inputs/Parcels/PED_LANDUSE_2011/PED_LANDUSE.shp") |> 
   filter(TYPE == "Residential") |> st_transform(st_crs(cen_data_2011_1)) # set the CRS to epsg 4326, same as the census data
 
@@ -126,9 +382,29 @@ RED_LU_2016 <- st_read("data-inputs/Parcels/PED_Landuse_2016/PED_LANDUSE.shp") |
   filter(TYPE != 0) |> #i.e. filter out non-residential
   st_transform(st_crs(cen_data_2016_1))
 RED_LU_2016 <- st_make_valid(RED_LU_2016)
+
+RED_LU_2020 <- st_read("data-inputs/Parcels/PED_LANDUSE_2020/PED_LANDUSE.shp") |>
+  mutate(TYPE = ifelse(LUC1_DESCR == "Residential:Detached House" | 
+                         LUC1_DESCR == "Residential:Row/Town House"| 
+                         LUC1_DESCR == "Residential:Semi-Detached House" |
+                         LUC1_DESCR == "Residential:Apartment (7 or more units)"|
+                         LUC1_DESCR == "Residential:Multiplex Dwelling (6 units or less)",
+                       "Residential", 0)) |>
+  filter(TYPE != 0) |> #i.e. filter out non-residential
+  st_transform(st_crs(cen_data_2021_1))
+RED_LU_2020 <- st_make_valid(RED_LU_2020)
+RED_LU_2020 <- RED_LU_2020 |> mutate(ID = row_number())
 ```
 
-Transfer the GeoUID from the DAs (I.e., their DA IDs) that intersect with the residential land use parcel centroids to the RED_LU sf object. (we use 'over' here instead of st_intersection because it is way faster)
+Transfer the GeoUID from the DAs (I.e., their DA IDs) that intersect with the residential land use parcel centroids to the RED_LU sf object. (we use 'over' here instead of st_intersection because it is way faster). 
+First assign 2016 DA IDs to the centroids of 2016 parcels:
+```{r}
+RED_LU_centroids_2016 <- sp::over(as_Spatial(st_centroid(RED_LU_2016)),as_Spatial(cen_data_2016_1 |> select(GeoUID)))
+
+RED_LU_centroids_2016 <- cbind(RED_LU_centroids_2016,st_centroid(RED_LU_2016))
+```
+
+Next assign 2016 DA IDs to the centroids of 2011 parcels:
 ```{r}
 RED_LU_centroids_2011 <- sp::over(as_Spatial(st_centroid(RED_LU_2011)),as_Spatial(cen_data_2011_1 |> dplyr::select(GeoUID)))
 
@@ -139,17 +415,26 @@ RED_LU_centroids_2011 <- cbind(RED_LU_centroids_2011_w2016ID,
                               st_centroid(RED_LU_2011))
 ```
 
+Next assign 2016 DA IDs to the centroids of 2021 parcels:
 ```{r}
-RED_LU_centroids_2016 <- sp::over(as_Spatial(st_centroid(RED_LU_2016)),as_Spatial(cen_data_2016_1 |> select(GeoUID)))
+RED_LU_centroids_2021 <- sp::over(as_Spatial(st_centroid(RED_LU_2020)),
+                                  as_Spatial(cen_data_2021_1 |> dplyr::select(GeoUID) |> st_sf()))
 
-RED_LU_centroids_2016<- cbind(RED_LU_centroids_2016,st_centroid(RED_LU_2016))
+RED_LU_centroids_2021_w2016ID <- sp::over(as_Spatial(st_centroid(RED_LU_2020)),
+                                          as_Spatial(cen_data_2016_1 |> dplyr::select(GeoUID) |>
+                                                       rename("GeoUID_2016" = "GeoUID")))
+
+RED_LU_centroids_2021 <- cbind(RED_LU_centroids_2021_w2016ID,
+                              RED_LU_centroids_2021,
+                              st_centroid(RED_LU_2020))
 ```
 
-Now transfer the TAZ ids to the RED centroids -- this is so we can pull the proportion of motor/non-motorized trips. 
+As another step, we need to transfer the TAZ ids to the RED centroids -- this is so we can pull the proportion of motor/non-motorized trips. First, load in TAZs:
 ```{r}
 ggh_taz <- st_read("data-inputs/TTS/tts06_83_region.shp") |> st_transform(st_crs(cen_data_2011_1))
 ```
-Now add the TAZ IDs column to the residential parcel id
+
+Now add the TAZ IDs column to the residential parcel id for 2011, 2016, and 2021
 ```{r}
 cols_TAZIDs <-sp::over(as_Spatial(st_centroid(RED_LU_2011)),
                               as_Spatial(ggh_taz |> select(GTA06) |> rename("GTA06_Orig" = "GTA06")))
@@ -159,11 +444,18 @@ cols_TAZIDs <- sp::over(as_Spatial(st_centroid(RED_LU_2016)),
                               as_Spatial(ggh_taz |> select(GTA06) |> rename("GTA06_Orig" = "GTA06")))
 
 RED_LU_centroids_2016<- cbind(RED_LU_centroids_2016,cols_TAZIDs)
+
+cols_TAZIDs <- sp::over(as_Spatial(st_centroid(RED_LU_2020)),
+                              as_Spatial(ggh_taz |> select(GTA06) |> rename("GTA06_Orig" = "GTA06")))
+
+RED_LU_centroids_2021<- cbind(RED_LU_centroids_2021, cols_TAZIDs)
+
 rm(cols_TAZIDs)
 
 # and save
 save(RED_LU_centroids_2011, file="data-inputs/Parcels/RED_LU_centroids_2011.RData")
 save(RED_LU_centroids_2016, file="data-inputs/Parcels/RED_LU_centroids_2016.RData")
+save(RED_LU_centroids_2021, file="data-inputs/Parcels/RED_LU_centroids_2021.RData")
 ```
 
 We also want to make a list of origin-destination TAZ ids and their percentage of car-use:

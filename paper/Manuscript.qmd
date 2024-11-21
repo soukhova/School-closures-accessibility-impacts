@@ -42,6 +42,8 @@ keywords: [accessibility; spatial availability; carbon emissions; journey-to-sch
 - remove "\usepackage{fontspec}" 
 - add "\DeclareUnicodeCharacter{394}{$\Delta$}" to the tex preamble (this is because PHDtex does not recognize unicode? So need to explicitly define) (add to line 5) -->
 
+<!--Chat with Antonio about the assumption regarding the 'student population' per parcel. As it stands, when the student pop for the OD matrix is summed, it equals the total student population in the city. Each parcel is assigned a DA-pop/(the number of potential parcel trips in a DA * the potential parcels trips from that parcel). This is highly correlated with we just weighted it by DA-pop/DA-dwellings (but need to double check).  --->
+
 ```{r knitr-setup, include=FALSE}
 knitr::opts_chunk$set(
   echo = FALSE,
@@ -82,12 +84,15 @@ ham_bay <- st_read(paste0(here::here(),"/data-prep/data-inputs/Boundaries/Waterb
 ```
 
 ```{r, include=FALSE}
-load(file = paste0(here::here(),"/data-prep/data-products/cen_data_2011_hamiltononly.Rdata"))
-cen_data_2011_hamiltononly <- cen_data_2011_1 |> filter(Region.Name == "Hamilton") #NOTE: GEOUID 35250242, 35250133, 35250457 do not have any child population
+load(paste0(here::here(),file="/data-prep/data-products/cen_data_2011_hamiltononly.Rdata"))
+cen_data_2011_hamiltononly <- cen_data_2011_1 |> filter(`Region Name` == "Hamilton") #NOTE: GEOUID 35250242, 35250133, 35250457 do not have any child population
 rm("cen_data_2011_1")
-load(file=paste0(here::here(),"/data-prep/data-products/cen_data_2016_hamiltononly.Rdata"))
-cen_data_2016_hamiltononly <- cen_data_2016_1 |> filter(Region.Name == "Hamilton") #NOTE: GEOUID 35250133, 35250398, 35250427 do not have any child population
+load(paste0(here::here(),file="/data-prep/data-products/cen_data_2016_hamiltononly.Rdata"))
+cen_data_2016_hamiltononly <- cen_data_2016_1 |> filter(`Region Name` == "Hamilton") #NOTE: GEOUID 35250133, 35250398, 35250427 do not have any child population
 rm("cen_data_2016_1")
+load(paste0(here::here(),file="/data-prep/data-products/cen_data_2021_hamiltononly.Rdata"))
+cen_data_2021_hamiltononly <- cen_data_2021_1 
+rm("cen_data_2021_1")
 
 ham_city_bound <- st_read(paste0(here::here(),"/data-prep/data-inputs/Boundaries/City_Boundary.shp"),
                           quiet = TRUE) |> st_transform(st_crs(cen_data_2016_hamiltononly))
@@ -100,53 +105,68 @@ ham_community_bounds <- st_read(paste0(here::here(),"/data-prep/data-inputs/Boun
                                COMMUNITY_ == "Hamilton" ~ "HA",
                                COMMUNITY_ == "Stoney Creek" ~ "SC"),
          COMMUNITY_ = ifelse(COMMUNITY_ == "Hamilton", "Hamilton Central", COMMUNITY_)) |> st_transform(st_crs(cen_data_2016_hamiltononly))
+
+ggh_taz <- st_read(paste0(here::here(),"/data-prep/data-inputs/TTS/tts06_83_region.shp")) |> st_transform(st_crs(cen_data_2011_hamiltononly))
 ```
 
 ```{r, include=FALSE}
 cen_data_2011_hamiltononly <- 
   cen_data_2011_hamiltononly %>% dplyr::select( #removing the variables we don't need for this analysis
-    -c("Shape.Area", "Quality.Flags", "Type", "CD_UID", "NHS.Non.Return.Rate", "CSD_UID", "CT_UID", "CT_UID","NHS.Non.Return.Rate.1", "v_CA11N_2564..Median.after.tax.household.income..", "v_CA11F_17..15.to.19.years")) %>%
+  -c("Shape Area", "Quality Flags", "Type", "CD_UID", "NHS Non-Return Rate", "CSD_UID", "CT_UID", "CT_UID","NHS Non Return Rate", "v_CA11N_2564: Median after-tax household income $", "v_CA11F_17: 15 to 19 years")) %>%
   rename( #renaming the variables
     "DA_households" = "Households",
     "DA_dwellings" = "Dwellings",
     "DA_tot_pop" = "Population",
-    "DA_med_AT_family_income" = "v_CA11N_2458..Median.after.tax.family.income..",
-    "DA_med_AT_lone-family_income" = "v_CA11N_2476..Median.after.tax.family.income..",
-    "DA_prev_LIMAT_under18" = "v_CA11N_2609..Less.than.18.years..",
-    "DA_pop_5to9" = "v_CA11F_11..5.to.9.years",
-    "DA_pop_10to14" = "v_CA11F_14..10.to.14.years") %>%
+    "DA_med_AT_family_income" = "v_CA11N_2458: Median after-tax family income $",
+    "DA_med_AT_lone-family_income" = "v_CA11N_2476: Median after-tax family income $",
+    "DA_prev_LIMAT_under18" = "v_CA11N_2609: Less than 18 years %",
+    "DA_pop_5to9" = "v_CA11F_11: 5 to 9 years",
+    "DA_pop_10to14" = "v_CA11F_14: 10 to 14 years") %>%
   mutate(DA_pop_5to14 = DA_pop_5to9+(DA_pop_10to14)) |> #*0.9)) %>%
   dplyr::select(-c("DA_pop_5to9","DA_pop_10to14"))
 
 cen_data_2016_hamiltononly <- 
   cen_data_2016_hamiltononly %>% dplyr::select( #removing the variables we don't need for this analysis
-    -c("Shape.Area",  "Type", "CD_UID", "CSD_UID", "CT_UID", "CT_UID", "v_CA16_2398..Median.after.tax.income.of.households.in.2015....", "v_CA16_64..15.to.19.years")) %>%
+  -c("Shape Area",  "Type", "CD_UID", "CSD_UID", "CT_UID", "CT_UID", "v_CA16_2398: Median after-tax income of households in 2015 ($)",  "v_CA16_64: 15 to 19 years"  )) %>%
   rename( #renaming the variables
     "DA_households" = "Households",
     "DA_dwellings" = "Dwellings",
     "DA_tot_pop" = "Population",
-    "DA_med_AT_family_income" = "v_CA16_2448..Median.after.tax.income.of.economic.families.in.2015....",
-    "DA_med_AT_lone-family_income" = "v_CA16_2460..Median.after.tax.income.of.lone.parent.economic.families.in.2015....",
-    "DA_prev_LIMAT_under18" = "v_CA16_2543..0.to.17.years....",
-    "DA_pop_5to9" = "v_CA16_25..5.to.9.years",
-    "DA_pop_10to14" = "v_CA16_43..10.to.14.years") %>% mutate(DA_pop_5to14 = DA_pop_5to9+(DA_pop_10to14)) |> #*0.9)) %>%
-    dplyr::select(-c("DA_pop_5to9","DA_pop_10to14"))
+    "DA_med_AT_family_income" = "v_CA16_2448: Median after-tax income of economic families in 2015 ($)",
+    "DA_med_AT_lone-family_income" = "v_CA16_2460: Median after-tax income of lone-parent economic families in 2015 ($)",
+         "DA_prev_LIMAT_under18" = "v_CA16_2543: 0 to 17 years (%)",
+         "DA_pop_5to9" = "v_CA16_25: 5 to 9 years",
+         "DA_pop_10to14" = "v_CA16_43: 10 to 14 years") %>% mutate(DA_pop_5to14 = DA_pop_5to9+(DA_pop_10to14)) |> #*0.9)) %>%
+         dplyr::select(-c("DA_pop_5to9","DA_pop_10to14"))
+
+
+cen_data_2021_hamiltononly <- 
+  cen_data_2021_hamiltononly %>% dplyr::select( #removing the variables we don't need for this analysis
+  -c("Shape Area",  "Type", "CD_UID", "CSD_UID", "CT_UID", "CT_UID", "v_CA21_566: Median after-tax income in 2020 among recipients ($)" ,"v_CA21_71: 15 to 19 years")) %>%
+  rename( #renaming the variables
+    "DA_households" = "Households",
+    "DA_dwellings" = "Dwellings",
+    "DA_tot_pop" = "Population",
+    "DA_med_AT_family_income" = "v_CA21_966: Median after-tax income of economic family in 2020 ($)",
+    "DA_med_AT_lone-family_income" = "v_CA21_978: Median after-tax income of one-parent economic families in 2020 ($)",
+    "DA_prev_LIMAT_under18" =  "v_CA21_1043: 0 to 17 years",
+    "DA_pop_5to9" = "v_CA21_32: 5 to 9 years",
+    "DA_pop_10to14" = "v_CA21_50: 10 to 14 years") %>%
+    mutate(DA_pop_5to14 = DA_pop_5to9+(DA_pop_10to14)) |> #*0.9)) %>%
+         dplyr::select(-c("DA_pop_5to9","DA_pop_10to14"))
 ```
 
 ```{r, include=FALSE}
-library(hamONdests) # A R package of Hamilton, Ontario destinations
-
-data(Schools_2011_2016)
-ALL_SCHOOLS_Elem <- Schools_2011_2016 %>% filter(Level == "Elementary")
-rm("Schools_2011_2016")
+# library(hamONdests) # A R package of Hamilton, Ontario destinations
+load(file=paste0(here::here(),"/data-prep/data-products/SCHOOLS.Rdata")) #for this paper, the schools under analysis
 
 # add community label to schools
-ALL_SCHOOLS_Elem <- st_intersection(ham_community_bounds,
-                        ALL_SCHOOLS_Elem |> st_transform(st_crs(cen_data_2016_hamiltononly)))
+SCHOOLS <- st_intersection(ham_community_bounds,
+                        SCHOOLS |> st_transform(st_crs(cen_data_2016_hamiltononly)))
 
-data(School_Catchments_2011_2016)
-ALL_SCHOOLS_CATCH_Elem <- School_Catchments_2011_2016 %>% filter(Level == "Elementary")
-rm("School_Catchments_2011_2016")
+# data(School_Catchments_2011_2016)
+# ALL_SCHOOLS_CATCH_Elem <- School_Catchments_2011_2016 %>% filter(Level == "Elementary")
+# rm("School_Catchments_2011_2016")
 
 load(file = paste0(here::here(),"/data-prep/data-products/TTS_gamma2011_motor.Rdata"))
 load(file = paste0(here::here(),"/data-prep/data-products/TTS_gamma2016_motor.Rdata"))
@@ -154,33 +174,29 @@ load(file = paste0(here::here(),"/data-prep/data-products/TTS_exp2011_nonmotor.R
 load(file = paste0(here::here(),"/data-prep/data-products/TTS_exp2016_nonmotor.Rdata"))
 ```
 
-```{r}
-# # maybe consider using year 2021 as a comparision? 2011 vs 2016 vs 2021?
-# SCHOOLS_2023 <- st_read("data-prep/data-inputs/Educational_Institutions-2023/Educational_Institutions.shp") |> filter(CATEGORY == "Elementary School" & (SCHOOL_BOA == "Hamilton-Wentworth Catholic District School Board" | SCHOOL_BOA == "Hamilton-Wentworth District School Board" )) |> st_transform(st_crs(cen_data_2011_hamiltononly))
-```
-
 ```{r augmenting-catchment, include=FALSE}
-ALL_SCHOOLS_CATCH_Elem_extra2011 <- ALL_SCHOOLS_CATCH_Elem |>
-  left_join(ALL_SCHOOLS_Elem |> st_drop_geometry() |> group_by(CID2011) |> 
-              summarize(OTGC = sum(OTGC2011, na.rm = T)), 
-            by = c("CID" = "CID2011")) |> filter(!is.na(OTGC))
+# ALL_SCHOOLS_CATCH_Elem_extra2011 <- ALL_SCHOOLS_CATCH_Elem |>
+#   left_join(ALL_SCHOOLS_Elem |> st_drop_geometry() |> group_by(CID2011) |> 
+#               summarize(OTGC = sum(OTGC2011, na.rm = T)), 
+#             by = c("CID" = "CID2011")) |> filter(!is.na(OTGC))
+# 
+# ALL_SCHOOLS_CATCH_Elem_extra2016 <- ALL_SCHOOLS_CATCH_Elem |>
+#   left_join(ALL_SCHOOLS_Elem |> st_drop_geometry() |> group_by(CID2016) |> 
+#               summarize(OTGC = sum(OTGC2016, na.rm = T)), 
+#             by = c("CID" = "CID2016")) |> filter(!is.na(OTGC))
+# 
+# ALL_SCHOOLS_CATCH_Elem_extra <- rbind(ALL_SCHOOLS_CATCH_Elem_extra2011, ALL_SCHOOLS_CATCH_Elem_extra2016)
+# rm(ALL_SCHOOLS_CATCH_Elem_extra2011,ALL_SCHOOLS_CATCH_Elem_extra2016)
+# 
+# #checks
+# sum(ALL_SCHOOLS_Elem$OTGC2011, na.rm=T) + sum(ALL_SCHOOLS_Elem$OTGC2016, na.rm=T)
+# ALL_SCHOOLS_CATCH_Elem_extra$OTGC |> sum(na.rm=T)
 
-ALL_SCHOOLS_CATCH_Elem_extra2016 <- ALL_SCHOOLS_CATCH_Elem |>
-  left_join(ALL_SCHOOLS_Elem |> st_drop_geometry() |> group_by(CID2016) |> 
-              summarize(OTGC = sum(OTGC2016, na.rm = T)), 
-            by = c("CID" = "CID2016")) |> filter(!is.na(OTGC))
-
-ALL_SCHOOLS_CATCH_Elem_extra <- rbind(ALL_SCHOOLS_CATCH_Elem_extra2011, ALL_SCHOOLS_CATCH_Elem_extra2016)
-rm(ALL_SCHOOLS_CATCH_Elem_extra2011,ALL_SCHOOLS_CATCH_Elem_extra2016)
-
-#checks
-sum(ALL_SCHOOLS_Elem$OTGC2011, na.rm=T) + sum(ALL_SCHOOLS_Elem$OTGC2016, na.rm=T)
-ALL_SCHOOLS_CATCH_Elem_extra$OTGC |> sum(na.rm=T)
-
-#reformating schools for mapping
-ALL_SCHOOLS_Elem_nochangeorexpanded <- ALL_SCHOOLS_Elem |> filter(Year == "2011 and 2016") |> mutate(Year = ifelse(Year == "2011 and 2016", "2011", Year))
-ALL_SCHOOLS_Elem_formapping <- rbind(ALL_SCHOOLS_Elem, ALL_SCHOOLS_Elem_nochangeorexpanded)
-rm(ALL_SCHOOLS_Elem_nochangeorexpanded)
+#reformatting schools for mapping
+SCHOOLS_nochangeorexpanded <- SCHOOLS |> filter(Year == "2011 and 2016" & Year_2 == "2016 and 2021") |> 
+  mutate(Year = ifelse(Year == "2011 and 2016", "2011", Year))
+ALL_SCHOOLS_Elem_formapping <- rbind(SCHOOLS, SCHOOLS_nochangeorexpanded)
+rm(SCHOOLS_nochangeorexpanded)
 ALL_SCHOOLS_Elem_formapping <- ALL_SCHOOLS_Elem_formapping |> mutate(Year = ifelse(Year == "2011 and 2016", "2016", Year))
 ```
 

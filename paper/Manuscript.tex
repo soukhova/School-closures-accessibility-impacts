@@ -191,7 +191,7 @@ default
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
 \urlstyle{same} % disable monospaced font for URLs
 \hypersetup{
-  pdftitle={School closures and consolidations: the active travel and emission implications of reduced accessibility},
+  pdftitle={10 years of school closures and consolidations: the impact on school accessibility},
   pdfauthor={Anastasia Soukhov; Christopher D. Higgins; Antonio Páez; Moataz Mohamed},
   pdfkeywords={accessibility; spatial availability; carbon emissions;
 journey-to-school; walkability; active transportation; school
@@ -203,10 +203,9 @@ consolidation policy; service provision thresholds},
   urlcolor={Blue},
   pdfcreator={LaTeX via pandoc}}
 
-\title[School closures and consolidations: the active travel and
-emission implications of reduced accessibility]{School closures and
-consolidations: the active travel and emission implications of reduced
-accessibility}
+\title[10 years of school closures and consolidations: the impact on
+school accessibility]{10 years of school closures and consolidations:
+the impact on school accessibility}
 
 % author setup
 \author*[1]{\fnm{Anastasia} \sur{Soukhov}}\email{soukhoa@mcmaster.ca}\author[2]{\fnm{Christopher D.} \sur{Higgins}}\email{cd.higgins@utoronto.ca}\author[1]{\fnm{Antonio} \sur{Páez}}\email{paezha@mcmaster.ca}\author[3]{\fnm{Moataz} \sur{Mohamed}}\email{mmohame@mcmaster.ca}
@@ -223,33 +222,34 @@ Canada}}}
 
 % abstract 
 
-\abstract{Reducing emissions and increasing active travel are top
-priorities for many communities. Often, though, these priorities are
+\abstract{Reducing motorized travel and increasing active travel are top
+priorities for many communities. However, these priorities are
 confronted with pressures to reduce the fiscal burden of public
-services, including schools. Public schools have been strained to do
-more with less, and governments are opting to close under-capacity
-schools and expand existing schools to accommodate lost capacity. The
-objective of this study is to quantify the travel burdens of school
-consolidation/closure policies. We do this through the case of Hamilton,
-a mid-sized city in Ontario, Canada. Between the years 2011 and 2015,
-7\% of the elementary schools closed in the city. We study how these
-closures changed the accessibility landscape for the elementary school
-aged population, as well as the active travel and emission implications.
-In terms of methods, we use spatial availability, a singly-constrained
-multimodal measure of spatial accessibility. Thanks to its proportional
-allocation mechanism, spatial availability allows for an interpretable
-comparison between `before' and `after' the implementation of school
-closure/consolidation policy. Analysis is conducted at the parcel-level
-with all school seats being eligible and travel behaviour based on
-observed home-to-school patterns for motorized and non-motorized modes.
-We report estimates of system-wide impacts that result from the
-closures, such as potential growth in GHG emission and reduction of
-walking minutes. Findings demonstrate that overall, spatial availability
-decreased in the city. Though the school consolidation policy may have
-resulted in cost-savings in operation and maintenance of facilities,
-students, families, and communities pay the price in reduced
-opportunities for physical activity and greater motorized
-mobility-related pollution.}
+services, including schools. Public school boards have been strained to
+do more with less, and opting to close under-capacity schools to deliver
+educational services more cost-effectively. However, once a school is
+closed, students' proximity to schools decreases, and those who
+previously lived close enough to walk or cycle can no longer do so. In
+this paper, the City of Hamilton, a mid-sized city in Ontario, Canada,
+which experienced a 10\% decrease in elementary school locations between
+2011 and 2021, serves as a case study. We quanitfiy how these closures
+and consolidations have reshaped accessibility for the elementary
+school-aged population and discuss their implications for active and
+motorized travel. To measure accessibility, spatial availability, a
+singly-constrained multimodal measure of spatial accessibility is used.
+This method's proportional allocation mechanism enables interpretable
+comparison between accessibility `before' and `after' the implementation
+of school closure/consolidation policy considering changes in potential
+travel time and population. The analysis is conducted at the parcel
+level, considering all school seats as eligible and incorporating
+observed home-to-school travel patterns for motorized and non-motorized
+modes. We present system-wide impact estimates resulting from these
+closures. The findings reveal that overall spatial availability in the
+city declined. While the school consolidation policy may have achieved
+cost savings in facility operation and maintenance, the burden falls on
+students, families, and communities through \emph{potentially} reduced
+opportunities for physical activity through an active journey to school
+and increased motorized travel externalities.}
 
 % keywords
 \keywords{accessibility; spatial availability; carbon emissions;
@@ -261,206 +261,382 @@ consolidation policy; service provision thresholds}
 
 \section{Introduction}\label{introduction}
 
-Communities are by nature in flux: economic and demographic shifts,
-rural and urban configurations, and political pressures all combine to
-produce change. These forces spur the re-organization and consolidation
-of public facilities in communities around the world where changes to
-service provision may improve the quality of service for some but not
-for all (Christiaanse 2020; Rosik, Puławska-Obiedowska, and Goliszek
-2021). While change is natural, oftentimes top-down consolidation
-decisions are driven by operational cost-savings that do not take into
-consideration the full extent of losses in benefits.
-
-From this perspective, school closure policies have been pursued by
+The amount of services accessible within communities oscillate: economic
+and demographic shifts, rural and urban configurations and political
+in/action all induce change. These forces spur pressures to
+reorganization and consolidation of public facilities that provide
+services, potentially improving access for some but not for all
+(Christiaanse 2020; Rosik, Puławska-Obiedowska, and Goliszek 2021).
+Schools are a compelling case study in this respect. In many communities
+globally, school closure and consolidation policies have been pursued by
 governments to optimize per-student operational cost-efficiency (Rong et
-al. 2022; Dai et al. 2019) but other implications, such as the impact of
-closures on property values (Merrall, Higgins, and Páez 2024), their
-effects on the social infrastructure of communities (Butler, Kane, and
-Cooligan 2019; Irwin and Seasons 2012), and particularly their travel
-implications have often been overlooked by decision makers (Bierbaum,
-Karner, and Barajas 2021; J. Lee and Lubienski 2017). This seems a
-mistake: journey-to-school trips are tremendously important, and travel
-for this purpose is currently the largest contributor of carbon
-emissions from personal travel after the journey-to-work (Rong et al.
-2022; Pantelaki, Claudia Caspani, and Maggi 2024), where it could be
-instead an excellent opportunity for physical activity (Desjardins et
-al. 2024). Alas, in many communities globally, schools are closing
+al. 2022; Dai et al. 2019). Research has highlighted that these polices
+have knock-on implications, including the weakening of communities'
+social infrastructure (Butler, Kane, and Cooligan 2019; Irwin and
+Seasons 2012; Autti and Hyry-Beihammer 2014) and negative
+household-level fiscal impacts such as a reduction of property values
+(Merrall, Higgins, and Páez 2024). Operationally, savings may be
+experienced but they are paid at different levels by students, families,
+communities and society.
+
+A school offers many things to a community: but one dimension is the
+travel to and from school, often overlooked by decision-makers
+considering school closure and consolidation policies (Bierbaum, Karner,
+and Barajas 2021; J. Lee and Lubienski 2017). Schools and residential
+locations often proximately co-located, the journey-to-school is an
+excellent opportunity for physical activity (Desjardins et al. 2024).
+However, closures exchange the physical activity of students' realized
+active trips or ``reserved'' active trips (Morency, Roorda, and Demers
+2009; Morency, Demers, and Lapierre 2007) (e.g., trips that could be
+made active) for motorized travel (Rong et al. 2022). Indeed, motorized
+travel to school is the largest contributor of carbon emissions from
+personal daily travel after the journey-to-work (Rong et al. 2022;
+Pantelaki, Claudia Caspani, and Maggi 2024). Despite these societal
+implications, many communities are closing and/or consolidating schools
 (Sageman 2022). For instance, 65\% of comprehensive schools (e.g.~grades
 1 through 9) in rural Finland since 1990 closed (Autti and
 Hyry-Beihammer 2014), 10\% of elementary schools (kindergarten through
 grade 8) in Chicago, USA in 2013 (J. Lee and Lubienski 2017), and 7\% of
 primary and lower secondary schools (kindergarten through grade 9) were
-closed in Denmark between 2010-2011 (Beuchert et al. 2018). School
-closures often increase the distance to school for many students and
-thus tend to induce motorized trips (Rong et al. 2022).
+closed in Denmark between 2010-2011 (Beuchert et al. 2018).
 
-We focus on the transportation implications of school closure and
-consolidation policies. While some research has considered the ``steps
-in reserve'', that is, the potential for active travel hidden behind
-motorized trips (Morency, Roorda, and Demers 2009; Morency, Demers, and
-Lapierre 2007), school closures potentially make actual steps vanish,
-sent to the reserve for the foreseeable future. In exchange for less
-physical activity, communities get more motorized travel, with the
-concomitant costs and burdens, including emissions. Quantification of
-losses in potential active travel and associated growth in carbon
-emissions is scarce in the literature, and the focus of this paper. In
-addition to its empirical contributions, this work makes use of a novel
-multimodal and singly-constrained accessibility measure, called spatial
-availability (Soukhov et al. 2023; Soukhov et al. 2024), which we use to
-estimate the changes in accessibility and travel after a recent wave of
-school closures/consolidations in Hamilton, Ontario.
+In this paper, we explore the case study of Hamilton, a mid-sized city
+in Canada that has pursued similar school closure and consolidation
+policies. We detail the Canadian political context that incentived these
+policies and quantify their transportation implications using data that
+constructs where students may have lived and the capacity of schools in
+2011, 2016 and 2021. To quantify transportation implications, we use a
+novel multimodal extension of a singly-constrained accessibility measure
+known as spatial availability (Soukhov et al. 2023; Soukhov et al.
+2024). Spatial availability is used to estimate active (i.e., walking)
+and motorized (i.e., car) accessibility considering the capacity of each
+school, and the residential location and quantity of school-aged
+population, and travel times from residential locations to schools for
+three time periods. In this way, this work contributes a empirical
+findings documenting how government austerity hurts public education,
+along with a methodology that results in interpretable accessibility
+values that can be compared across modes, the City, and three time
+periods.
 
-The results of the research indicate that, overall, school seats became
-less spatially available in the city. This change happened unevenly,
-with some communities being disproportionately affected. Though the
-school consolidation policy pursued by the province and implemented by
-the local school board may have resulted in cost-savings in operation
-and maintenance of facilities, families, students, and communities now
-pay the price in terms of lost opportunities for healthier active
-travel, as well as increased emissions from motorized travel.
+To foreshadow the paper's conclusions, our findings indicate that school
+seats have became less spatially available in the city. This change
+happened unevenly, with certain communities being disproportionately
+affected. The school closure and consolidation policy pursued may have
+achieved cost savings in facility operation and maintenance. However, it
+has come at a cost to families, students, and communities, resulting in
+lost opportunities for healthier active travel and a potential increase
+in motorized travel. We investigate: were the closures and
+consolidations worth the operational savings? The methods used in this
+paper can be applied by decision-makers to evaluate the spatial and
+transport-related impacts of public service provision policy.
+Furthermore, to increase the diffusion of this analysis, all work is
+transparent and reproducible, following best practices in the spatial
+sciences (Brunsdon and Comber 2021; Antonio Páez 2021). Accordingly, all
+associated code and data is publicly available within the lead author's
+\href{https://github.com/soukhova/School-closures-accessibility-impacts}{GitHub
+repository}.
 
 \section{Background}\label{background}
 
+\subsection{Overview of proximity and equity in the school accessibility
+literature}\label{overview-of-proximity-and-equity-in-the-school-accessibility-literature}
+
+The examination of access to public services is a well established area
+of the transportation literature: from parks (El-Murr et al. 2021) to
+healthcare (Pereira, Braga, et al. 2021) and associated dimensions of
+inequities (Tiznado-Aitken, Munoz, and Hurtubia 2021; Bittencourt and
+Giannotti 2023; Kelobonye et al. 2020), spatial accessibility has been
+explored in cases studies worldwide.
+
+Accessibility to schools has been a public service explored across
+several transportation dimensions. For instance, Marques, Wolf, and
+Feitosa (2020) demonstrates that lower-income neighbourhoods, compounded
+by other intersecting dimensions of disadvantage, tend to have lower
+accessibility to schools compared to more advantaged neighbourhoods in
+Portugal. Similar conclusions are drawn in West Virginia, US by Talen
+(2001), England by Burgess et al. (2011), Baton Rouge, US by Williams
+and Wang (2014), São Paulo and Curitiba, Brazil by Moreno-Monroy,
+Lovelace, and Ramos (2018), Pizzol, Giannotti, and Tomasiello (2021),
+and Bittencourt and Giannotti (2023), and Santiago, Chile by
+Tiznado-Aitken, Munoz, and Hurtubia (2021). Research has also
+demonstrated that when school closures occurs, what schools end up
+closing are not a politically neutral decision. For instance, these
+spatial trends are explored in the context of England by Pinch (1987),
+areas of declining school-aged populations in Dreseden, Germany by
+Müller (2011), rural Finnish communities by Autti and Hyry-Beihammer
+(2014), and Chicago, US by J. Lee and Lubienski (2017).
+
+The methods applied to measure school accessibility have been varied,
+from simple indicators to complex metrics. Beginning from more simple,
+Marques, Wolf, and Feitosa (2020) present indicators of school seats per
+student along with the shortest distance from origin to schools within a
+school catchment, methods also used in Talen (2001) and Burgess et al.
+(2011). Authors make refinements to these methods; Müller (2011)
+considers travel time by public transit from origins to schools and
+Pizzol, Giannotti, and Tomasiello (2021) considers travel times by
+different modes and multiple schools from a single origin along with
+other indicators related to school quality. By contrast, Williams and
+Wang (2014), J. Lee and Lubienski (2017), Moreno-Monroy, Lovelace, and
+Ramos (2018), Tiznado-Aitken, Munoz, and Hurtubia (2021), and
+Bittencourt and Giannotti (2023) use more complex approaches such as the
+two-step floating catchment area (2SFCA). The 2SFCA is popular in
+measure in evaluating access to healthcare services (Antonio Páez,
+Higgins, and Vivona 2019) and yields a supply-to-demand ratio that
+accounts for the population demanding a service and the quantity that is
+supplied within a certain distance range (Shen 1998; Luo and Wang 2003).
+The consideration of the supply of service is pertinent in the case of
+schools and is acknowledged to as a limitation to using simpler
+accessibility measures (Pizzol, Giannotti, and Tomasiello 2021).
+
+In addition to competition for school-seats, theoretically, the
+advantage students using faster modes (e.g., motorized modes) offer in
+terms of a wider range in school-seat choice is also important. Though
+some of the reviewed works using 2SFCA approaches consider multiple
+modes, explicit attention to the modal \emph{advantage} has not been
+discussed. To this end, in this work we use spatial availability, a
+singly-constrained measure of spatial accessibility (Soukhov et al.
+2023; Soukhov et al. 2024). Spatial availability allows for the
+representation of how many `school-seats' are spatially available to
+motorized- and active-trip taking elementary school-aged student
+population at a spatial-level, facilitating interpretable comparison
+across years. Further, spatial availability can be represented as
+school-seats per capita, mathematically equivalent to the
+supply-to-demand ratio of the 2SFCA (see appendix in Soukhov et al.
+(2023)).
+
+\subsection{Hamilton's school closures and
+consolidation}\label{hamiltons-school-closures-and-consolidation}
+
 Hamilton is a mid-size city (\textasciitilde570,000 pop) with rural,
 suburban and urban characteristics in the province of Ontario, Canada
-(Government of Canada 2022). In 2013, the Hamilton-Wentworth District
-School Board (HWDSB), the largest public English school board in the
-city, released its Long Term Facilities Master Plan (HWDSB 2013). To
-ensure ``equitable, affordable and sustainable learning facilities'',
-the Master Plan indicated that 80\% of its elementary schools (attended
-by students aged 5 to 13) would be subjected to accommodation
-evaluations, including an ``Accommodation Review'', the outcome of which
-historically has been school closures/consolidations (HWDSB 2013; Craggs
-2013; Seasons 2014b). These decisions, underhandedly supported by the
-province, were in part motivated by a search for operational savings
-based on projected reductions in student population and underutilized
-school capacity (Craggs 2012). Hamilton was particularly affected, as
-the HWDSB underwent an unprecedented number of Accommodation Reviews
-relative to other school boards (Seasons 2014a).
+(Government of Canada 2022a). The city's public English education is
+covered by the Hamilton-Wentworth District School Board (HWDSB). In
+2013, the HWDSB released its Long Term Facilities Master Plan (HWDSB
+2013). To ensure ``equitable, affordable and sustainable learning
+facilities'', the Master Plan indicated that 80\% of its elementary
+schools (attended by students aged approximately 5 to 14) would be
+subject to evaluations, including a ``Pupil Accommodation Review''
+(HWDSB 2013). This Master Plan and the slated Pupil Accommodation
+Reviews prompted public outcry, as the outcome of Pupil Accommodation
+Reviews are typically schools closures and consolidations (Craggs 2013;
+Seasons 2014b).
 
-Though the Accommodation Review guidelines outline a community-focused
-process to assess the value that a school provides to students, the
-community, and the local economy (Seasons 2014b; Ministry of Education
-2006), in practice residents felt that a wholesome breakdown of costs to
-repair/maintain schools was not made consistently available (Kleinhuis
-2013). Further, others pointed to flawed incentive structures motivating
-the HWDSB: ``By closing three schools the HWDSB would have a strong case
-with the Ministry of Education to receive full funding for a new
-school'' (Kleinhuis 2013). Along with insufficient funding to maintain
-schools in a state of good repair (Auditor General of Ontario 2015), the
-operational savings as a case for school closures is a long-standing
-critique of the school ``funding formula'' established by the
-conservative provincial government in 1998 (Mackenzie 2018; Irwin and
-Seasons 2012). Within a backdrop of budget cuts, the funding formula
-pits the financing of school maintenance and student needs against the
-financial compensation of staff and the powers of local school boards,
-which depend on the province for the allocation of resources (Mackenzie
-2018).
+Like all school boards in Ontario, HWDSB relies on funding from the
+province which is distributed through a formula based on pupil enrolment
+(Mackenzie 2018; Irwin and Seasons 2012). However, it has been
+demonstrated that this funding formula has become insufficient to
+maintain schools in a state of good repair (Auditor General of Ontario
+2015). Further, existing ``top-up'' programs to assist in operation and
+maintenance costs (e.g., School Facilities Operation and Renewal Grant)
+were entirely phased out by 2018 (TDSB 2024). Within this funding
+backdrop, the Pupil Accommodation Review guidelines outlined a
+``community-focused'' process to assessing the value that a school
+provides to students, the community, and the local economy (Seasons
+2014b; Ministry of Education 2006). However in practice, critical
+residents felt the outcomes of the Pupil Accommodation Reviews were
+predetermined (Thompson, Collins, and Dean 2024): older schools were
+slated to be closed, and a wholesome breakdown of costs to repair and
+maintain schools were not made available (Kleinhuis 2013). Other critics
+pointed to unbalanced incentives motivating the HWDSB: ``By closing
+three schools, the HWDSB would have a strong case with the Ministry of
+Education to receive full funding for a new school'' (Kleinhuis 2013).
+The Ministry's framework promotes the closing and consolidation of
+schools rather than cost-effective solutions for keeping older schools
+open (Kleinhuis 2013).
 
-In the wave of school accommodation reviews between 2013 and 2016, 12
-elementary schools closed in Hamilton. These closures represented a 7\%
-and 4\% decline in elementary school locations and capacity between 2011
-(before the school closures) and 2016, despite the elementary-aged
-student population in the city slightly increasing between 2011 and
-2016( from 58,265 students to 58,865 students).
+The HWDSB and the Hamilton-Wentworth Catholic District School Board
+(HWCDSB), which together provide public English education to the
+majority of school-aged children in Hamilton (FAO 2023), were
+particularly impacted. While Accommodation Reviews were a province-wide
+trend during this period, Hamilton's school boards underwent an
+unprecedented number of reviews compared to other boards in other
+Ontario municipalities. (Seasons 2014a). In the wave of Pupil
+Accommodation Reviews between 2013 and 2016, 12 of the 147 elementary
+schools closed in Hamilton. Likely in part due to the public
+unpopularity of school closures, in 2017, the provincial government
+introduced a moratorium on beginning new Pupil Accommodation Reviews. In
+the following years, the HWDSB addressed its backlog and closed 12 more
+schools between 2017 to 2021 (HWDSB 2023). Though elementary school
+locations declined by 10\% between 2011-2021, HWDSB intends to conduct
+future Pupil Accommodation Reviews as initially scheduled, waiting until
+the end of the moratorium before dates are assigned (HWDSB 2023).
 
-While accommodation reviews were undertaken to reduce operational costs,
-how might have the closure of schools impacted local communities? In
-this paper, we hypothesize that the school consolidation policy reduced
-accessibility to schools for many students. By extension, this loss in
-access and the consequent displacement of active trips to school
-increased transportation-related emissions. To test these hypotheses,
-the paper examines the following: how does the (1) spatial availability,
-(2) loss in walk minutes and (3) associated carbon emissions change for
-home-to-school trips after a city closes and consolidates schools?
-Further, this work examines (4) what communities, based on low-income
-prevalence, experienced the greatest losses as a result of this policy.
+A justification in these Pupil Accommodation Reviews are operational
+savings based on ``projected'' reductions in student population and
+``under-utilized'' school capacity (Craggs 2012; TDSB 2024; OPSBA 2024).
+As later demonstrated in this study, these policies in fact did result
+in school capacity per student reducing overall. Indeed, school seats in
+the city declined 5\%. It should be noted that though closures dominated
+the Pupil Accommodation Review process, some schools were
+``consolidated'' e.g., a school or two were closed and another school
+was expanded or opened to accommodate students from closed schools.
+Taken that school locations decreased more than overall school-seats,
+elementary schools in Hamilton are on average larger than they once
+were.
 
-Spatial availability, a singly-constrained measure of spatial
-accessibility (Soukhov et al. 2023; Soukhov et al. 2024), is used to
-quantify accessibility before- and after- school closures, and the
-associated impacts for the city of Hamilton and the elementary
-school-aged student population as a result of a policy with narrowly
-defined benefits. The methods used in this paper can be applied by
-decision-makers to evaluate the spatial and transport-related impacts of
-public service provision policy. Furthermore, to increase the diffusion
-of this analysis, all work is transparent and reproducible, following
-best practices in the spatial sciences (Brunsdon and Comber 2021;
-Antonio Páez 2021). Accordingly, all associated code and data will be
-publicly available within the lead author's
-\href{https://github.com/soukhova/School-closures-accessibility-impacts}{GitHub
-repository}
+In 2024, the moratorium on Pupil Accommodation Reviews is still in place
+and school boards are motivated by the same funding conditions. In
+absence of new revenue-generating levers and under the same funding
+formula with even lower inflation adjusted per-pupil funding, many
+school boards are calling for the end of the moratorium (OPSBA 2024;
+TDSB 2024; Draaisma 2024). In the meantime, some school boards are
+reducing specialized and community-wide programming (TDSB 2024). Under
+the status-quo, the end of the moratorium will result in further school
+closures. These pertinent decisions, made under an austere funding
+formula and flawed school board incentives does not create an
+environment where solutions for a sustainable public education system
+can thrive.
+
+Though schools have a plethora of benefits not captured by their
+maintenance and operational costs (Butler, Kane, and Cooligan 2019;
+Irwin and Seasons 2012; Autti and Hyry-Beihammer 2014), this paper's
+scope is limited to their travel implications. For students who live in
+proximity to schools, their closure or consolidation directly eliminate
+the realized or potential active trips that are, or could have been,
+made. Closing a school permanently reduces the potential for active
+trips and further entrenches reliance on motorized travel. Additionally,
+from the perspective of modal equity, school-aged populations with
+access to motorized transport gain a speed-time advantage, providing
+them with greater flexibility and choice in accessing school-seats.
+
+The spatial and population-level distribution of these impacts are of
+question for this paper. Specifically, the paper's aim is to demonstrate
+how these policies impacted the motorized and non-motorized (active)
+school-seat accessibility landscape. We hypothesize that the school
+closure and consolidation policies reduced accessibility to school-seats
+for many students. By extension, this loss in access and the
+displacement of active trips likely resulted in decreased potential
+active travel minutes and increased motorized travel minutes, with these
+impacts distributed inequitably across space and populations. To test
+these hypotheses, the paper examines the following:
+
+\begin{itemize}
+\tightlist
+\item
+  How has spatial availability changed for home-to-school trips
+  following school closures and consolidations?
+\item
+  What is the extent of the loss in walking minutes for these trips?
+\item
+  How has motorized travel increased as a result?
+\item
+  Which communities, particularly households with a high prevalence of
+  low-income and hence more likely experiencing transport poverty,
+  experienced the greatest losses due to this policy?
+\end{itemize}
 
 \section{Data}\label{data}
 
 Our focus is to evaluate the impact of school consolidations between
-2011 and 2016 on multimodal school spatial availability and
-travel-related GHG emission in Hamilton. To facilitate comparison, two
-scenarios are generated. Each scenario reflects the conditions in 2011
-and 2016 respectively, assuming the school configurations in each year,
-as well as average student population and low-income prevalence of
-households, residential parcel locations, and estimated modal travel
-times. The difference between the two scenarios is quantified in terms
-of accessibility, emissions and equity implications and discussed in
-context with the school consolidation policy. Data was retrieved at
-different levels of spatial granularity from the following sources.
+2011, 2016 and 2021 on multimodal school-seat spatial availability in
+Hamilton. To facilitate comparison, the following conditions are
+constructed for each year: 1) school configurations, 2) average student
+population, low-income prevalence of households, and residential parcel
+locations, and 3) estimated multimodal travel behaviour. The following
+sub-sections describe these three types of data.
 
 \subsection{Schools}\label{schools}
 
-First, schools and associated school catchments were retrieved from the
-City's school boards. In Hamilton, the majority of student-aged
-population attends a school in one of the two English public school
-boards (FAO 2023). One board is referred to as \emph{public} (i.e.,
-Hamilton Wentworth District School Board (HWDSB)) in our work and the
-other is referred to as \emph{public-catholic} (Hamilton Wentworth
-Catholic District School Board (HWCDSB)). These catchments indicate what
-residential property is assigned to what school, by default. Families
-can decide to attend schools out of catchment; in fact, 21\%-23\% of
-motorized school trips are out of catchment according to the regional
-travel survey, the Transportation Tomorrow Survey (TTS) in 2011 and 2016
-(Data Management Group 2018). The elementary school locations and
-catchments were provided by the HWDSB and HWCDSB for the 2010-2011 and
-2015-2016 academic years, and are shown in Figure~\ref{fig-Fig1}.
+First, elementary schools locations, how the changed throughout the
+study period and their capacities are required for each studied year.
 
-Formally, elementary schools are defined as schools that provide
-instruction to any combination of grades between kindergarten to grade 8
-(i.e.~typically children aged 5 to 14). As such, elementary includes
-middle schools that only instruct grades 6 to 8 (\emph{MidElem}),
-primary schools that only instruct kindergarten to grade 5 or 6
-(\emph{JrElem}), and all grade elementary schools (\emph{Elem}) which
-instruct all grades from kindergarten to grade 8. The number of `seats'
-available in the school beyond or below which it will be over/under-
-capacity is calculated by the provincial Ministry of Education; this
-value is referred to as the on-the-ground capacity (\emph{OTGC}), and is
-assigned to each school. The current/historic OTGCs are not publicly
-available (Ontario 2017). However, for schools that underwent the full
-Accommodation Review process, OTGCs for a given year could be obtained
-from publicly available School Information Profiles. A regression model
-was used to estimate the OTGCs for schools that lacked OTGC information.
-The independent variables in the model were 1) the school's building
-footprint (\emph{F}) in units of (\(m^2\)); 2) the school's shortest
-Euclidean distance from the centroid of Hamilton's central business
-district area (\emph{DistCBD}) defined in units of (m); and 3)
-coefficients associated with a binary variable indicating the type of
-school grade instruction (\emph{MidElem}, \emph{JrElem}, \emph{Elem}).
-The building footprint from an archived spatial data set (Spatial 2015)
-and the 2016 footprints were retrieved from OSM (OpenStreetMap 2021).
-Because the age of construction for different schools is not available,
-we used each school's distance from the centroid of the Downtown
-Business Improvement Area (Hamilton 2014) as a proxy for school age as
-the oldest buildings are generally located closer to the city centre
-(Merrall 2021). Of note, the models were also used to estimate OTGC of
-secondary schools (\emph{Sec}) though not included in the scope of this
-work; these public institutions provide instruction for grades 9 to 12
-(i.e., children aged 14 to 17).
+Concerning school locations, the City's school boards provided the
+authors with locations and associated school catchments for the
+2010-2011 and 2015-2016 academic years. Data for 2021 locations was
+retrieved from the City's open data portal (Hamilton 2024). In Hamilton,
+the majority of student-aged population attend school in one of the two
+English public school boards (FAO 2023). One school board is referred as
+Hamilton Wentworth District School Board (HWDSB) and the other as
+Hamilton Wentworth Catholic District School Board (HWCDSB). School
+catchments for the public and public-catholic catchments indicate what
+residential property is assigned to what school by default. However,
+families can decide to attend schools out of catchment; in fact,
+21\%-23\% of motorized school trips for populations aged 5 through 14
+are out of catchment according to the regional travel survey (the
+Transportation Tomorrow Survey (TTS)) in 2011 and 2016, the most recent
+TTS available at the time of writing (Data Management Group 2018).
 
-Equations (\ref{eq:OTGC-public}) and (\ref{eq:OTGC-catholic}) describe
-the estimated OTGC for public schools and catholic schools respectively.
-School status and OTGC summed by catchment is also visualised in
-Figure~\ref{fig-Fig1}. As seen in Table \ref{TabA1-OTGC} in the
-Appendix, the coefficient of determination for these models is
-\(R^2 = 0.999\) and \(R^2 = 0.998\) for the Public \(OTGC_{Public}\) and
-Catholic \(OTGC_{Catholic}\) Boards respectively, and the residual
+In addition to the school's location in 2011, 2016 and 2021, all schools
+were also tagged with a school status regarding their existence and/or
+change in location or school-seat capacity. A summary of the status of
+schools through 2011 to 2021 is illustrated in Figure~\ref{fig-Fig1}.
+Figure~\ref{fig-Fig1} also displays a count of the number of schools
+with the status between years, the number of schools overall present in
+each year, and the symbolic representation of a school status that is
+used in Figures throughout the paper. Overall, a school can have one of
+seven school statuses in any given year. Either: 1) the school did not
+change throughout 2011 to 2021, 2) the school expanded (i.e., increased
+school-seat capacity) or was 3) relocated and expanded (N.B., schools
+expanded only between 2011 through 2016 as they were typically done
+\emph{before} school closures and no new Pupil Accommodation Review was
+commenced after 2017), 4) the school closed sometime after 2011 and
+before 2016 or 5) after 2016 and before 2021, and 6) the school opened
+sometime after 2011 and before 2016 or 7) after 2016 and before 2021.
+
+\begin{figure}
+
+\centering{
+
+\includegraphics[width=1.2\textwidth,height=\textheight]{../Figures/Fig1.png}
+
+}
+
+\caption{\label{fig-Fig1}Overview of the number of schools in Hamilton
+in 2011, 2016 and 2021 along with the type of school status change..}
+
+\end{figure}%
+
+The capacity of each school is also required for each simulated year.
+This capacity is reflected as the number of `seats' available in the
+school. Enrolment exceeding this capacity indicates over-enrolment,
+while enrolment below it indicates under-enrolment. This value is
+calculated by the provincial Ministry of Education and referred to as
+the on-the-ground capacity (OTGC). The current and historic OTGCs for
+schools are no longer publicly available (Ontario 2017), so we estimated
+them using a multivariate regression model and validated the results
+with a set of OTGC values manually gathered. These values were retrieved
+for schools that had undergone a completed Pupil Accommodation Review
+and had publicly available School Information Profiles.
+
+For schools lacking OTGC values, two regression models were created: one
+for public schools and another for public catholic schools. The
+independent variables in the model were 1) a dummy variable indicating
+the type of school grade instruction (\emph{MidElem}, \emph{JrElem},
+\emph{Elem}), 2) the school's building footprint (\emph{F}) in units of
+(\(m^2\)), and 3) the school's shortest Euclidean distance from the
+centroid of Hamilton's central business district area (\emph{DistCBD})
+defined in metres:
+
+\begin{itemize}
+\tightlist
+\item
+  Formally, elementary schools are defined as schools that provide
+  instruction to any combination of grades between kindergarten to grade
+  8 (i.e.~typically children aged 5 to 14). As such, elementary includes
+  middle schools that only instruct grades 6 to 8 (\emph{MidElem}),
+  primary schools that only instruct kindergarten to grade 5 or 6
+  (\emph{JrElem}), and all grade elementary schools (\emph{Elem}) which
+  instruct all grades from kindergarten to grade 8. \emph{MidElem} and
+  \emph{JrElem} school grade instruction type is only present in the
+  public school board.
+\item
+  The building footprint \emph{F} was retrieved from an archived spatial
+  data set (Spatial 2015) and footprints from newer schools in 2016 and
+  2021 from OSM (OpenStreetMap 2021).
+\item
+  \emph{DistCBD} was calculated `as the crow flies' from each school to
+  the centroid of the Hamilton CBD (43.256684°N, 79.869039°W). Notably,
+  this variable can also be seen as a proxy for school construction age
+  as older buildings in Hamilton are generally located closer to the
+  CBD, the ``old'' Hamilton community (Merrall 2021).
+\end{itemize}
+
+Equations (\ref{eq:OTGC-public}) and (\ref{eq:OTGC-catholic}) summarise
+the OTGC regression model for public schools and public catholic schools
+respectively. As seen in Table \ref{TabA1-OTGC}, the coefficient of
+determination for these models are fantastic: \(R^2 = 0.999\) and
+\(R^2 = 0.998\) for the public \(OTGC_{Public}\) and public catholic
+\(OTGC_{Public Catholic}\) school boards respectively, and the residual
 standard deviation is \(\sigma = 0.212\) and \(sigma = 0.331\).
 
 \begin{equation}
@@ -470,60 +646,29 @@ OTGC_{Public} = F^{0.346}-e^{0.00003*DistCBD}+e^{3.123*JrElem}+e^{3.752*Elem}+ e
 
 \begin{equation}
 \label{eq:OTGC-catholic}
-OTGC_{Catholic} =F^{0.471}-e^{0.00003*DistCBD}+e^{2.333*Elem}
+OTGC_{Public Catholic} =F^{0.471}-e^{0.00003*DistCBD}+e^{2.333*Elem}
 \end{equation}
 
+\input{Tab1.tex}
+
+Taken together, Figure~\ref{fig-Fig2} displays the city's elementary
+schools locations, status and their estimated or retrieved OTGCs for
+2011, 2016 and 2021. For additional context on the degree of residential
+urbanization in Hamilton, the percentage of residential parcels
+considered `urban' compared to `suburban' or `rural' is reflected at an
+aggregated spatial unit across all six plots in Figure~\ref{fig-Fig2}.
+This land-use classification is available within the 2021 residential
+parcel file described in the following sub-section. In
+Figure~\ref{fig-Fig2}, it can be seen that the majority of schools that
+changed status are in the HWDSB, with OTGC capacity decreasing in 2016
+and 2021 compared to the previous year. Most school closures took place
+in the central and eastern parts of Hamilton's urban area (Hamilton
+Central), as well as in rural areas of western Hamilton (Flamborough).
+When schools did open or expand, it was primarily in the more recently
+urbanized southeastern area of Hamilton (Glanbrook), with a few also in
+Hamilton Central to offset some of the lost capacity.
+
 \begin{figure}
-
-\centering{
-
-\includegraphics[width=1.2\textwidth,height=\textheight]{Manuscript_files/figure-pdf/fig-Fig1-1.pdf}
-
-}
-
-\caption{\label{fig-Fig1}The school catchments, estimated On The Ground
-Capacity (OTGC) of schools summed per catchment, and school status for
-both public and public catholic school boards for year 2011 and 2016.
-OTGC scale is presented by quartiles.}
-
-\end{figure}%
-
-\subsection{Students, residential locations and low-income
-prevelance}\label{students-residential-locations-and-low-income-prevelance}
-
-In addition to OTGC for schools, statistics about the student population
-and proportion of low-income after tax (LIM-AT) households were
-retrieved from the 2011 and 2016 Canadian Census (Canada 2011, 2016)
-using the \{cancensus\} \texttt{R} package (Bergmann, Shkolnik, and
-Jacobs 2021). The census releases population data by age group category,
-so the population aged between 5-9 years and 10-14 years were retained.
-LIM-AT refers to the proportion of private households that are below the
-median after-tax income (Government of Canada 2017). The LIM-AT
-prevalence for households with children under 18 (there is no LIM-AT
-prevalence tabulated for households with exclusively elementary aged
-children) was retrained. Population and LIM-AT variables were taken at
-the Dissemination Area (DA) level, which is the finest geographic unit
-publicly available. DAs are designed by Statistics Canada with the aim
-of population uniformity hence DAs greatly vary in area but represent
-between approximately 400 and 700 (1st and 3rd quartile) in total
-population. The population aged 5 to 14 and the proportion of LIM-AT are
-visualised in the first and last rows in Figure~\ref{fig-Fig2}.
-
-The third source of data consists of centroids of residential parcels in
-2011 and 2016 that are used to represent residential locations (Teranet
-2009). There are 134,340 and 139,467 residential locations in 2011 and
-2016 respectively, representing 203,806 and 211,596 dwellings (according
-to the Canadian Census (Canada 2011, 2016)). As the number of children
-per parcel are publicly unavailable, the average number of 5 to 14 year
-olds for each DA is divided by the number of residential households in
-that DA. Then the potential number of children at each dwelling is
-calculated by multiplying this DA rate by the number of dwellings in
-each parcel. Due to the proprietary nature of the parcel data, the
-middle row in Figure~\ref{fig-Fig2} visualises an aggregation of the
-information: the average rate of 5-14 year olds per residential
-household at the DA level.
-
-\begin{figure}[H]
 
 \centering{
 
@@ -531,48 +676,61 @@ household at the DA level.
 
 }
 
-\caption{\label{fig-Fig2}The magnitude (top row) and rate per
-residential unit (middle row) of elementary aged student population per
-DA in 2011 and 2016. Bottom row: the proportion of low-income households
-(prevelance of low-income after-tax, LIM-AT, measured by the 2011 and
-2016 Canadian Census) with dependents under 18 years old shown. All
-scales are represented in quartiles.}
+\caption{\label{fig-Fig2}The on-the-ground capacity (OTGC) of schools
+and school status for year 2011, 2016 and 2021 for both the HWDSB and
+HWCDSB. Schools are presented overtop a layer visualising the degree of
+residential urbanisation in 2021.}
 
 \end{figure}%
 
-\subsection{Estimated travel times and
-emissions}\label{estimated-travel-times-and-emissions}
+\subsection{Students, residential locations and low-income
+prevelance}\label{students-residential-locations-and-low-income-prevelance}
 
-It is assumed that children can go to any elementary school, but there
-is a preference for facilities that are more proximate. Based on this
-assumption, the fourth source of data is information regarding the
-mode-used and origin-destination locations of home-to-school trips from
-the 2011 and 2016 TTS (Data Management Group 2018). The TTS is a travel
-survey conducted in the Greater Golden Horseshoe Area in Ontario every
-five years. With a target 5\% sampling rate, the survey is expanded to
-be representative at the traffic analysis zone (TAZ) level of geography.
-TAZ are spatial units created for the purpose of the TTS and pulled from
-the R data package \{TTS2016R\} (Soukhov and Páez 2023); a few DAs
-typically nest within each TAZ. The trip-level travel data extracted for
-this paper represent 13,715 and 12,878 motorized trips (mode used
-includes private car passenger, school bus, taxi, and transit) and 2,736
-and 1,430 non-motorized trips (mode used includes walk and cycling) for
-5 to 13 year olds from home-to-school in 2011 and 2016 respectively. The
-travel times for motorized and non-motorized travel are estimated using
-\{r5r\} (Pereira et al. 2021), which interfaces with the java-based R5
-routing engine developed separately by Conveyal (Conveyal {[}2015{]}
-2022). As travel times are not associated with the TTS, motorized and
-non-motorized travel times are estimated for all TAZ centroids to all
-TAZ centroids. We estimate motorized travel to be by car and
-non-motorized travel to be by walk as those are the most used modes in
-their respective categories. The travel times and the intensity of modal
-home-to-school flows are visualised in Figure~\ref{fig-Fig3} along with
-the boundaries of the TAZ and DAs. In Figure~\ref{fig-Fig3}, not all
-TAZs capture an elementary school trip by both modes. For this reason,
-the proportion of motorized modal share is aggregated at the community
-level. Hamilton (Ancaster: 85\%-95\%, Dundas: 89\%-100\%, Flamborough:
-91\%-97\%, Glanbrook: 92\%-95\%, Hamilton Central: 80\%-87\%, and Stoney
-Creek: 82\%-88\%).
+Secondly, a detailed account of the average student population,
+low-income prevalence of households, and where they may live is required
+for each studied year.
+
+Concerning the student population and poverty, information from the
+2011, 2016 and 2021 Canadian Census (Canada 2011, 2016, 2021) was
+sourced using the \{cancensus\} R package (Bergmann, Shkolnik, and
+Jacobs 2021). The census releases population data by age group category,
+so the population aged between 5-9 years and 10-14 years were retained.
+A common poverty measure across all three census years is the low-income
+after-tax measure (LIM-AT), which reflects the proportion of private
+households that are below the median after-tax income in the region
+(Government of Canada 2017). The LIM-AT prevalence for households with
+children under 18 was retrained for this paper as there is no LIM-AT
+prevalence tabulated for households with exclusively elementary aged
+children. Population and LIM-AT variables were taken at the
+Dissemination Area (DA) level, the finest geographic unit publicly
+available. DAs are designed by Statistics Canada with the aim of
+population uniformity hence DAs greatly vary in area but represent
+between approximately 400 and 700 (1st and 3rd quartile) in total
+population. The population aged 5 to 14 and the proportion of LIM-AT are
+visualised in the first and last rows in Figure~\ref{fig-Fig3}. LIM-AT
+prevalence is notably more concentrated within the centre of Hamilton
+(Hamilton Central) through 2011 to 2021, overlapping the most urbanised
+land-use and the largest amount of schools closed
+(Figure~\ref{fig-Fig2}). Also of note, LIM-AT prevalence drastically
+decreased in 2021 as a result of Pandemic benefits that reduced income
+inequality (Government of Canada 2022b).
+
+Where students live are estimated at the level of the residential
+parcel. Centroids for parcels in 2011, 2016 and 2021 are retrieved from
+Teranet (2009), representing 134,340, 139,467 and 143,890 unique
+locations in those years, respectively. The datasets do not provide
+information on the number of households or children per parcel. To
+estimate this value, the average number of students per parcel is
+calculated using the number of school-aged population in each DA is
+divided by the number of households in each DA. This rate is assigned to
+all parcels within an associated DA. Due to the proprietary nature of
+the parcel data, the second row in Figure~\ref{fig-Fig3} visualises an
+aggregation of the information: the average rate of 5-14 year old
+population per residential unit (parcel) at the DA level. Notably,
+though the rate of 5-14 year old population per parcel is higher in more
+peripheral (and rural) communities, there are many DAs within Hamilton
+Central that have high rates and populations that are similar to those
+in these more peripheral communities.
 
 \begin{figure}[H]
 
@@ -582,54 +740,113 @@ Creek: 82\%-88\%).
 
 }
 
-\caption{\label{fig-Fig3}The origin-destination flows from home-based
-motorized and non-motorized school trips for students between 5-13 years
+\caption{\label{fig-Fig3}The magnitude (top row) and rate per
+residential unit (middle row) of elementary aged student population per
+DA in 2011, 2016 and 2021. Bottom row: the proportion of low-income
+households (prevelance of low-income after-tax, LIM-AT, measured by the
+2011, 2016 and 2021 Canadian Census) with dependents under 18 years old
+shown. All scales are represented in quartiles.}
+
+\end{figure}%
+
+\subsection{Multimodal travel
+behaviour}\label{multimodal-travel-behaviour}
+
+To reflect multimodal travel behaviour for all studied years, two types
+of data are estimated and complied. First, observed home-to-school trips
+by mode are retained from travel surveys. Next, travel times are
+calculated assuming active and motorized modes at parcel-to-school level
+and at the level matching the travel survey. Then, travel impedance
+functions are calibrated using the observed travel data, and using the
+functions and the parcel-to-school calculated travel times as input, the
+travel impedance values for each residential location to each school
+(origin-destination pair) is estimated. These three steps are described
+as follows:
+
+First, we retrieve information about the mode used and
+origin-destination locations of home-to-school trips from the 2011 and
+2016 Transportation Tomorrow Survey (TTS) (Data Management Group 2018);
+the 2021 TTS survey is unavailable at the time of writing so 2016 flows
+are assumed for the 2021 year. The TTS is a travel survey conducted in
+the Greater Golden Horseshoe Area in Ontario typically every five years.
+With a target 5\% sampling rate, the survey is expanded to be
+representative at the traffic analysis zone (TAZ) level of geography.
+TAZ are spatial units created for the purpose of the TTS and pulled from
+the R data package \{TTS2016R\} (Soukhov and Páez 2023); a few DAs
+typically nest within each TAZ. The trip-level travel data extracted for
+this paper represent 13,715 and 12,878 motorized trips (mode used
+includes private car passenger, school bus, taxi, and transit) and 7,432
+and 7,085 non-motorized trips (mode used includes walk and cycling) for
+5 to 14 year olds from home-to-school in 2011 and 2016 respectively. The
+intensity of modal home-to-school flows are visualised in
+Figure~\ref{fig-Fig4} along with the boundaries of the TAZ and DAs. Also
+in Figure~\ref{fig-Fig4}, not all TAZs capture an elementary school trip
+by both modes. For this reason, the proportion of motorized modal share
+is aggregated at the community level. Hamilton (Ancaster - 2011: 78\%and
+2016:94\%, Dundas - 2011: 71\% and 2016: 67\%, Flamborough - 2011: 90\%
+and 2016: 91\%, Glanbrook - 2011: 91\% and 2016: 78\%, Hamilton Central
+- 2011: 55\% and 2016:50\%, and Stoney Creek - 2011: 71\% and 2016:
+79\%).
+
+\begin{figure}[H]
+
+\centering{
+
+\includegraphics[width=1.2\textwidth,height=\textheight]{Manuscript_files/figure-pdf/fig-Fig4-1.pdf}
+
+}
+
+\caption{\label{fig-Fig4}The origin-destination flows from home-based
+motorized and non-motorized school trips for students between 5-14 years
 old as retrieved from TTS 2011 and 2016. Flows are mapped atop the
 proportion of TAZ non/motorized modal share from the TTS 2011 and 2016,
 DA boundaries, and Hamilton community boundaries.}
 
 \end{figure}%
 
-The fifth source of data consists of estimated travel time matrices from
-all residential parcel locations to all elementary schools for both
-motorized and non-motorized travel. The travel times are also estimated
-using the \{r5r\} package (Pereira et al. 2021), with car mode and
-walking representing motorized and non-motorized travel respectively.
-For both motorized and non-motorized modes, the inputs assume a maximum
-travel time threshold of 60 minutes and the free-flow OpenStreetMap road
-network of Hamilton (retrieved using Geofabrik (Geofabrik 2022) and
-manually edited to only include the network within Hamilton). Further,
-only walking trips shorter than 27 min minutes were retained. This
-travel time is approximately equivalent to 1.6 km which is the point
-within-catchment students qualify for transport provided by the school
-board (HWDSB 2019). Estimated trip-weighted motorized travel times are
-on average 16.5 minutes in 2011 and 16.8 minutes in 2016 (summary
-statistics for both years are approximately; min: 0.5, Q1: 11.0, Q2:
-16.0, Q3: 21.0, max: 60.0). Estimated trip-weighted non-motorized travel
-times are on average 18.0 minutes in 2011 and 18.1 minutes in 2016
-(summary statistics for both years are approximately; min: 0.5, Q1:
-13.0, Q2: 19.0, Q3: 24.0, max: 27.0).
+Next, the travel times matrices for motorized and active travel are
+estimated using the `travel\_time\_matrix()' function part of the
+\{r5r\} package (Pereira, Saraiva, et al. 2021). Travel time matrices
+are estimated for all TAZ centroids to TAZ centroids (matrices of size
+for 2011 and 2016: 234 x 234) as they ar enot reported in the TTS.
+Additionally matrices are estimated for all residential parcels to
+schools (matrices of size 134,340 x 147 for 2011, 139,467 x 137 for
+2016, and 143,890 x 132 for 2021) for additional granularity. \{r5r\} is
+a R-based interface to the R5 routing engine developed separately by
+Conveyal (Conveyal {[}2015{]} 2022). For simplicity, we assume motorized
+travel is by car and non-motorized travel is by walking, as these are
+the most common modes in their respective categories. For travel time
+calculations, we set a maximum threshold of 60 minutes and use the
+free-flow OpenStreetMap road network of Hamilton (Geofabrik 2022). While
+all car trips are retained, walking trips over 27 minutes are filtered
+out. This value approximately corresponds to a distance of 1.6 km at a
+walking speed of 3.6 km/h, which is the threshold for qualifying for
+motorized transport provided by the school board (HWDSB 2019).
 
-These travel time matrices along with the origin-destination flows were
-used to create modal trip length distribution (TLD) functions. Analysis
-of the TLD is a useful technique to calibrate impedance functions as
-they are a representation of the propensity of travel by trip length
+In terms of the travel impedance function: we assume that children can
+go to any elementary school, however, there is a preference for
+facilities that are more proximate. Based on this assumption, we match
+the associated TAZ-to-TAZ travel times to all observed student-to-school
+travel flows from the TTS; these are visualised as grey bar columns in
+Figure~\ref{fig-Fig5}. Using these observed values, the
+\emph{theoretical} trip length distribution (TLD) functions are
+calibrated. TLDs can be interpreted as travel impedance functions as
+they represent the propensity of realized travel, by trip length
 (Horbachov and Svichynskyi 2018; Batista, Leclercq, and Geroliminis
-2019). The empirical TLD is used to fit a density distribution using
-maximum likelihood and moment matching techniques and the Nelder-Mead
-and Brent methods for direct optimization available within the
-\{fitdistrplus\} package (Delignette-Muller and Dutang 2015). Based on
-goodness-of-fit criteria and diagnostics, the gamma and exponential
-distributions were selected for the motorized and non-motorized modal
-distributions respectively. The gamma distribution is defined by the
-shape (\(\alpha\)) parameter of 1.939 (2011) and 2.046 (2016) and the
-rate (\(\beta\)) of 0.233 (2011) and 0.236 (2016). The exponential
-distribution is defined by the rate (\(\beta\)) parameter of 0.092
-(2011) and 0.1 (2016). The TLDs for the motorized and non-motorized
-trips are shown in Figure~\ref{fig-Fig4}. For reference, the gamma
-distribution and the exponential distribution function are displayed in
-Equations (\ref{eq:exp-dist}) and (\ref{eq:gamma-dist}) where \(x\) is
-\(c_{ij}\):
+2019). The TLDs are calibrated using the maximum likelihood and moment
+matching techniques and the Nelder-Mead and Brent methods for direct
+optimization available within the \{fitdistrplus\} R package
+(Delignette-Muller and Dutang 2015). The theoretical TLD for each mode
+and available study year is visualised in blue in Figure~\ref{fig-Fig5}.
+Based on goodness-of-fit criteria and diagnostics, the gamma and
+exponential distributions were selected for the motorized and
+non-motorized modal distributions respectively. The gamma distribution
+is defined by the shape (\(\alpha\)) parameter of 1.939 (2011) and 2.046
+(2016) and the rate (\(\beta\)) of 0.233 (2011) and 0.236 (2016). The
+exponential distribution is defined by the rate (\(\beta\)) parameter of
+0.092 (2011) and 0.1 (2016). For reference, the gamma distribution and
+the exponential distribution function are displayed in Equations
+(\ref{eq:exp-dist}) and (\ref{eq:gamma-dist}) where \(x\) is \(c_{ij}\):
 
 \begin{equation}
 \label{eq:exp-dist}
@@ -648,33 +865,30 @@ f(x, \alpha, \beta) = \frac {x^{\alpha-1}e^{-\frac{x}{\beta}}}{ \beta^{\alpha}\G
 
 \centering{
 
-\includegraphics[width=1\textwidth,height=\textheight]{Manuscript_files/figure-pdf/fig-Fig4-1.pdf}
+\includegraphics[width=1\textwidth,height=\textheight]{Manuscript_files/figure-pdf/fig-Fig5-1.pdf}
 
 }
 
-\caption{\label{fig-Fig4}Empirical (grey bars) and theoretical (blue
+\caption{\label{fig-Fig5}Observed (grey bars) and theoretical (blue
 curves) motorized and non-motorized impedance functions. Motorized
 theoretical impedance function is based on the gamma distribution
 function and non-motorized on the expoential distribution function}
 
 \end{figure}%
 
-The sixth and final data source relates to motorized GHG estimations. It
-assumed that all non-motorized trips produce no emissions and those that
-are motorized take the average emission factor of 0.1 kg \(CO_{2}e\) per
-minute travel. This emission factor is assumed based on an average speed
-of 40 km/h, the 2,380 g \(CO_{2}e\) produced when 1 L of gasoline
-(well-to-wheel) is combusted, and an internal combustion engine
-passenger vehicle fuel efficiency of 7 g/100km as discussed in Soukhov
-and Mohamed (2022).
+Lastly, to achieve greater granularity, the TLDs calibrated using
+TAZ-to-TAZ flows are used to estimate travel impedance values for each
+parcel-to-school flow based on calculated parcel-to-school travel times.
+These values represent the likelihood that students in a parcel will
+travel to a school, informed by observed home-to-school flows from the
+TTS.
 
 \section{Methods: Multimodal spatial
 availability}\label{methods-multimodal-spatial-availability}
 
 Accessibility is defined as the ``potential for spatial interaction''.
-It is classically presented as the gravity-based measure popularized by
-Hansen (1959). It takes the following general multimodal formulation
-(Equation (\ref{eq:multimodal-conventional-accessibility})):
+It is classically presented as the gravity-based measure defined in
+Hansen (1959) and takes the following general multimodal formulation:
 
 \begin{equation}
 \label{eq:multimodal-conventional-accessibility}
@@ -705,20 +919,23 @@ S_i^m = \sum_{j=1}^JO_j \cdot f^m(c_{ij}^m)
   \(S\) is Hansen-type accessibility as weighted sum of opportunities.
 \end{itemize}
 
-As indicators of urban structure, Hansen-type measures are informative,
-but the meaning of 10,000 accessible school-seats is harder to pin down:
-how many opportunities must any single student have access to?
-Furthermore, in scenario comparisons, the interpretation of the
-percentage change in accessible school seats is unclear. The
+As indicators of urban structure, Hansen-type accessibility measures
+like Equation (\ref{eq:multimodal-conventional-accessibility}) are
+informative in reflecting the magnitude of access but meaning of the
+value itself is elusive. The significance of 10,000 accessible
+school-seats is hard to pin down: how many opportunities must any single
+student have access to? Furthermore, this opaque interpretation
+especially is complicated when comparing accessibility of school seats
+between years, such as different years as in this work. The
 interpretability of Hansen-type accessibility has been discussed in
 numerous studies, including recently by Hu and Downs (2019), Kelobonye
 et al. (2020), and in greater depth by Merlin and Hu (2017) along with
 Soukhov et al. (2023) and Soukhov et al. (2024). The interpretation of
-accessibility is suggested to depend on how many people demand the
-opportunity, especially for exclusive opportunity-types like
-schools-seats (i.e., one school-seat is for one student).
+accessibility depends on how many people demand for the opportunity,
+especially for exclusive opportunity-types like schools-seats (i.e., one
+school-seat is for one student).
 
-In this paper, we benefit from new developments in accessibility
+In this paper, our work benefits from new developments in accessibility
 research, particularly the multimodal spatial availability measure
 (Soukhov et al. 2023; Soukhov et al. 2024). Spatial availability is a
 singly-constrained accessibility measure that accounts for competition
@@ -732,7 +949,7 @@ opportunity access, particularly when comparing across modes, at the
 spatial resolution of a residential parcel, and multiple time periods.
 See Soukhov et al. (2024) for further discussion, multimodal spatial
 availability \(V_{i}^m\) is defined as given by Equation
-(\ref{eq:spatial-availability}).
+(\ref{eq:spatial-availability}):
 
 \begin{equation}
 \label{eq:spatial-availability}
@@ -794,19 +1011,20 @@ Hansen-type accessibility is not designed to preserve the number of
 opportunities in the region, it simply counts the intensity of
 opportunities that those in a zone can potentially interact with
 (weighted by the friction of distance). Also, as discussed in Soukhov et
-al. (2023), popular competitive accessibility measures such as the 2SFCA
-(Joseph and Bantock 1982; Weibull 1976; Shen 1998; Luo and Wang 2003)
-are internally inconsistent, and the only way it preserves the number of
-opportunities is if the effect of the impedance function is ignored when
-expanding the values of opportunities per capita to obtain the total
-number of opportunities. On the other hand, the proportional allocation
-procedure associated with calculating multimodal spatial availability
-\(V_i^m\) consistently returns a number of opportunities available to
-populations by mode that matches the total number of opportunities in
-the region when summed. By doing this consistently, it is possible to
-define a measure of multimodal spatial availability per capita as
-presented in Equation (\ref{eq:SA-per-capita}) for use as a benchmark to
-compare against the regional opportunities per capita
+al. (2023), popular competitive accessibility measures such as the
+two-step floating catchment area (2SFCA) (Joseph and Bantock 1982;
+Weibull 1976; Shen 1998; Luo and Wang 2003) are internally inconsistent,
+and the only way it preserves the number of opportunities is if the
+effect of the impedance function is ignored when expanding the values of
+opportunities per capita to obtain the total number of opportunities. On
+the other hand, the proportional allocation procedure associated with
+calculating multimodal spatial availability \(V_i^m\) consistently
+returns a number of opportunities available to populations by mode that
+matches the total number of opportunities in the region when summed. By
+doing this consistently, it is possible to define a measure of
+multimodal spatial availability per capita as presented in Equation
+(\ref{eq:SA-per-capita}) for use as a benchmark to compare against the
+regional opportunities per capita
 (\(\frac{\sum_{j} O_j}{\sum_{i} P_i}\)).
 
 \begin{equation}
@@ -814,114 +1032,87 @@ compare against the regional opportunities per capita
 v_i^m = \frac{V_i^m}{P_i^m}
 \end{equation}
 
-This paper uses the multimodal spatial availability \(V_i^m\) and
-spatial availability per student \(v_i^m\) measures to quantify
-accessibility changes for the following reasons.
+To summarise the methodology and the data as described in Section 3,
+multimodal spatial availability \(V_i^m\) and spatial availability per
+student \(v_i^m\) is calculated for each parcel for each studied year as
+follows:
 
-First, all residential parcels are associated to their respective census
-DA, TTS TAZ, and community boundary based on spatial location
-(aggregated by DA and shown as a per capita rate in the second row of
-Figure~\ref{fig-Fig2}). Each parcel is assigned a number of `potential'
-motorized and non-motorized student aged population (from DA) and modal
-share (from TTS) to calculate a motorized and non-motorized population
-balancing factor \(F_{i}^{pm}\). For each parcel, the following is
-retained: the 2011 and 2016 census average elementary-aged student
-population per parcel (Figure~\ref{fig-Fig2} second row) and the average
-motorized and non-motorized share as informed by the TTS aggregated by
-community (Figure~\ref{fig-Fig3}).
-
-Second, the school capacity \(O_j\) is estimated and associated with
-each school (Figure~\ref{fig-Fig1}). All residential locations are
-assumed to be able to access all schools by non-motorized and/or
-motorized mode. All origins (residential locations) can reach all
-schools by motorized mode, but few residential locations can reach
-schools within a 27 minute non-motorized trip.
-
-Third, the motorized and non-motorized impedance-balancing factors
-\(F_{ij}^{cm}\) are calculated using a mode-specific impedance function
-(Figure~\ref{fig-Fig4}) based on the respective estimated travel times
-for each origin (parcel) to school combination (OD flows retained from
-the TTS). Using network estimated travel time sensitive to observed
-parcel origin to school destination flows conceptually addresses the
-aggregation error that could result from using less granular zonal units
-to represent origin/destinations (Kane and Kim 2020; Kwan 1998; Hewko,
-Smoyer-Tomic, and Hodgson 2002). Finally, outputs from all three stages
-are joined together. \(F_{i}^{pm}\) joined with \(F_{ij}^{cm}\) yields
-the total balancing factor \(F^{tm}_{ij}\) which serves to
-proportionally allocate the school capacity \(O_j\) to each parcel. The
-value is multimodal spatial availability \(V_i^m\) which can be
-interpreted as the number of school-seats that are available to the
-mode-using population at that parcel. \(V_i^m\) is then summed and
-represented at the DA and community level along with the calculated
-\(v_i^m\) for interpretation.
+\begin{itemize}
+\tightlist
+\item
+  First, all residential parcels are associated to their respective
+  census DA, TTS TAZ, and community boundary based on spatial location.
+  Each parcel is assigned a number of `potential' motorized and
+  non-motorized student aged population (from DA) and modal share (from
+  TTS) to calculate a motorized and non-motorized population balancing
+  factor \(F_{i}^{pm}\). For each parcel, the elementary-aged student
+  population per parcel (Figure~\ref{fig-Fig3} second row) and the
+  motorized and non-motorized share as informed by the TTS aggregated by
+  community (Figure~\ref{fig-Fig4}) is retained.
+\item
+  Second, the school capacity \(O_j\) is estimated and associated with
+  each school (Figure~\ref{fig-Fig2}). All residential locations are
+  assumed to be able to access all schools by non-motorized and/or
+  motorized mode. All origins (residential locations) can reach all
+  schools by motorized mode, but few residential locations can reach
+  schools within a 27 minute non-motorized trip.
+\item
+  Third, the motorized and non-motorized impedance-balancing factors
+  \(F_{ij}^{cm}\) are calculated using a mode-specific impedance
+  function (Figure~\ref{fig-Fig5}) based on the respective estimated
+  travel times for each origin (parcel) to school combination. Using
+  network estimated travel time sensitive to observed parcel origin to
+  school destination flows conceptually addresses the aggregation error
+  that could result from using less granular zonal units to represent
+  origin/destinations (Kane and Kim 2020; Kwan 1998; Hewko,
+  Smoyer-Tomic, and Hodgson 2002).
+\item
+  Finally, outputs from all three stages are joined together.
+  \(F_{i}^{pm}\) joined with \(F_{ij}^{cm}\) yields the total balancing
+  factor \(F^{tm}_{ij}\) which serves to proportionally allocate the
+  school capacity \(O_j\) to each parcel. The value is multimodal
+  spatial availability \(V_i^m\) which can be interpreted as the number
+  of school-seats that are available to the mode-using population at
+  that parcel. \(V_i^m\) is then summed and represented at the DA and
+  community level along with the calculated \(v_i^m\) for
+  interpretation.
+\end{itemize}
 
 \section{Results}\label{results}
 
-The motorized and non-motorized spatial availabilities of school seats
-\(V_i^m\) for both 2011 and 2016 are presented in the top half of
-Figure~\ref{fig-Fig5}. The sum of \(V_i^m\) values in a year for both
-motorized and non-motorized population equals the city-wide OTGC (across
-both public and catholic school boards) in that year. This is a result
-of \(V_i^m\)'s proportional allocation mechanism, singly-constraining
-opportunities through the proportion allocation balancing factors. In
-this way, \(V_i^m\) results can be interpreted as a proportion of the
-total OTGC in that year as the sum of \(V_i^m\) for both modes in a year
-is equal to the total OTGC in that year. In Figure~\ref{fig-Fig5}, \(i\)
-is a DA, so \(V_i^m\) is the sum of the school seat availability per
-parcel in each DA. Each parcel is assigned a potential student
-population based on the average rate of school-aged population per
-residential parcel in that DA and the travel impedance weighted travel
-time to all schools. The top four plots of Figure~\ref{fig-Fig5}
-demonstrate different magnitudes in part due to significantly lower
-non-motorized modal share (refer to Figure~\ref{fig-Fig3}), however it
-is apparent that both mode using populations have higher spatial
-availability when they are more proximate to schools. Hence, all DAs
-have higher values within Hamilton Central and those more proximate to
-schools in less-urban communities. Trends appear similar for both 2011
-and 2016: this aligns with intuition, proximate populations using
-motorized modes benefit from the ability to reach more distant
-destinations than non-motorized modes.
+The probability density plots of the spatial availability values \(V_i\)
+and the per capita spatial availability \(v_i\) values for both modes
+and all three years are displayed in Figure~\ref{fig-Fig6} as a
+city-wide overview. The left column displays parcel-level values, and
+the right reflects parcel-level values aggregated at the 2021 DA grid.
+Both the parcel and DA level values reflect the spatial unit at which
+they were calculated or aggregated. However, the values of the \(V_i\)
+plots are not directly comparable since the x- and y- axes are set at
+different scale limits to highlight between year differences. However,
+overall trends in their distribution can be compared: in all four
+\(V_i\) plots, the 2011 data is more right-skewed than more current
+years, indicating that spatial availability values used to be higher
+(e.g., more school-seat access). School closures and consolidations had
+an impact despite the background dynamics of assumed student population,
+mode use, travel time and parcel location. The DA level \(V_i\) plots
+show the distribution of each DA value, which is the summation of all
+parcel \(V_i\) values within a DA. In 2011, DAs can be observed to also
+have more right-skewed spatial availability values than previous years.
+In contrast, the 2016 and 2021 distributions are more intense and
+heavily skewed toward lower values.
 
-When \(V_i^m\) is divided by the number of students by mode in that DA,
-\(v_i^m\) is derived (bottom four plots in Figure~\ref{fig-Fig5}). The
-\(v_i^m\) plots demonstrate different spatial distribution trends than
-\(V_i^m\) plots. If our aim is to provide sufficient availability to
-schools for both motorized and non-motorized populations (e.g., greater
-than 1.0 \(v_i^m\) school-seat availability per student), this rate is
-only achieved in the core of the city for motorized modes (greens and
-yellows). Notably, this rate is only available to non-motorized
-populations in DAs that are in less-densely populated rural areas that
-are school proximate and very few pockets of Hamilton Central. The
-majority of schools closed were within Hamilton Central, so
-non-motorized populations in DAs within Hamilton Central were the most
-negatively impacted by losses in availability while certain motorized
-populations captured these losses as availability gains.
-
-\begin{figure}[H]
-
-\centering{
-
-\includegraphics[width=1.2\textwidth,height=\textheight]{Manuscript_files/figure-pdf/fig-Fig5-1.pdf}
-
-}
-
-\caption{\label{fig-Fig5}Multimodal spatial availability (purples) and
-spatial availability per mode-using student (diverging reds and greens)
-aggregated at the DA level for 2011 and 2016. Scales are represented in
-quartiles.}
-
-\end{figure}%
-
-To highlight this point, Figure~\ref{fig-Fig6} visualises the change in
-school spatial availability between 2016 and 2011 for both mode where
-\(i\) are 2016 DAs. Though the 2011 and 2016 DAs system are very similar
-(see Figure~\ref{fig-Fig2} and Figure~\ref{fig-Fig3}), they are not
-identical: 16 DAs changed in their spatial extent (i.e., added, removed,
-changed boundaries). The proportional allocation mechanism of spatial
-availability provides flexibility in aggregating parcel-level values at
-whichever spatial unit is meaningful. For this case, the change in
-\(V_i^m\) and \(v_i^m\) represented is the subtraction between the value
-aggregated at 2016 DA for the 2016 and 2011 scenario.
+Although \(V_i\) values cannot be directly compared, zonal per capita
+\(v_i\) values can be as the school-age population per spatial unit
+(e.g., parcel or DA) is used to normalize the respective \(V_i\) value.
+\(v_i\) values are presented in the bottom four plots of
+Figure~\ref{fig-Fig6}. It can be observed that the same 2011
+right-skewed trend persists across all modes. Motorized mode-using
+students have access to more spatially available school seats than
+non-motorized mode using students (in 2011, approximately 1.3
+school-seats per student as compared to 0.7 and in 2021 approximately
+1.2 compared to 0.5). Due to school-seats per student at the DA level
+being an interpretable aggregation, values at this level will be the
+discussion focus of the remainder of this paper.
 
 \begin{figure}[H]
 
@@ -931,102 +1122,156 @@ aggregated at 2016 DA for the 2016 and 2011 scenario.
 
 }
 
-\caption{\label{fig-Fig6}Change in multimodal spatial availability and
-spatial availability per mode-using student between 2016 and 2011.
-Change is the subtraction of parcel-level results between 2016 and 2011
-scenarios summed for each DA in the 2016 Canadian Census DA system.
-Scales are represented in quartiles, with Q4 rounded to 0.}
+\caption{\label{fig-Fig6}Spatial availability (Vi) and per capita
+spatial availability (vi) probability density distributions for the city
+of Hamilton in 2011, 2016 and 2021. Aggregated at the parcel level (left
+column) and DA level (right column).}
 
 \end{figure}%
 
-From Figure~\ref{fig-Fig6} (top plots), it is apparent that decreases
-(pinks and reds) in \(V_i^m\) appear across the city for both mode-using
-populations. As the majority of closed schools are within the core of
-the city: the more urban Hamilton Central and urban-areas of other
-communities see a concentration of this decreased spatial availability
-to school seats. Evidently, the number of OTGC in the city (equal to the
-sum of \(V_i^m\)) decreased between the two years, so some sort of
-decrease is to be expected. However, even when spatial availability is
-divided by the mode-using population (which also decreased between the
-years) \(v_i^m\) (bottom plots) continues to demonstrate decreases,
-especially those locally proximate to closed schools.
+Representing the right column of Figure~\ref{fig-Fig6} spatially,
+Figure~\ref{fig-Fig7} displays the spatial availability for each DA for
+a given mode-using population \(m\) (e.g., the sum of school seat
+availability per parcel in each DA for motorized or non-motorized
+students). Figure~\ref{fig-Fig7} visualizes the spatial distribution of
+motorized and non-motorized school seat availability for 2011, 2016, and
+2021. As a reminder, the sum of \(V_i^m\) values for both motorized and
+non-motorized populations in a given year equals the city-wide OTGC
+(i.e., school seats across both the public english HWDSB and public
+english catholic HWCDSB). This is due to \(V_i^m\)'s proportional
+allocation mechanism, singly-constraining opportunities through the
+proportion allocation balancing factors. In this way, \(V_i^m\) values
+can be interpreted as a proportion of the total OTGC for that year, as
+the sum of \(V_i^m\) for both modes in a year equals the total OTGC for
+that year.
 
-This decrease follows different patterns depending on the mode.
-\(v_i^{non-motorized}\) is most impacted for parcels within a 27 minute
-walk travel time to schools that closed: these DAs demonstrate the most
-dramatic decrease. Smaller-area DAs (in Hamilton-Central) and
-larger-area DAs (in rural communities) proximate to closed schools
-present Q1 decreases (red). For \(v_i^{motorized}\), the range offered
-by motorized mode (estimated by shortest-path car travel times) is
-city-wide, so since the majority of schools were centrally located, the
-decrease is concentrated within the downtown core of Hamilton Central.
-Some motorized-mode using populations in DAs do experience an increase
-in \(V_i^m\) and \(v_i^m\): these DAs are often relatively proximate to
-schools but more immediately outside walking range. Under competitive
-and constrained calculations, these DAs benefit from the losses in
-spatial availability that are predominately experienced by the
-non-motorized populations within Hamilton Central.
+Referring to the first two rows of \(V_i\) plots in
+Figure~\ref{fig-Fig7} (purples), it is notable that the magnitudes of
+\(V_i\) values for the motorized and non-motorized populations are
+tremendously different. Again, each \(V_i\) value reflects the number of
+school seats spatially available to the mode-using population at that
+zonal level, so due to the lower non-motorized modal share (refer to
+Figure~\ref{fig-Fig4}), non-motorized values will be lower. However,
+both mode-using populations have higher spatial availability values
+(darker purples) in DAs that are more proximate to schools. Hence, all
+DAs have higher values within Hamilton Central and those more proximate
+to schools in less-urban communities. This trend persists across 2011,
+2016 and 2016, aligning with intuition: populations with shorter travel
+times to with relatively greater schools are calculated to have high
+school seat spatial availability. Motorized populations have shorter
+travel times at DAs further in distance from schools, while
+non-motorized populations are only competitive at proximate distances.
 
-The decrease in school seat spatial availability can be further
-interpreted. How does potential non-motorized travel to school decrease?
-How does the increase in potential motorized travel minutes impact GHG
-emissions? Figure~\ref{fig-Fig7} visualises these related intermediates
-for one-way home-to-school travel in a given day. The top plot of
-Figure~\ref{fig-Fig7} demonstrates the sum of the change in
-non-motorized minutes per 2016 DA. These travel time minutes are the
-difference between the aggregated 2016 and 2011 scenarios for
-non-motorized travel times multiplied by the proportion of
-walking/cycling mode-use and rate of student population associated with
-the parcels in each 2016 DA. It can be seen that Q1 decreases are
-proximate to closed schools. Smaller decreases (and even a few
-increases) are apparent in a range further from closed schools,
-especially those also in proximity to the few opened/expanded schools.
-Intuitively, these trends mirror what is shown within the
-\(V^{non-motorized}\) landscape in Figure~\ref{fig-Fig6} (Pearson
-correlation coefficient of 0.796) as travel time is an input into the
-cost balancing factor \(F^{cm}_{ij}\). Similarly, the bottom plot
-(Figure~\ref{fig-Fig7}) visualises the change in estimated emissions
-from motorized travel minutes. The change in GHG emissions is also
-highly correlated with \(V^{motorized}\) in Figure~\ref{fig-Fig6}
-(Pearson correlation coefficient of 0.838) as it is also a product of
-travel time.
+The bottom two rows of \(v_i\) plots in Figure~\ref{fig-Fig7} (yellows
+to greens) demonstrate the spatial availability per mode-using student
+population e.g., \(V_i^m\) divided by the number of students aged 5-14
+using a motorized mode or non-motorized mode. It is notable that for
+motorized populations, their spatial availability per student is above 1
+(green) within the center of the city. Conversely, this rate is only
+available to non-motorized populations in DAs that are in less-densely
+populated rural areas that are school proximate and very few pockets of
+Hamilton Central in 2011 and 2016. In 2021, even fewer DAs within
+Hamilton Central have non-motorized spatial availability rates above 1.
 
 \begin{figure}[H]
 
 \centering{
 
-\includegraphics[width=0.9\textwidth,height=\textheight]{Manuscript_files/figure-pdf/fig-Fig7-1.pdf}
+\includegraphics[width=1.2\textwidth,height=\textheight]{Manuscript_files/figure-pdf/fig-Fig7-1.pdf}
 
 }
 
-\caption{\label{fig-Fig7}Change in active travel time minutes (top plot)
-and home-to-school GHG emissions (bottom plot) between 2011 and 2016
-scenarios. Change is the subtraction of parcel-level results between
-2016 and 2011 scenarios summed for each DA in the 2016 Canadian Census
-DA system. Scales are represented in quartiles, with Q4 rounded to 0.}
+\caption{\label{fig-Fig7}Multimodal spatial availability (purples) and
+spatial availability per mode-using student (diverging reds and greens)
+aggregated at the DA level for 2011, 2016 and 2021. Scales are
+represented in deciles}
 
 \end{figure}%
 
-Notably, the mode type of spatial availability loss is important. The
-change in active travel minutes and GHG emissions highlights the
-negative externalities of \emph{decreased} non-motorized spatial
-availability. Normatively, our cities should be increasing spatial
-availability for non-motorized mode users given the climate crisis. The
-wave of school closures in Hamilton increased motorized spatial
-availability and, hence, potential GHG emissions. The policy drastically
-reduced non-motorized spatial availability, and this is seen in the
-decrease in potential non-motorized travel minutes as well as increased
-GHG emissions in rural areas that did benefit from motorized spatial
-availability gains. The proportion of non-motorized mode use is low in
-both 2011 and 2016, however, the closure of schools that are more
-proximate to student-population density eliminates the potential of
-those trips ever becoming active. And who is most impacted by the
-reduction of non-motorized spatial availability? A summary of spatial
-availability per Hamilton community and associated dimensions in 2016,
-along with the percentage change between 2011 and 2016, is summarized in
-Table~\ref{tbl-Tab1}.
+To further explore these changes, the difference in \(V_i\) (first two
+rows) and difference in \(v_i\) (second two rows) between 2011-2016,
+2016-2021 and overall between 2011-2021 are displayed in
+Figure~\ref{fig-Fig8} along with schools that changed during that time
+period. 2011-2016 and 2016-2021 add together to equal 2011-2021 changes
+quite clearly, e.g.~in the third row, the 2011-16 plots a small decrease
+within the core of the city, and 2016-2021 demonstrates a more
+significant decrease in the core and western peripheral communities.
+Together, 2011-2021 plot reflects the changes in these two plots.
 
-\pagebreak
+A few interesting spatial trends can be observed in
+Figure~\ref{fig-Fig8}. First, DAs in proximity to schools that closed
+(square points) see losses in \(V_i\) (reds) for both motorized and
+especially non-motorized populations. For non-motorized populations, all
+closed school resulted in a decrease in \(V_i\). The majority of school
+closures took place in the central and eastern parts of Hamilton's urban
+area (Hamilton Central), as well as in rural areas of western Hamilton
+(Flamborough). Hence, losses characterise those neighbourhoods.
+Secondly, gains in \(V_i\) (blues) are seen where schools are opened
+(diamond points) or expanded (triangle points), especially for motorized
+populations. These gains are most notably in the more recently urbanized
+southeastern area of Hamilton (Glanbrook), along with a few pockets of
+DAs in proximity to new or expanded schools in Hamilton Central.
+Thirdly, the concentration of students in proximity to schools and the
+extent of their OTGC matters from the perspecitve of modal advantage. In
+areas with fewer proximate school options and lower OTGC relative to the
+amount of students, a change in a school results in a big impact on
+spatial availability values. For instance, in the community of Ancaster,
+one school expanded in the rural area in this community between
+2011-2016. The motorized student population, especially in rural DAs,
+saw gains in spatial availability while non-motorized populations saw
+losses. Students in proximity to the schools in Ancaster have high
+non-motorized spatial availability, but when the school was expanded
+(and due to an under-served population) motorized populations saw an
+increase in spatial availability at the direct expense of non-motorized
+populations' spatial availability.
+
+Exploring changes in \(V_i\) provides a holistic view of spatial
+availability for a given DA. However, if the focus is on the ratio of
+spatial availability per student, the bottom two rows in
+Figure~\ref{fig-Fig8} offer more insight. For instance, a community may
+have had an initially average rate of school seats per student but is
+expecting an increase in student population so it expands a school.
+However, due to an increase in population, the spatial availability per
+student overall still decreases between these two time periods. This
+case appears to occur in Ancaster between 2011 to 2016: while motorized
+\(V_i\) increased, motorized \(v_i\) slightly decreased, and
+non-motorized \(v_i\) decreased relatively more than non-motorized
+\(V_i\). As shown in Figure~\ref{fig-Fig3}, the student population and
+the number of students per residential unit increased more rapidly than
+the expanded school could accommodate, leading to a decrease in \(v_i\)
+values in DAs proximate to expanded schools.
+
+Similarly, in the southeastern community of Glanbrook, student
+populations grew from 2011 to 2021, and new schools opened. However,
+\(v_i\) rates decreased because OTGC did not keep pace with student
+population growth. As another example, in Hamilton Central and the
+eastern community of Stoney Creek, changes in \(V_i\) are unpatterned,
+while \(v_i\) demonstrate more uniform decreases, with the pattern
+varying by modal-range for motorized versus non-motorized populations.
+In these communities, the student population remained relatively stable,
+though OTGC decreased overall. \(v_i\) is illuminating to consider when
+comparing changes in spatial availability rates.
+
+\begin{figure}[H]
+
+\centering{
+
+\includegraphics[width=1.2\textwidth,height=\textheight]{Manuscript_files/figure-pdf/fig-Fig8-1.pdf}
+
+}
+
+\caption{\label{fig-Fig8}Change in multimodal spatial availability and
+spatial availability per mode-using student from 2011 to 2016, 2016 to
+2021, and together from 2011 to 2021. Change is the subtraction of
+parcel-level results in that given year and summed for each DA in the
+2021 Canadian Census DA grid. Scales are represented in deciles.}
+
+\end{figure}%
+
+Changes in multimodal spatial availability is important: A summary of
+spatial availability per Hamilton community and associated dimensions in
+2021, along with the percentage change between 2011 and 2021, is
+presented in Table~\ref{tbl-Tab1}.
 
 \global\setlength{\Oldarrayrulewidth}{\arrayrulewidth}
 
@@ -1040,100 +1285,100 @@ Table~\ref{tbl-Tab1}.
 
 \providecommand{\ascline}[3]{\noalign{\global\arrayrulewidth #1}\arrayrulecolor[HTML]{#2}\cline{#3}}
 
-\begin{longtable}[c]{|p{0.47in}|p{0.40in}|p{0.29in}|p{0.38in}|p{0.34in}|p{0.40in}|p{0.29in}|p{0.38in}|p{0.29in}|p{0.40in}|p{0.29in}|p{0.38in}|p{0.29in}}
+\begin{longtable}[c]{|p{0.75in}|p{0.75in}|p{0.75in}|p{0.75in}|p{0.75in}|p{0.75in}|p{0.75in}|p{0.75in}|p{0.75in}|p{0.75in}|p{0.75in}|p{0.75in}|p{0.75in}}
 
 \caption{\label{tbl-Tab1}Spatial availability and associated dimensions
-aggregated by communities}
+aggregated by communities in 2011 and how much they changed by 2021}
 
 \tabularnewline
 
-\multicolumn{1}{>{\centering}p{\dimexpr 0.47in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{}}}} & \multicolumn{2}{>{\centering}p{\dimexpr 0.7in+2\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{Hamilton\ C.}}}} & \multicolumn{2}{>{\centering}p{\dimexpr 0.72in+2\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{Dundas}}}} & \multicolumn{2}{>{\centering}p{\dimexpr 0.7in+2\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{Stoney\ Creek}}}} & \multicolumn{2}{>{\centering}p{\dimexpr 0.67in+2\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{Ancaster}}}} & \multicolumn{2}{>{\centering}p{\dimexpr 0.7in+2\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{Flamborough}}}} & \multicolumn{2}{>{\centering}p{\dimexpr 0.67in+2\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{Glanbrook}}}} \\
+\hhline{>{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}-}
 
+\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Hamilton\ C.}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Dundas}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Stoney\ Creek}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Glanbrook}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Flamborough}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Ancaster}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{\%\ Δ}}}}} \\
 
+\noalign{\global\arrayrulewidth 0pt}\arrayrulecolor[HTML]{000000}
 
+\hhline{>{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}-}\endfirsthead 
 
+\hhline{>{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}-}
 
-\multicolumn{1}{>{\centering}p{\dimexpr 0.47in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{}}}} & \multicolumn{1}{>{\centering}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{}}}} & \multicolumn{1}{>{\centering}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{\%\ Δ}}}} & \multicolumn{1}{>{\centering}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{}}}} & \multicolumn{1}{>{\centering}p{\dimexpr 0.34in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{\%\ Δ}}}} & \multicolumn{1}{>{\centering}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{}}}} & \multicolumn{1}{>{\centering}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{\%\ Δ}}}} & \multicolumn{1}{>{\centering}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{}}}} & \multicolumn{1}{>{\centering}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{\%\ Δ}}}} & \multicolumn{1}{>{\centering}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{}}}} & \multicolumn{1}{>{\centering}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{\%\ Δ}}}} & \multicolumn{1}{>{\centering}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{}}}} & \multicolumn{1}{>{\centering}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{\%\ Δ}}}} \\
+\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Hamilton\ C.}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Dundas}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Stoney\ Creek}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Glanbrook}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Flamborough}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Ancaster}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{\%\ Δ}}}}} \\
 
+\noalign{\global\arrayrulewidth 0pt}\arrayrulecolor[HTML]{000000}
 
+\hhline{>{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}-}\endhead
 
 
 
-\multicolumn{1}{>{\raggedright}p{\dimexpr 0.47in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{LIM-AT}}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{27.0}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{006400}{\fontsize{6}{6}\selectfont{14\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{12.5}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.34in+0\tabcolsep}}{\textcolor[HTML]{006400}{\fontsize{6}{6}\selectfont{10\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{11.6}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{006400}{\fontsize{6}{6}\selectfont{10\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ 8.9}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{006400}{\fontsize{6}{6}\selectfont{24\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ 7.6}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{006400}{\fontsize{6}{6}\selectfont{4\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ 7.5}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-14\%}}} \\
+\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{LIM-AT}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{23.8516970}}}} & \multicolumn{1}{>{\cellcolor[HTML]{F4FBF3}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{13.2\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{11.2879110}}}} & \multicolumn{1}{>{\cellcolor[HTML]{F6FCF5}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{10.6\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{10.8019420}}}} & \multicolumn{1}{>{\cellcolor[HTML]{F7FCF7}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{9.1\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{8.3083330}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFFAF8}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-2.5\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{7.2350900}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FAFDFA}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{5.4\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{7.0989650}}}} & \multicolumn{1}{>{\cellcolor[HTML]{EAF7E9}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{24.9\%}}}} \\
 
+\noalign{\global\arrayrulewidth 0pt}\arrayrulecolor[HTML]{000000}
 
 
 
 
-\multicolumn{1}{>{\raggedright}p{\dimexpr 0.47in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{Pop.}}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{33437.7}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-4\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ 2365.3}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.34in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-8\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ 8070.3}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{006400}{\fontsize{6}{6}\selectfont{6\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ 5387.5}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{006400}{\fontsize{6}{6}\selectfont{12\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ 5172.4}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-4\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ 4150.0}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{006400}{\fontsize{6}{6}\selectfont{58\%}}} \\
 
+\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{Kid\ pop.}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{35310.5960000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFF9F7}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-3.2\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{2590.0000000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFE3D9}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-14.7\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{7514.7510000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{EEF9ED}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{20.0\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{2639.6530000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{A2DB9F}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{108.9\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{5365.0000000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{F8FCF7}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{8.7\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{4845.0000000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{F5FBF4}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{12.4\%}}}} \\
 
+\noalign{\global\arrayrulewidth 0pt}\arrayrulecolor[HTML]{000000}
 
 
 
-\multicolumn{1}{>{\raggedright}p{\dimexpr 0.47in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{OTGC}}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{36878.3}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-8\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ 2377.0}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.34in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{0\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ 9387.8}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{006400}{\fontsize{6}{6}\selectfont{4\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ 3404.7}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{006400}{\fontsize{6}{6}\selectfont{0\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ 4638.2}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{006400}{\fontsize{6}{6}\selectfont{2\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ 1601.8}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{006400}{\fontsize{6}{6}\selectfont{22\%}}} \\
 
 
+\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{OTGC}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{39889.0820000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFECE6}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-9.8\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{2377.0380000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFFFFF}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{0.0\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{9010.1960000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFF1EB}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-7.6\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{1313.5220000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{91D58F}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{127.6\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{4590.7010000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFF1EB}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-7.5\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{3386.8900000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{F6FBF5}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{11.1\%}}}} \\
 
+\noalign{\global\arrayrulewidth 0pt}\arrayrulecolor[HTML]{000000}
 
+\hhline{>{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}-}
 
-\multicolumn{1}{>{\centering}p{\dimexpr 0.47in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{}}}} & \multicolumn{12}{>{\centering}p{\dimexpr 4.15in+22\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{Motorized}}}} \\
 
 
+\multicolumn{13}{>{\centering}m{\dimexpr 9.75in+24\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Motorized}}}}} \\
 
+\noalign{\global\arrayrulewidth 0pt}\arrayrulecolor[HTML]{000000}
 
+\hhline{>{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}-}
 
-\multicolumn{1}{>{\raggedright}p{\dimexpr 0.47in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{V\ (mt)}}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{39626.9}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-8\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ 1817.7}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.34in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-8\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ 6656.8}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{006400}{\fontsize{6}{6}\selectfont{6\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ 4338.0}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{006400}{\fontsize{6}{6}\selectfont{8\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ 3290.3}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-2\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ 2371.7}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{006400}{\fontsize{6}{6}\selectfont{58\%}}} \\
 
 
+\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{V\ (mt)}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{42527.7500000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFE9E1}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-11.6\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{1952.2590000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFD4C5}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-22.5\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{6328.0100000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{F7FCF6}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{9.9\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{1531.3080000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{9DD99A}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{114.8\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{3382.5270000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFFBF9}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-2.3\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{4086.6160000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{F9FDF9}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{7.2\%}}}} \\
 
+\noalign{\global\arrayrulewidth 0pt}\arrayrulecolor[HTML]{000000}
 
 
-\multicolumn{1}{>{\raggedright}p{\dimexpr 0.47in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{v\ (mt)}}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{1.2}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-4\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{0.8}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.34in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{0\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{0.8}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{0\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{0.8}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-4\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{0.6}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{006400}{\fontsize{6}{6}\selectfont{2\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{0.6}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{0\%}}} \\
 
 
 
+\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{v\ (mt)}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{1.2393060}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFEEE8}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-8.9\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{0.7590198}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFEEE7}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-9.0\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{0.8369173}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFF1EC}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-7.1\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{0.5823797}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FCFEFC}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{3.1\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{0.6312921}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFECE5}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-10.1\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{0.8491653}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFF6F2}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-5.0\%}}}} \\
 
+\noalign{\global\arrayrulewidth 0pt}\arrayrulecolor[HTML]{000000}
 
-\multicolumn{1}{>{\raggedright}p{\dimexpr 0.47in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{GHG}}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{47788.1}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-2\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ 4851.7}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.34in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-8\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{15183.3}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{006400}{\fontsize{6}{6}\selectfont{8\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ 9470.9}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{006400}{\fontsize{6}{6}\selectfont{14\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{12839.1}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-4\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ 8798.4}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{006400}{\fontsize{6}{6}\selectfont{60\%}}} \\
+\hhline{>{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}-}
 
 
 
+\multicolumn{13}{>{\centering}m{\dimexpr 9.75in+24\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Non-motorized}}}}} \\
 
+\noalign{\global\arrayrulewidth 0pt}\arrayrulecolor[HTML]{000000}
 
-\multicolumn{1}{>{\raggedright}p{\dimexpr 0.47in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{GHG/pop}}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{1.4}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{006400}{\fontsize{6}{6}\selectfont{2\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{2.1}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.34in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{0\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{1.9}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{0\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{1.8}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{006400}{\fontsize{6}{6}\selectfont{2\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{2.5}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{0\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{2.1}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{006400}{\fontsize{6}{6}\selectfont{2\%}}} \\
+\hhline{>{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}-}
 
 
 
+\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{V\ (nmt)}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{631.8817250}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFEAE2}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-11.0\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{28.7632500}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFF1EC}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-7.1\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{65.1592800}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFB39B}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-39.5\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{2.3855420}}}} & \multicolumn{1}{>{\cellcolor[HTML]{7CCD7C}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{1274.9\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{12.2516440}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFFDFC}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-1.0\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{18.5170610}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FF7957}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-67.6\%}}}} \\
 
+\noalign{\global\arrayrulewidth 0pt}\arrayrulecolor[HTML]{000000}
 
-\multicolumn{1}{>{\centering}p{\dimexpr 0.47in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{}}}} & \multicolumn{12}{>{\centering}p{\dimexpr 4.15in+22\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{Non-motorized}}}} \\
 
 
 
 
+\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{v\ (nmt)}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{0.7054674}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFE6DD}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-13.0\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{1.5790158}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFDFD4}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-16.6\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{0.8967578}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFCFBE}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-25.3\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{1.6565846}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFD0BF}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-24.8\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{1.8555444}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFE8DF}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-12.2\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{0.8641681}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFDFD3}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-17.0\%}}}} \\
 
-\multicolumn{1}{>{\raggedright}p{\dimexpr 0.47in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{V\ (nmt)}}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{152.7}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-44\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ \ 0.0}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.34in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-100\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ 23.9}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-42\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ \ 4.0}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-68\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ \ 3.9}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-64\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ \ 1.9}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-2\%}}} \\
+\noalign{\global\arrayrulewidth 0pt}\arrayrulecolor[HTML]{000000}
 
-
-
-
-
-\multicolumn{1}{>{\raggedright}p{\dimexpr 0.47in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{v\ (nmt)}}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{0.6}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-8\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{0.0}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.34in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-100\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{0.7}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-18\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{0.7}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-18\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{1.7}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-6\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{1.4}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-16\%}}} \\
-
-
-
-
-
-\multicolumn{1}{>{\raggedright}p{\dimexpr 0.47in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{tt}}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{4365.7}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-38\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ \ \ 0.0}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.34in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-100\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ 585.3}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-28\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ 103.3}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-62\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ \ 40.4}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-62\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\ \ 22.5}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{12\%}}} \\
-
-
-
-
-
-\multicolumn{1}{>{\raggedright}p{\dimexpr 0.47in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{\textbf{tt/pop}}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{18.2}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{0\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.34in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{17.8}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{006400}{\fontsize{6}{6}\selectfont{2\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{18.3}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{006400}{\fontsize{6}{6}\selectfont{2\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.4in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{17.9}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-2\%}}} & \multicolumn{1}{!{\color[HTML]{BEBEBE}\vrule width 1pt}>{\raggedright}p{\dimexpr 0.38in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{6}{6}\selectfont{16.4}}} & \multicolumn{1}{>{\raggedright}p{\dimexpr 0.29in+0\tabcolsep}}{\textcolor[HTML]{8B0000}{\fontsize{6}{6}\selectfont{-4\%}}} \\
-
-
+\hhline{>{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}-}
 
 
 \end{longtable}
@@ -1149,64 +1394,78 @@ aggregated by communities}
 Due to spatial availability's flexible proportional allocation mechanism
 and this cases' calculation at the parcel level, results can also be
 summarized by community (Table~\ref{tbl-Tab1}). The majority of schools
-were closed in Hamilton Central. This community represents 60\% of the
-5-14 year old population in 2016. Though the population between 2011 and
-2016 decreased, the rate of school-seat spatial availability decreased
-disproportionately more (population by -4\% and spatial availability by
--8\%). This disproportionate decrease is greatest in Hamilton Central
-than any other community. This may have equity concerns as Hamilton
-Central has the highest LIM-AT prevalence, with 27\% of households
-LIM-AT in 2016, 3.7 times greater than Glanbrook, a community with the
-lowest level of LIM-AT prevalence in the city. Between 2016 and 2011,
-Hamilton Central had the lowest levels of emissions per student and saw
-the highest per student increase in 2016. Hamilton Center had the
-highest non-motorized trip potential, and it was reduced in part by the
-school closure policies.
+were closed in Hamilton Central as seen in the largest reduction in OTGC
+by percentage and magnitude. Hamilton Central represents 55\% of the
+5-14 year old population in 2021. Though the population decreased a
+modest amount from 2011 to 2021, the rate of school-seat spatial
+availability decreased disproportionately more (population by -3.2\% and
+spatial availability by -11.6\% for both modes). Schools and additional
+OTGC was not sufficiently expanded to provide the same levels of spatial
+availability as in 2011. This disproportionate decrease in spatial
+availability to students is greater in Hamilton Central by magnitude
+than any other community.
 
-Conversely, communities with the lowest LIM-AT benefit the most, notably
-in gains to motorized spatial availability. Glanbrook, Flamborough and
-Ancaster have the lowest prevalence of LIM-AT of any Hamilton Community
-and together account for 30\% of the 5-14 year old population in 2016.
-These communities experienced a growth in student population (or only a
-small decrease) and proportionally benefited from an increase in
-motorized spatial availability.
+From the perspective of equity, Hamilton Central has the highest LIM-AT
+prevalence, with 27\% of households LIM-AT in 2016, more than 3 times
+greater than Ancaster, Flamborough and Glanbrook, communities with the
+lowest level of LIM-AT prevalence. Is the disproportionate decrease in
+spatial availability within Hamilton Central fair? In some ways it is:
+communities with the lowest LIM-AT prevalence appear to benefit from
+gains in motorized spatial availability. Glanbrook, Flamborough and
+Ancaster together account for 27\% of the 5-14 year old population in
+2021. However, they access 19\% of the spatial availability of school
+seats. Hamilton Central currently captures 66\% of the spatial
+availability for it's 55.0\% of the population. With student aged
+population growing in other communities, OTGC should be expanded -
+potentially to levels that Hamilton had in 2011 or beyond (1.2
+school-seats per motorized mode using student and 0.7 school-seats per
+active mode using student). However, should those gains come at a loss
+to other communities, especially those with a significantly higher
+proportion of households who are lower-income, a strong determinant of
+transport poverty?
 
-Across the city, those who commute by non-motorized mode see the most
-drastic lose in spatial availability. In all communities, spatial
-availability decreases at greater levels than population. Notably in
-Dundas (2nd highest LIM-AT), the only school in the community closed,
-leaving the population in the community with no other option but to use
-motorized modes. Glanbrook (lowest LIM-AT), which experienced a
-relatively sharp increase in student population along with non-motorized
-using population, suffered a lose in non-motorized spatial availability
-despite seeing the highest increase in motorized spatial availability.
-Overall, the gain in motorized spatial availability resulted in a
-further erosion of non-motorized spatial availability. This erosion is
-related to a lose in potential active home-to-school travel minutes
-(3309.3 fewer minutes than in 2011, decreasing the potential active
-travel time per (all mode using) student from 0.14 to 0.09 minutes), as
-well as an increase in potential GHG emissions city-wide (3416 kg
-\(CO_2e\) more emission than in 2011, increasing the kg \(CO_2e\) per
-child rate for home-to-school trips from 1.64 to 1.68).
+Furthermore, while there are gains in motorized spatial availability in
+certain communities by some metrics, there are losses in non-motorized
+spatial availability per student from 2011 to 2021 in all communities.
+And the losses are drastic. Communities with high community averag
+spatial availability per students with values above 1 school-seat per
+student saw losses, as well as communities below this value.
 
-\section{Conclusion}\label{conclusion}
+\section{Discussion and conclusion}\label{discussion-and-conclusion}
 
-In this paper, we estimate the change in multimodal spatial availability
-as a result of school consolidations/closures between the years of 2011
-and 2016 in an empirical case study of Hamilton, a mid-size city
-(\textasciitilde570,000 pop) in Ontario, Canada (Government of Canada
-2022). The spatial availability and spatial availability per student are
-calculated at the parcel level and aggregated at the Canadian Census DA
-spatial unit and at the six Hamilton communities for comparison. Schools
-closed and the number of school seats decreased so spatial availability
-declined overall: we discuss where, for whom, and with what potential
-impacts.
+In this paper, we compared how multimodal spatial availability changed
+after a wave of school closures and consolidations in Hamilton. To do
+so, we constructed the student-aged population, OTGC of schools and
+their locations, and their travel behaviour to generate spatial
+availability landscapes for the three study years. We aggregated the
+resulting values at the DA and community level and descriptively
+compared differences. We demonstrated that city-wide there are decreases
+in \(V_i\) for both mode-using populations: the majority of students in
+the city have access to fewer school-seats than they would have in 2011.
+Furthermore, as the majority of closed schools are within the core of
+the city: the more urban Hamilton Central and urban-areas of other
+communities saw the largest amount of this decrease. And at a
+local-scale, students in residences proximate to schools that closed
+also saw dramatic reduce in non-motorized spatial availability values.
 
-Overall, the closure of 7\% of elementary schools in Hamilton between
-2011 and 2016 resulted in -4\% decline in school-seat availability
-city-wide (2,280 fewer school-seats), but specifically a -46\% decline
-in non-motorized spatial availability. Though non-motorized modal share
-was low in both 2011 and 2016, the \emph{potential} for active transport
+Evidently, the number of OTGC in the city decreased between 2011 and
+2021, so some sort of decrease was to be expected. However, should that
+decrease be felt hardest within neighbourhoods with the highest LIM-AT?
+By students who have the potential to travel actively to school?
+Normatively, our cities should be increasing spatial availability for
+non-motorized mode users given the benefits of active travel and the
+climate crisis. Hamilton's policies from 2011 through 2021 drastically
+reduced non-motorized spatial availability, and gains in motorized
+spatial availability especially in more rural areas. The proportion of
+non-motorized mode use is low in both 2011 and 2021, however, the
+closure of schools that are more proximate to student-population density
+eliminates the potential of those trips ever becoming active.
+
+Overall, the closure of 10\% of elementary schools in Hamilton between
+2011 and 2021 resulted in 5\% decline in school-seat availability
+city-wide ( 5\% fewer school-seats), but specifically a 90\% decline in
+non-motorized spatial availability. Though non-motorized modal share was
+low in both 2011 and 2016, the \emph{potential} for active transport
 trips was significantly eroded as schools within a 27 minute walk
 catchment were closed in the more densely populated and central areas of
 the city. Further, the communities with the highest LIM-AT prevalence
@@ -1216,18 +1475,14 @@ communities with lower LIM-AT prevalence saw gains in motorized spatial
 availability (as a handful of rural schools opened). The motivation of
 operational savings associated with public service consolidation for the
 school boards did not account for the mobility-related burdens
-\emph{certain} families are now saddled with.
-
-In addition to spatial availability impacts, associated mobility
-measures are assessed. City-wide, home-to-school non-motorized minutes
-(for a one-way trip) reduced by 3,309 and GHG emissions associated with
-motorized home-to-school travel increased by 3,416 kg \(CO_2e\). The
-decision to consolidate schools, increase the length of motorized travel
-and decrease the potential for non-motorized impacts will have daily
-impacts on students and their families (Mandic et al. 2022; Pabayo et
-al. 2012), the broader community (Pietrabissa 2023; Merrall, Higgins,
-and Páez 2024; Bittencourt and Giannotti 2023) and the environment
-(Pantelaki, Claudia Caspani, and Maggi 2024; Rong et al. 2022).
+\emph{certain} families are now saddled with. The decision to
+consolidate schools, likely has increased the length of motorized
+travel, though this would need to be further investigated. A decrease in
+non-motorized trips will have daily impacts on students and their
+families (Mandic et al. 2022; Pabayo et al. 2012), the broader community
+(Pietrabissa 2023; Merrall, Higgins, and Páez 2024; Bittencourt and
+Giannotti 2023) and the environment (Pantelaki, Claudia Caspani, and
+Maggi 2024; Rong et al. 2022).
 
 Like many other localities (J. Lee and Lubienski 2017; Autti and
 Hyry-Beihammer 2014; Beuchert et al. 2018), Hamilton is not immune to
@@ -1236,8 +1491,7 @@ infrastructure is underutilized and closed. From the perspective of the
 provincial government of Ontario, the school closures which occurred in
 Hamilton resulted in operational savings-per-student. We demonstrate how
 these decisions resulted in both families and students paying a price
-through spatial availability, lost potential walk minutes, and increased
-GHG emissions.
+through multimodal spatial availability.
 
 By quantifying the spatial availability, environmental, and
 active-travel implications of school closure/consolidation policies in
@@ -1291,7 +1545,8 @@ space. This representation is average, and by design obfuscates
 considerations that could make non-average and shortest-path travel
 unrealistic such as safety and built-environment concerns (C. Lee et al.
 2021; Yumita et al. 2021) nor considers significant non-transportation
-factors (Palm and Farber 2020). Further, this study does not consider
+factors that impact fulsome school accessibility like quality
+(Bittencourt and Giannotti 2023). Further, this study does not consider
 transit, school-bus, or cycling modes which have implications on how the
 GHG emissions estimation can be interpreted. Transit and school bus
 modes often taken more circuitous routes (Yumita et al. 2021) but pool
@@ -1343,7 +1598,7 @@ Auditor General of Ontario. 2015. {``Annual Report 2015.''} Office of
 the Auditor General of Ontario.
 \url{https://www.auditor.on.ca/en/content/annualreports/arreports/en15/2015AR_en_final.pdf}.
 
-\bibitem[\citeproctext]{ref-Autti_Hyry-Beihammer_2014}
+\bibitem[\citeproctext]{ref-AuttiHyryBeihammer2014}
 Autti, Outi, and Eeva Kaisa Hyry-Beihammer. 2014. {``School Closures in
 Rural Finnish Communities.''} \emph{Journal of Research in Rural
 Education} 29 (1): 1--17.
@@ -1387,6 +1642,12 @@ Supporting Reproducibility and Critical Spatial Data Science.''}
 \emph{Journal of Geographical Systems} 23 (4): 477--96.
 \url{https://doi.org/10.1007/s10109-020-00334-2}.
 
+\bibitem[\citeproctext]{ref-burgess2011parental}
+Burgess, Simon, Ellen Greaves, Anna Vignoles, and Deborah Wilson. 2011.
+{``Parental Choice of Primary School in England: What Types of School Do
+Different Types of Family Really Have Available to Them?''} \emph{Policy
+Studies} 32 (5): 531--47.
+
 \bibitem[\citeproctext]{ref-butlerClosureRideau2019a}
 Butler, Jesse K., Ruth G. Kane, and Fiona R. Cooligan. 2019. {``The
 {Closure} of {Rideau High School}: {A Case Study} in the {Political
@@ -1400,6 +1661,11 @@ Years, for Census Metroplian Areas and Dissimination Areas.''}
 
 \bibitem[\citeproctext]{ref-Statistics_Canada_2016}
 ---------. 2016. {``Census of Canda Census Profiles: Median After-Tax
+Household Income, 5 to 9 Years, 10 to 14 Years, 15 to 19 Years, for
+Census Metroplian Areas and Dissimination Areas.''}
+
+\bibitem[\citeproctext]{ref-Statistics_Canada_2021}
+---------. 2021. {``Census of Canda Census Profiles: Median After-Tax
 Household Income, 5 to 9 Years, 10 to 14 Years, 15 to 19 Years, for
 Census Metroplian Areas and Dissimination Areas.''}
 
@@ -1448,6 +1714,18 @@ Waygood, and Antonio Páez. 2024. {``Framing Active School Travel in
 Research Part A: Policy and Practice} 180 (February): 103953.
 \url{https://doi.org/10.1016/j.tra.2024.103953}.
 
+\bibitem[\citeproctext]{ref-draaismaTDSBConsideringCuts2024}
+Draaisma, Muriel. 2024. {``{TDSB} Considering Cuts to Programming Amid
+\$20M Deficit and Many Trustees Are Concerned.''} \emph{{CBC} News},
+March.
+\url{https://www.cbc.ca/news/canada/toronto/toronto-district-school-board-finance-budget-enrolment-committee-proposed-cuts-1.7149195}.
+
+\bibitem[\citeproctext]{ref-elmurrWalkingAccessibilityParks2021}
+El-Murr, Karl, Arianne Robillard, Owen Waygood, and Geneviève Boisjoly.
+2021. {``Walking Accessibility to Parks: Considering Number of Parks,
+Surface Area and Type of Activities.''} \emph{Findings}, October.
+\url{https://doi.org/10.32866/001c.27479}.
+
 \bibitem[\citeproctext]{ref-faoOntarioSchoolBoards2023}
 FAO. 2023. {``Ontario School Boards: Enrolment, Finances and Student
 Outcomes.''} 978-1-4868-7600-6. Financial Accountability Office of
@@ -1466,15 +1744,21 @@ Population, 2016 - Low-Income Measure, After Tax ({LIM}-{AT}).''} May 3,
 \url{https://www12.statcan.gc.ca/census-recensement/2016/ref/dict/fam021-eng.cfm}.
 
 \bibitem[\citeproctext]{ref-governmentofcanadaProfileTableCensus2022}
----------. 2022. {``Profile Table, Census Profile, 2021 Census of
+---------. 2022a. {``Profile Table, Census Profile, 2021 Census of
 Population - Hamilton, City (c) {[}Census Subdivision{]}, Ontario.''}
 February 9, 2022.
 \url{https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/prof/index.cfm?Lang=E}.
 
-\bibitem[\citeproctext]{ref-Hamilton_2014}
-Hamilton. 2014. {``Map 5: Downtown Hamilton Buisness Improvement
-Area.''} Hamilton.
-\url{https://www.hamilton.ca/sites/default/files/media/browser/2014-11-27/downtown-hamilton-bia-map.pdf}.
+\bibitem[\citeproctext]{ref-governmentofcanadaDailyPandemicBenefits2022}
+---------. 2022b. {``The Daily --- Pandemic Benefits Cushion Losses for
+Low Income Earners and Narrow Income Inequality -- After-Tax Income
+Grows Across Canada Except in Alberta and Newfoundland and Labrador.''}
+July 13, 2022.
+\url{https://www150.statcan.gc.ca/n1/daily-quotidien/220713/dq220713d-eng.htm}.
+
+\bibitem[\citeproctext]{ref-hamiltonEducationalInstitutions2024}
+Hamilton. 2024. {``Educational Institutions.''} Open Hamilton.
+\url{https://open.hamilton.ca/datasets/34794547fe3e46619b3ff92a574fd558_19/explore}.
 
 \bibitem[\citeproctext]{ref-hansenHowAccessibilityShapes1959}
 Hansen, Walter G. 1959. {``How {Accessibility Shapes Land Use}.''}
@@ -1508,6 +1792,11 @@ Schedule.''} Hamilton, Ontario: Hosted by {CBC}.
 \bibitem[\citeproctext]{ref-HWDSB_2019}
 HWDSB. 2019. {``Transportation: Policy No. 3.10.''}
 \url{https://www.hamiltonschoolbus.ca/policies/hwdsb/HWDSB_Transportation_Policy.pdf}.
+
+\bibitem[\citeproctext]{ref-hwdsb2023LongTermFacilities2023}
+HWDSB. 2023. {``2023 Long-Term Facilities Master Plan - Section 1.7:
+Accommodation Strategy Schedule.''} Hamilton, Ontario.
+\url{https://www.hwdsb.on.ca/wp-content/uploads/2023/10/LTFMP-1.7-Accommodation-Strategy-Schedule-2023.pdf}.
 
 \bibitem[\citeproctext]{ref-irwinSchoolClosure2012}
 Irwin, Bill, and Mark Seasons. 2012. {``School {Closure Decision-Making
@@ -1574,6 +1863,12 @@ Walking and Cycling to School Differ Based on How Far They Live from
 School.''} \emph{Journal of Transport \& Health} 24 (March): 101316.
 \url{https://doi.org/10.1016/j.jth.2021.101316}.
 
+\bibitem[\citeproctext]{ref-marquesAccessibilityPrimarySchools2020}
+Marques, João Lourenço, Jan Wolf, and Fillipe Feitosa. 2020.
+{``Accessibility to Primary Schools in Portugal: A Case of Spatial
+Inequity?''} \emph{Regional Science Policy \& Practice}, July,
+rsp3.12303. \url{https://doi.org/10.1111/rsp3.12303}.
+
 \bibitem[\citeproctext]{ref-merlin2017competition}
 Merlin, Louis A., and Lingqian Hu. 2017. {``Does Competition Matter in
 Measures of Job Accessibility? Explaining Employment in Los Angeles.''}
@@ -1609,6 +1904,18 @@ Comparing Latent Walk Trips} in {Toronto}, {Ontario}, and {Montreal},
 {Quebec}, {Canada}.''} \emph{Transportation Research Record} 2140:
 111--19. \url{https://doi.org/10.3141/2140-12}.
 
+\bibitem[\citeproctext]{ref-morenomonroyPublicTransportSchool2018}
+Moreno-Monroy, Ana I., Robin Lovelace, and Frederico R. Ramos. 2018.
+{``Public Transport and School Location Impacts on Educational
+Inequalities: Insights from São Paulo.''} \emph{Journal of Transport
+Geography} 67 (February): 110--18.
+\url{https://doi.org/10.1016/j.jtrangeo.2017.08.012}.
+
+\bibitem[\citeproctext]{ref-mullerAssessmentSchoolClosures2011}
+Müller, Sven. 2011. {``Assessment of School Closures in Urban Areas by
+Simple Accessibility Measures.''} \emph{Erdkunde} 65 (4): 401--14.
+\url{https://doi.org/10.3112/erdkunde.2011.04.06}.
+
 \bibitem[\citeproctext]{ref-ontarioSchoolFacilityInventory2017}
 Ontario. 2017. {``School Facility Inventory System ({SFIS}) - Dataset -
 Ontario Data Catalogue.''} February 2017.
@@ -1616,6 +1923,11 @@ Ontario Data Catalogue.''} February 2017.
 
 \bibitem[\citeproctext]{ref-OpenStreetMap_2021}
 OpenStreetMap. 2021.
+
+\bibitem[\citeproctext]{ref-opsbaRightSchoolsRight2024}
+OPSBA. 2024. {``The Right Schools in the Right Locations: {OPSBA} Asks
+Government to Lift Moratorium on School Reviews.''} 2024.
+\url{https://www.opsba.org/opsba_news/the-right-schools-in-the-right-locations-opsba-asks-government-to-lift-moratorium-on-school-reviews/}.
 
 \bibitem[\citeproctext]{ref-pabayoImportanceActiveTransportation2012}
 Pabayo, Roman, Katerina Maximova, John C. Spence, Kerry Vander Ploeg,
@@ -1629,17 +1941,17 @@ Páez, Antonio. 2021. {``Open Spatial Sciences: An Introduction.''}
 \emph{Journal of Geographical Systems} 23 (4): 467--76.
 \url{https://doi.org/10.1007/s10109-021-00364-4}.
 
+\bibitem[\citeproctext]{ref-paez2019}
+Páez, Antonio, Christopher D. Higgins, and Salvatore F. Vivona. 2019.
+{``Demand and Level of Service Inflation in Floating Catchment Area
+(FCA) Methods.''} Edited by Tayyab Ikram Shah. \emph{PLOS ONE} 14 (6):
+e0218773. \url{https://doi.org/10.1371/journal.pone.0218773}.
+
 \bibitem[\citeproctext]{ref-paez2012measuring}
 Páez, A., D. M. Scott, and C. Morency. 2012. {``Measuring Accessibility:
 Positive and Normative Implementations of Various Accessibility
 Indicators.''} Journal Article. \emph{Journal of Transport Geography}
 25: 141--53. \url{https://doi.org/10.1016/j.jtrangeo.2012.03.016}.
-
-\bibitem[\citeproctext]{ref-palmRolePublicTransit2020}
-Palm, Matthew, and Steven Farber. 2020. {``The Role of Public Transit in
-School Choice and After-School Activity Participation Among Toronto High
-School Students.''} \emph{Travel Behaviour and Society} 19 (April):
-219--30. \url{https://doi.org/10.1016/j.tbs.2020.01.007}.
 
 \bibitem[\citeproctext]{ref-pantelakiImpactHomeschoolCommuting2024}
 Pantelaki, Evangelia, Anna Claudia Caspani, and Elena Maggi. 2024.
@@ -1647,6 +1959,13 @@ Pantelaki, Evangelia, Anna Claudia Caspani, and Elena Maggi. 2024.
 Sustainable Transport Policy Scenarios.''} \emph{Case Studies on
 Transport Policy} 15 (March): 101110.
 \url{https://doi.org/10.1016/j.cstp.2023.101110}.
+
+\bibitem[\citeproctext]{ref-pereiraGeographicAccessCOVID192021}
+Pereira, Rafael H. M., Carlos Kauê Vieira Braga, Luciana Mendes Servo,
+Bernardo Serra, Pedro Amaral, Nelson Gouveia, and Antonio Paez. 2021.
+{``Geographic Access to {COVID}-19 Healthcare in Brazil Using a Balanced
+Float Catchment Area Approach.''} \emph{Social Science \& Medicine} 273
+(March): 113773. \url{https://doi.org/10.1016/j.socscimed.2021.113773}.
 
 \bibitem[\citeproctext]{ref-Pereira2021r5r}
 Pereira, Rafael H. M., Marcus Saraiva, Daniel Herszenhut, Carlos Kaue
@@ -1659,6 +1978,18 @@ r\textsuperscript{5} in r.''} \emph{Findings}, March.
 Pietrabissa, Giorgio. 2023. {``School Access and City Structure.''}
 \url{https://giorgiopietrabissa.github.io/files/school_sorting.pdf}.
 
+\bibitem[\citeproctext]{ref-pinchChangingGeographyPreschool1987}
+Pinch, S. 1987. {``The Changing Geography of Preschool Services in
+England Between 1977 and 1983.''} \emph{Environment and Planning C:
+Government and Policy} 5 (4): 469--80.
+\url{https://doi.org/10.1068/c050469}.
+
+\bibitem[\citeproctext]{ref-pizzolQualifyingAccessibilityEducation2021}
+Pizzol, Bruna, Mariana Giannotti, and Diego Bogado Tomasiello. 2021.
+{``Qualifying Accessibility to Education to Investigate Spatial
+Equity.''} \emph{Journal of Transport Geography} 96 (October): 103199.
+\url{https://doi.org/10.1016/j.jtrangeo.2021.103199}.
+
 \bibitem[\citeproctext]{ref-rongReviewResearchLowcarbon2022}
 Rong, Peijun, Mei-Po Kwan, Yaochen Qin, and Zhicheng Zheng. 2022. {``A
 Review of Research on Low-Carbon School Trips and Their Implications for
@@ -1666,7 +1997,7 @@ Human-Environment Relationship.''} \emph{Journal of Transport Geography}
 99 (February): 103306.
 \url{https://doi.org/10.1016/j.jtrangeo.2022.103306}.
 
-\bibitem[\citeproctext]{ref-Rosik_Pulawska-Obiedowska_Goliszek_2021}
+\bibitem[\citeproctext]{ref-Rosik_PulawskaObiedowska_Goliszek_2021}
 Rosik, Piotr, Sabina Puławska-Obiedowska, and Sławomir Goliszek. 2021.
 {``Public Transport Accessibility to Upper Secondary Schools Measured by
 the Potential Quotient: The Case of Kraków.''} \emph{Moravian
@@ -1728,14 +2059,46 @@ Modes.''} \emph{{PLOS} {ONE}} 19 (2): e0299077.
 Spatial, DMTI. 2015. {``Building Footprints Region,''} September.
 \url{http://geo.scholarsportal.info/\#r/details/_uri@=24}.
 
+\bibitem[\citeproctext]{ref-Talen_2001}
+Talen, Emily. 2001. {``School, Community, and Spatial Equity: An
+Empirical Investigation of Access to Elementary Schools in West
+Virginia.''} \emph{Annals of the Association of American Geographers} 91
+(3): 465--86. \url{https://doi.org/10.1111/0004-5608.00254}.
+
+\bibitem[\citeproctext]{ref-tdsbLiftingMinistryEducations2024}
+TDSB. 2024. {``Lifting the Ministry of Education's Moratorium on School
+Closures to Allow for Modernization Through Consolidation Monday April
+15, 2024.''} April 2024.
+\url{https://www.tdsb.on.ca/home/ctl/Details/mid/43824/itemid/280\#:~:text=At\%20a\%20recent\%20Board\%20meeting,under\%2Denrolled\%20schools\%20through\%20consolidation.}
+
 \bibitem[\citeproctext]{ref-Teranet_2009}
 Teranet. 2009. {``Hamilton Parcel/Land Use Data.''} Dept. of Planning;
 Economic Development.
+
+\bibitem[\citeproctext]{ref-thompsonItJustGalls2024}
+Thompson, Carise, Patricia A. Collins, and Jennifer Dean. 2024. {``{`It
+Just Galls Me, as a Taxpayer'}: Trust Implications of School Closure
+Decision-Making in Ontario.''} \emph{Administration \& Society},
+November, 00953997241296117.
+\url{https://doi.org/10.1177/00953997241296117}.
+
+\bibitem[\citeproctext]{ref-tiznadoaitkenPublicTransportAccessibility2021}
+Tiznado-Aitken, I, JC Munoz, and R Hurtubia. 2021. {``Public Transport
+Accessibility Accounting for Level of Service and Competition for Urban
+Opportunities: An Equity Analysis for Education in Santiago de Chile.''}
+\emph{{JOURNAL} {OF} {TRANSPORT} {GEOGRAPHY}} 90 (January).
+\url{https://doi.org/10.1016/j.jtrangeo.2020.102919}.
 
 \bibitem[\citeproctext]{ref-weibullAxiomaticApproachMeasurement1976}
 Weibull, Jörgen W. 1976. {``An Axiomatic Approach to the Measurement of
 Accessibility.''} \emph{Regional Science and Urban Economics} 6 (4):
 357--79. \url{https://doi.org/10.1016/0166-0462(76)90031-4}.
+
+\bibitem[\citeproctext]{ref-williamsDisparitiesAccessibilityPublic2014}
+Williams, Shaun, and Fahui Wang. 2014. {``Disparities in Accessibility
+of Public High Schools, in Metropolitan Baton Rouge, Louisiana
+1990--2010.''} \emph{Urban Geography} 35 (7): 1066--83.
+\url{https://doi.org/10.1080/02723638.2014.936668}.
 
 \bibitem[\citeproctext]{ref-yumitaSchoolCommutingBarriers2021}
 Yumita, FR, MZ Irawan, S Malkhamah, and MIH Kamal. 2021. {``School
@@ -1744,12 +2107,6 @@ Transport Systems in Yogyakarta, Indonesia.''} \emph{{SUSTAINABILITY}}
 13 (16). \url{https://doi.org/10.3390/su13169372}.
 
 \end{CSLReferences}
-
-\pagebreak
-
-\section{Appendix}\label{appendix}
-
-\input{TabA1.tex}
 
 
 

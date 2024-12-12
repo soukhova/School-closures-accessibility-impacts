@@ -65,7 +65,8 @@ save(cen_data_2016_1, file="data-inputs/Census-data/cen_data_2016_1.RData")
 Repeat for 2021 incomes:
 ```{r}
 cen_data_2021_1 <- get_census(dataset='CA21', regions=list(CMA="35537"),
-                           vectors=c("v_CA21_566", #Median after-tax income in 2020 among recipients ($),
+                           vectors=c(
+                                    "v_CA21_566", #Median after-tax income in 2020 among recipients ($),
                                      "v_CA21_966", #Median after-tax income of economic family in 2020 ($)
                                      "v_CA21_978", #Median after-tax income of 1-parent economic families in 2020 ($)
                                      "v_CA21_1043", #	Income; Low Income Measures; Prevalence of low income based on the Low-income measure, after tax (LIM-AT) (%); 0 to 17 years (%)
@@ -153,7 +154,7 @@ SCHOOLS_2024_and_2016 |> st_drop_geometry()
 NOTE: 
 - Ancaster Senior became Frank Panabaker Elementary School (South Campus) and Fessenden Elementary School became Frank Panabaker Elementary School (North Campus) in 2019 -- effectively they are the same school in 2019 but under the same 'management' now, so keep names as is (https://en.wikipedia.org/wiki/Frank_Panabaker_Elementary_School)
 
-- Glen Echo, Glen Brae, Sir Isaac Brock, and Elizabeth Bagshaw elementary schools closed -- and "Viola Desmond Elementary School" opened in September 2021 on the site of Glen Brae. Let's make Glen Brae as "Removed", and add new school named "Viola Desmond" as SchoolID 156.202021, ELEM 0, urban.dist 7948.096, footprint 3,902 m²
+- Glen Echo, Glen Brae, Sir Isaac Brock, and Elizabeth Bagshaw elementary schools closed -- and "Viola Desmond Elementary School" opened in September 2021 on the site of Glen Brae. Let's make Glen Brae "Removed", and add new school named "Viola Desmond" as SchoolID 156.202021, ELEM 0, urban.dist 7948.096, footprint 3,902 m²
 (https://www.hwdsb.on.ca/sirwilfridlaurier/2021/05/19/viola-desmond-elementary-school-update/)
 
 - Ryerson was renamed "Kanétskare Elementary School" in September 2022, nothing else changed. For this analysis, keep Ryerson name. (https://www.hwdsb.on.ca/kanetskare/renaming/)
@@ -162,10 +163,13 @@ NOTE:
 
 Let's join add new columns, "Year_2" and "Status_2" and "footprint2021" corresponding to what happened between 2016-2021 for these 123 common schools.
 ```{r}
-test_ALL_SCHOOLS_ELEM <- ALL_SCHOOLS_Elem |> mutate(Year_2 = ifelse(SchoolID %in% SCHOOLS_2024_and_2016$SchoolID, "2016 and 2021", NA),
+test_ALL_SCHOOLS_ELEM <- ALL_SCHOOLS_Elem |>
+  mutate(Year_2 = ifelse(SchoolID %in% SCHOOLS_2024_and_2016$SchoolID, "2016 and 2021", NA),
                            Status_2 = ifelse(!is.na(Year_2), "NoChange", NA),
+                           
+                           Year_2 = ifelse(SchoolID == "156", "2016", Year_2),
                            Status_2 = ifelse(SchoolID == "156", "Removed", Status_2),
-                           footprint2021 = ifelse(SchoolID =="156", 3902, footprint2016))
+         footprint2021 = NA)
 
 test <- test_ALL_SCHOOLS_ELEM |> filter (SchoolID == "156") |> #takes the geometry and urban.dist of Glen Brae
   mutate(SchoolID = "156.2021",
@@ -174,6 +178,7 @@ test <- test_ALL_SCHOOLS_ELEM |> filter (SchoolID == "156") |> #takes the geomet
          MID = "MID",
          Year_2 = "2021",
          Status_2 = "New",
+         urban.dist = 7948.0958,
          footprint2021 =3902)
 
 test[,c(3,4,7,8,9,10,11,12,18,19)] <- NA
@@ -404,18 +409,21 @@ RED_LU_centroids_2016 <- sp::over(as_Spatial(st_centroid(RED_LU_2016)),as_Spatia
 RED_LU_centroids_2016 <- cbind(RED_LU_centroids_2016,st_centroid(RED_LU_2016))
 ```
 
-Next assign 2016 DA IDs to the centroids of 2011 parcels:
+Next assign 2016 DA IDs and 2021 DA IDs to the centroids of 2011 parcels:
 ```{r}
 RED_LU_centroids_2011 <- sp::over(as_Spatial(st_centroid(RED_LU_2011)),as_Spatial(cen_data_2011_1 |> dplyr::select(GeoUID)))
 
 RED_LU_centroids_2011_w2016ID <- sp::over(as_Spatial(st_centroid(RED_LU_2011)),as_Spatial(cen_data_2016_1 |> dplyr::select(GeoUID) |> rename("GeoUID_2016" = "GeoUID")))
 
+RED_LU_centroids_2011_w2021ID <- sp::over(as_Spatial(st_centroid(RED_LU_2011)),as_Spatial(cen_data_2021_1 |> dplyr::select(GeoUID) |> rename("GeoUID_2021" = "GeoUID")))
+
 RED_LU_centroids_2011 <- cbind(RED_LU_centroids_2011_w2016ID,
+                               RED_LU_centroids_2011_w2021ID,
                               RED_LU_centroids_2011,
                               st_centroid(RED_LU_2011))
 ```
 
-Next assign 2016 DA IDs to the centroids of 2021 parcels:
+And assign 2016 DA and 2011 IDs to the centroids of 2021 parcels:
 ```{r}
 RED_LU_centroids_2021 <- sp::over(as_Spatial(st_centroid(RED_LU_2020)),
                                   as_Spatial(cen_data_2021_1 |> dplyr::select(GeoUID) |> st_sf()))
@@ -424,9 +432,28 @@ RED_LU_centroids_2021_w2016ID <- sp::over(as_Spatial(st_centroid(RED_LU_2020)),
                                           as_Spatial(cen_data_2016_1 |> dplyr::select(GeoUID) |>
                                                        rename("GeoUID_2016" = "GeoUID")))
 
+RED_LU_centroids_2021_w2011ID <- sp::over(as_Spatial(st_centroid(RED_LU_2020)),
+                                          as_Spatial(cen_data_2011_1 |> dplyr::select(GeoUID) |> rename("GeoUID_2011" = "GeoUID")))
+
 RED_LU_centroids_2021 <- cbind(RED_LU_centroids_2021_w2016ID,
+                               RED_LU_centroids_2021_w2011ID,
                               RED_LU_centroids_2021,
                               st_centroid(RED_LU_2020))
+```
+
+For good measure, do the same for the 2016 centroids:
+```{r}
+RED_LU_centroids_2016 <- sp::over(as_Spatial(st_centroid(RED_LU_2016)),
+                                  as_Spatial(cen_data_2016_1 |> dplyr::select(GeoUID)))
+
+RED_LU_centroids_2016_w2011ID <- sp::over(as_Spatial(st_centroid(RED_LU_2016)),as_Spatial(cen_data_2011_1 |> dplyr::select(GeoUID) |> rename("GeoUID_2011" = "GeoUID")))
+
+RED_LU_centroids_2016_w2021ID <- sp::over(as_Spatial(st_centroid(RED_LU_2016)),as_Spatial(cen_data_2021_1 |> dplyr::select(GeoUID) |> rename("GeoUID_2021" = "GeoUID")))
+
+RED_LU_centroids_2016 <- cbind(RED_LU_centroids_2016_w2011ID,
+                               RED_LU_centroids_2016_w2021ID,
+                              RED_LU_centroids_2016,
+                              st_centroid(RED_LU_2016))
 ```
 
 As another step, we need to transfer the TAZ ids to the RED centroids -- this is so we can pull the proportion of motor/non-motorized trips. First, load in TAZs:
@@ -438,9 +465,10 @@ Now add the TAZ IDs column to the residential parcel id for 2011, 2016, and 2021
 ```{r}
 cols_TAZIDs <-sp::over(as_Spatial(st_centroid(RED_LU_2011)),
                               as_Spatial(ggh_taz |> select(GTA06) |> rename("GTA06_Orig" = "GTA06")))
+
 RED_LU_centroids_2011<- cbind(RED_LU_centroids_2011,cols_TAZIDs)
 
-cols_TAZIDs <- sp::over(as_Spatial(st_centroid(RED_LU_2016)),
+cols_TAZIDs <-sp::over(as_Spatial(st_centroid(RED_LU_2016)),
                               as_Spatial(ggh_taz |> select(GTA06) |> rename("GTA06_Orig" = "GTA06")))
 
 RED_LU_centroids_2016<- cbind(RED_LU_centroids_2016,cols_TAZIDs)
@@ -536,13 +564,13 @@ od_trips_2016_nonmotor <- od_trips_2016_nonmotor %>%
 
 Merge the the motor/non-motorized objects together:
 ```{r}
-od_trips_perc_2011 <- od_trips_2011_motor %>% left_join(od_trips_2011_nonmotor, by=c("Origin", "Destination")) %>%
+od_trips_perc_2011 <- od_trips_2011_motor %>% full_join(od_trips_2011_nonmotor, by=c("Origin", "Destination")) %>%
   group_by(Origin, Destination) |>
   summarize(TAZOrig_car_trips= sum(Trips.x, na.rm=TRUE),
             TAZOrig_walk_trips = sum(Trips.y, na.rm=TRUE)) |>
   mutate(TAZOrig_car_trip_perc = TAZOrig_car_trips/(TAZOrig_car_trips + TAZOrig_walk_trips))
 
-od_trips_perc_2016 <- od_trips_2016_motor %>% left_join(od_trips_2016_nonmotor, by=c("Origin", "Destination")) %>%
+od_trips_perc_2016 <- od_trips_2016_motor %>% full_join(od_trips_2016_nonmotor, by=c("Origin", "Destination"))%>%
   group_by(Origin,Destination) |>
   summarize(TAZOrig_car_trips = sum(Trips.x, na.rm=TRUE),
             TAZOrig_walk_trips = sum(Trips.y, na.rm=TRUE)) |>
@@ -553,3 +581,21 @@ od_trips_perc_2016 <- od_trips_2016_motor %>% left_join(od_trips_2016_nonmotor, 
 save(od_trips_perc_2011, file="data-inputs/TTS/od_trips_perc_2011.RData")
 save(od_trips_perc_2016, file="data-inputs/TTS/od_trips_perc_2016.RData")
 ```
+
+
+```{r}
+##TEEESSST -- here we make sure that the full_join worked correctly for calculating the % of trips per mode.. it works!
+st_intersection(st_centroid(ham_taz) %>% st_transform(crs = 4326), 
+                ham_community_bounds%>% st_transform(crs = 4326)) |> filter(COMMUNITY_ == "Dundas")
+
+TEST <-c(5178, 5191, 5202, 5205, 5207, 5213, 5215, 5236, 5246, 5247, 5252)
+```
+
+
+```{r}
+#see, 29 rows --> it comes from 25 rows and 7 rows (added together = 32 + collapsing 3 rows as those ODs both have walk and car trips = 29 unique ODs!)
+od_trips_perc_2011 |> filter(Origin %in% TEST)
+od_trips_2011_motor |> filter(Origin %in% TEST)
+od_trips_2011_nonmotor |> filter(Origin %in% TEST)
+```
+

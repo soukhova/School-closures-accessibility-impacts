@@ -7,11 +7,12 @@ library:
 #install.packages("sf")
 library(dplyr)
 library(sf)
+library(tidyr)
 # if(!require(remotes)){
 #     install.packages("remotes")
 #     library(remotes)
 # }
-#remotes::install_github("soukhova/HamONdests")
+# remotes::install_github("soukhova/TTS2016R")
 library(hamONdests)
 ```
 
@@ -180,7 +181,8 @@ load(file="data-inputs/Parcels/RED_LU_centroids_2021.RData") #parcels
 #drop all parcel points that do not have a GeoUID (i.e., a DA identifier -- this means they fall outside of Hamilton). It's 10 for 2011,  11 for 2016, and 11 for 2021
 RED_LU_centroids_2021 <- RED_LU_centroids_2021 %>% drop_na(GeoUID) %>%
   group_by(ID) %>%
-  dplyr::select(c("ID","GeoUID_2016","GeoUID","GTA06_Orig","WARD","COMMUNITY","URBAN_RURA","LUC1","LUC2","LUC1_DESCR","TYPE","geometry"))
+  dplyr::select(c("ID","GeoUID", "GeoUID_2011","GeoUID_2016",
+                  "GTA06_Orig","WARD","COMMUNITY","URBAN_RURA","LUC1","LUC2","LUC1_DESCR","TYPE","geometry"))
 ```
 
 Add census data to the parcel centroids:
@@ -321,6 +323,10 @@ OD_2021 <- OD_2021 |> mutate(
 ```{r}
 #calculate spatial availability. 
 avail_2021 <- sp_avail_detailed(OD_2021, ID, SchoolID, kid_popadj, OTGC2021, mode, r, f, alpha = 1)
+```
+
+
+```{r}
 save(avail_2021, file="data-products/avail_2021.RData")
 save(OD_2021, file="data-products/OD_2021.RData")
 ```
@@ -329,9 +335,30 @@ save(OD_2021, file="data-products/OD_2021.RData")
 #checks, yes!
 OD_2021$OTGC2021 |> unique() |> sum()
 avail_2021$V_ij |> sum(na.rm=T)
+#should be  57696.08!
 ```
 
 
 ```{r}
 rm(OD_2021)
 ```
+
+Also interesting! The parcels have "urban vs. rural" in 2021... let's summarise this per DA and save in data_products.
+```{r}
+load(file="data-inputs/Parcels/RED_LU_centroids_2021.RData") #parcels
+
+DA_2021_URBvsRUR <- RED_LU_centroids_2021 |> st_drop_geometry() |>
+  mutate(URB = ifelse(URBAN_RURA == "U", 1, 0),
+         SUB = ifelse(URBAN_RURA == "S", 1, 0),
+         RUR = ifelse(URBAN_RURA == "R", 1, 0)) |>
+  group_by(GeoUID) |> summarise(count_urb= sum(URB),
+                                count_sub = sum(SUB),
+                                count_rur = sum(RUR)) 
+
+DA_2021_URBvsRUR <- DA_2021_URBvsRUR |>
+  transmute(GeoUID,
+            perc_urb = count_urb/rowSums(DA_2021_URBvsRUR[2:4]))
+
+save(DA_2021_URBvsRUR, file="data-products/DA_2021_URBvsRUR.RData")
+```
+

@@ -42,14 +42,28 @@ default
 \setlength{\emergencystretch}{3em} % prevent overfull lines
 \setcounter{secnumdepth}{-\maxdimen} % remove section numbering
 % Make \paragraph and \subparagraph free-standing
+\makeatletter
 \ifx\paragraph\undefined\else
   \let\oldparagraph\paragraph
-  \renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+  \renewcommand{\paragraph}{
+    \@ifstar
+      \xxxParagraphStar
+      \xxxParagraphNoStar
+  }
+  \newcommand{\xxxParagraphStar}[1]{\oldparagraph*{#1}\mbox{}}
+  \newcommand{\xxxParagraphNoStar}[1]{\oldparagraph{#1}\mbox{}}
 \fi
 \ifx\subparagraph\undefined\else
   \let\oldsubparagraph\subparagraph
-  \renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+  \renewcommand{\subparagraph}{
+    \@ifstar
+      \xxxSubParagraphStar
+      \xxxSubParagraphNoStar
+  }
+  \newcommand{\xxxSubParagraphStar}[1]{\oldsubparagraph*{#1}\mbox{}}
+  \newcommand{\xxxSubParagraphNoStar}[1]{\oldsubparagraph{#1}\mbox{}}
 \fi
+\makeatother
 
 
 \providecommand{\tightlist}{%
@@ -183,6 +197,7 @@ default
 \@ifpackageloaded{caption}{}{\usepackage{caption}}
 \@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
 \makeatother
+
 \ifLuaTeX
   \usepackage{selnolig}  % disable illegal ligatures
 \fi
@@ -202,6 +217,7 @@ consolidation policy; service provision thresholds},
   citecolor={Blue},
   urlcolor={Blue},
   pdfcreator={LaTeX via pandoc}}
+
 
 \title[10 years of school closures and consolidations: the impact on
 school accessibility]{10 years of school closures and consolidations:
@@ -223,33 +239,28 @@ Canada}}}
 % abstract 
 
 \abstract{Reducing motorized travel and increasing active travel are top
-priorities for many communities. However, these priorities are
-confronted with pressures to reduce the fiscal burden of public
-services, including schools. Public school boards have been strained to
-do more with less, and opting to close under-capacity schools to deliver
-educational services more cost-effectively. However, once a school is
-closed, students' proximity to schools decreases, and those who
-previously lived close enough to walk or cycle can no longer do so. In
-this paper, the City of Hamilton, a mid-sized city in Ontario, Canada,
-which experienced a 10\% decrease in elementary school locations between
-2011 and 2021, serves as a case study. We quanitfiy how these closures
-and consolidations have reshaped accessibility for the elementary
-school-aged population and discuss their implications for active and
-motorized travel. To measure accessibility, spatial availability, a
-singly-constrained multimodal measure of spatial accessibility is used.
-This method's proportional allocation mechanism enables interpretable
-comparison between accessibility `before' and `after' the implementation
-of school closure/consolidation policy considering changes in potential
-travel time and population. The analysis is conducted at the parcel
-level, considering all school seats as eligible and incorporating
-observed home-to-school travel patterns for motorized and non-motorized
-modes. We present system-wide impact estimates resulting from these
-closures. The findings reveal that overall spatial availability in the
-city declined. While the school consolidation policy may have achieved
-cost savings in facility operation and maintenance, the burden falls on
-students, families, and communities through \emph{potentially} reduced
-opportunities for physical activity through an active journey to school
-and increased motorized travel externalities.}
+priorities for many communities. However, these priorities clash against
+many government's reluctance to invest in public services, including
+schools. Public school boards are increasingly asked to do more with
+less, a directive often accomplished by closing and consolidating
+schools. Alas, this policy tends to reduce the proximity of schools for
+many students, thus reducing the chances for active travel. In this
+paper we study the City of Hamilton, a mid-sized city in Ontario,
+Canada, which experienced numerous elementary schools closures between
+2011 and 2021. Our analysis evaluates how school closures and
+consolidations reshaped accessibility for elementary school students by
+motorized and active travel. In this task we use spatial availability, a
+singly-constrained multimodal measure of spatial accessibility. This
+method's proportional allocation mechanisms allow us to make consistent
+comparisons in accessibility between time periods. Analysis is conducted
+at the parcel level, considering on-the-ground-capacity (OTGC) of
+schools and observed home-to-school trip lengths for motorized and
+active modes. Our findings reveal that overall spatial availability in
+the city declined, and while the school consolidation policy pursued by
+the province may have achieved cost savings in facility operation and
+maintenance, it imposes ongoing costs on students, families, and
+communities through reduced opportunities for physical activity and
+entrenched reliance on motorized travel.}
 
 % keywords
 \keywords{accessibility; spatial availability; carbon emissions;
@@ -259,80 +270,77 @@ consolidation policy; service provision thresholds}
 \begin{document}
 \maketitle
 
+
 \section{Introduction}\label{introduction}
 
-The amount of services accessible within communities oscillate: economic
-and demographic shifts, rural and urban configurations and political
-in/action all induce change. These forces spur pressures to
-reorganization and consolidation of public facilities that provide
-services, potentially improving access for some but not for all
-(Christiaanse 2020; Rosik, Puławska-Obiedowska, and Goliszek 2021).
-Schools are a compelling case study in this respect. In many communities
-globally, school closure and consolidation policies have been pursued by
-governments to optimize per-student operational cost-efficiency (Rong et
-al. 2022; Dai et al. 2019). Research has highlighted that these polices
-have knock-on implications, including the weakening of communities'
-social infrastructure (Butler, Kane, and Cooligan 2019; Irwin and
-Seasons 2012; Autti and Hyry-Beihammer 2014) and negative
-household-level fiscal impacts such as a reduction of property values
-(Merrall, Higgins, and Páez 2024). Operationally, savings may be
-experienced but they are paid at different levels by students, families,
-communities and society.
+Public services accessible within communities tend to oscillate:
+economic and demographic shifts, rural and urban configurations and
+political in/action all induce change. These forces spur pressures to
+reorganize and consolidate public facilities, potentially improving
+access for some but not for all residents in a community (Christiaanse
+2020; Rosik, Puławska-Obiedowska, and Goliszek 2021). Public schools are
+a compelling case study in this respect. Across the globe, school
+closure and consolidation policies have been pursued by governments to
+reduce the cost of running public education systems (Rong et al. 2022;
+Dai et al. 2019). Research has highlighted that these polices have
+knock-on implications, including the weakening of communities' social
+infrastructure (Butler, Kane, and Cooligan 2019; Irwin and Seasons 2012;
+Autti and Hyry-Beihammer 2014) and negative household-level fiscal
+impacts such as a reduction of property values (Merrall, Higgins, and
+Páez 2024). Operationally, savings may be experienced by governments,
+but they are paid at different levels by students, families,
+communities, and ultimately society in general.
 
-A school offers many things to a community: but one dimension is the
-travel to and from school, often overlooked by decision-makers
-considering school closure and consolidation policies (Bierbaum, Karner,
-and Barajas 2021; J. Lee and Lubienski 2017). Schools and residential
-locations often proximately co-located, the journey-to-school is an
-excellent opportunity for physical activity (Desjardins et al. 2024).
-However, closures exchange the physical activity of students' realized
-active trips or ``reserved'' active trips (Morency, Roorda, and Demers
-2009; Morency, Demers, and Lapierre 2007) (e.g., trips that could be
-made active) for motorized travel (Rong et al. 2022). Indeed, motorized
-travel to school is the largest contributor of carbon emissions from
-personal daily travel after the journey-to-work (Rong et al. 2022;
-Pantelaki, Claudia Caspani, and Maggi 2024). Despite these societal
-implications, many communities are closing and/or consolidating schools
-(Sageman 2022). For instance, 65\% of comprehensive schools (e.g.~grades
-1 through 9) in rural Finland since 1990 closed (Autti and
-Hyry-Beihammer 2014), 10\% of elementary schools (kindergarten through
-grade 8) in Chicago, USA in 2013 (J. Lee and Lubienski 2017), and 7\% of
-primary and lower secondary schools (kindergarten through grade 9) were
-closed in Denmark between 2010-2011 (Beuchert et al. 2018).
+A school offers many things to a community, and one relevant dimension
+is how it shapes travel. This dimension is often overlooked by
+decision-makers tasked with implementing school closure and
+consolidation policies (Bierbaum, Karner, and Barajas 2021; J. Lee and
+Lubienski 2017). When schools and residential locations are co-located,
+the journey-to-school presents an excellent opportunity for physical
+activity (Desjardins et al. 2024). However, school closures exchange the
+opportunities for active trips by students (Morency, Roorda, and Demers
+2009; Morency, Demers, and Lapierre 2007) for the near certainty of
+motorized travel (Rong et al. 2022). Indeed, motorized travel to school
+is the largest contributor of carbon emissions from personal daily
+travel after the journey-to-work (Rong et al. 2022; Pantelaki, Claudia
+Caspani, and Maggi 2024). Alas, these impacts are not often considered
+in policy when schools close and/or consolidate (Sageman 2022), a
+relatively common occurrence globally. For instance, 65\% of
+comprehensive schools (e.g.~grades 1 through 9) in rural Finland since
+1990 closed (Autti and Hyry-Beihammer 2014), 10\% of elementary schools
+(kindergarten through grade 8) in Chicago, USA in 2013 (J. Lee and
+Lubienski 2017), and 7\% of primary and lower secondary schools
+(kindergarten through grade 9) were closed in Denmark between 2010-2011
+(Beuchert et al. 2018).
 
-In this paper, we explore the case study of Hamilton, a mid-sized city
-in Canada that has pursued similar school closure and consolidation
-policies. We detail the Canadian political context that incentived these
-policies and quantify their transportation implications using data that
-constructs where students may have lived and the capacity of schools in
-2011, 2016 and 2021. To quantify transportation implications, we use a
-novel multimodal extension of a singly-constrained accessibility measure
-known as spatial availability (Soukhov et al. 2023; Soukhov et al.
-2024). Spatial availability is used to estimate active (i.e., walking)
-and motorized (i.e., car) accessibility considering the capacity of each
-school, and the residential location and quantity of school-aged
-population, and travel times from residential locations to schools for
-three time periods. In this way, this work contributes a empirical
-findings documenting how government austerity hurts public education,
-along with a methodology that results in interpretable accessibility
-values that can be compared across modes, the City, and three time
-periods.
+In this paper, we investigate the case of Hamilton, a mid-sized city in
+Canada that has been forced by the province of Ontario to pursue school
+closure and consolidation policies. We quantify the transportation
+implications of these policies using the capacity of schools in 2011,
+2016 and 2021, after several waves of school closures and
+consolidations. To this end, we use a novel multimodal extension of a
+singly-constrained accessibility measure known as spatial availability
+(Soukhov et al. 2023; Soukhov et al. 2024). We use this measure to
+estimate active (i.e., walking) and motorized (i.e., car) accessibility
+while constraining the supply of the service to the capacity schools. In
+this way, this work furnishes evidence to document how government
+austerity hurts public goals (such as physical activity) and locks
+school districts and families into motorized patterns of travel for the
+foreseeable future.
 
 To foreshadow the paper's conclusions, our findings indicate that school
-seats have became less spatially available in the city. This change
-happened unevenly, with certain communities being disproportionately
-affected. The school closure and consolidation policy pursued may have
-achieved cost savings in facility operation and maintenance. However, it
-has come at a cost to families, students, and communities, resulting in
-lost opportunities for healthier active travel and a potential increase
-in motorized travel. We investigate: were the closures and
-consolidations worth the operational savings? The methods used in this
-paper can be applied by decision-makers to evaluate the spatial and
-transport-related impacts of public service provision policy.
-Furthermore, to increase the diffusion of this analysis, all work is
-transparent and reproducible, following best practices in the spatial
-sciences (Brunsdon and Comber 2021; Antonio Páez 2021). Accordingly, all
-associated code and data is publicly available within the lead author's
+seats have became less available in the city. This change happened
+unevenly, with certain communities being disproportionately affected.
+The school closure and consolidation policy pursued by the government
+may have achieved cost savings in facility operation and maintenance.
+However, it has come at a cost to families, students, and communities,
+resulting in lost opportunities for healthier life-styles and an
+inevitable increase in motorized travel (Hammer and Baluja 2012; Rose
+2013; BUCK 2019). To increase the diffusion of this analysis, all work
+is transparent and reproducible, following best practices in the spatial
+sciences (Brunsdon and Comber 2021; Antonio Páez 2021). For this reason,
+all associated code and data are publicly available within the lead
+author's
 \href{https://github.com/soukhova/School-closures-accessibility-impacts}{GitHub
 repository}.
 
@@ -341,38 +349,37 @@ repository}.
 \subsection{Overview of proximity and equity in the school accessibility
 literature}\label{overview-of-proximity-and-equity-in-the-school-accessibility-literature}
 
-The examination of access to public services is a well established area
-of the transportation literature: from parks (El-Murr et al. 2021) to
-healthcare (Pereira, Braga, et al. 2021) and associated dimensions of
-inequities (Tiznado-Aitken, Munoz, and Hurtubia 2021; Bittencourt and
-Giannotti 2023; Kelobonye et al. 2020), spatial accessibility has been
-explored in cases studies worldwide.
+The examination of accessibility to public services is well-established,
+including studies of parks (Reyes, Paez, and Morency 2014; El-Murr et
+al. 2021), healthcare (Pereira, Braga, et al. 2021), and public
+transportation (Moniruzzaman and Paez 2012; Tiznado-Aitken, Munoz, and
+Hurtubia 2021), among many other services (e.g., Bittencourt and
+Giannotti 2023; Kelobonye et al. 2020).
 
-Accessibility to schools has been a public service explored across
-several transportation dimensions. For instance, Marques, Wolf, and
-Feitosa (2020) demonstrates that lower-income neighbourhoods, compounded
-by other intersecting dimensions of disadvantage, tend to have lower
-accessibility to schools compared to more advantaged neighbourhoods in
-Portugal. Similar conclusions are drawn in West Virginia, US by Talen
-(2001), England by Burgess et al. (2011), Baton Rouge, US by Williams
-and Wang (2014), São Paulo and Curitiba, Brazil by Moreno-Monroy,
-Lovelace, and Ramos (2018), Pizzol, Giannotti, and Tomasiello (2021),
-and Bittencourt and Giannotti (2023), and Santiago, Chile by
-Tiznado-Aitken, Munoz, and Hurtubia (2021). Research has also
-demonstrated that when school closures occurs, what schools end up
-closing are not a politically neutral decision. For instance, these
-spatial trends are explored in the context of England by Pinch (1987),
-areas of declining school-aged populations in Dreseden, Germany by
-Müller (2011), rural Finnish communities by Autti and Hyry-Beihammer
-(2014), and Chicago, US by J. Lee and Lubienski (2017).
+Schools are a service that has been studied across several
+transportation dimensions. For instance, Marques, Wolf, and Feitosa
+(2020) demonstrate that lower-income neighbourhoods in Portugal tend to
+have lower accessibility to schools compared to more advantaged
+neighbourhoods. Similar conclusions are drawn in West Virginia, US by
+Talen (2001), England by Burgess et al. (2011), Baton Rouge, US by
+Williams and Wang (2014), São Paulo and Curitiba, Brazil by
+Moreno-Monroy, Lovelace, and Ramos (2018), Pizzol, Giannotti, and
+Tomasiello (2021), and Bittencourt and Giannotti (2023), and Santiago,
+Chile by Tiznado-Aitken, Munoz, and Hurtubia (2021). Research has also
+demonstrated that school closures are seldom politically neutral
+decisions. For instance, spatial trends were explored in the context of
+England by Pinch (1987), areas of declining school-aged populations in
+Dreseden, Germany by Müller (2011), rural Finnish communities by Autti
+and Hyry-Beihammer (2014), and Chicago, US by J. Lee and Lubienski
+(2017).
 
-The methods applied to measure school accessibility have been varied,
-from simple indicators to complex metrics. Beginning from more simple,
-Marques, Wolf, and Feitosa (2020) present indicators of school seats per
-student along with the shortest distance from origin to schools within a
-school catchment, methods also used in Talen (2001) and Burgess et al.
-(2011). Authors make refinements to these methods; Müller (2011)
-considers travel time by public transit from origins to schools and
+The methods applied to measure school accessibility have also been
+varied. For example, Marques, Wolf, and Feitosa (2020) present
+indicators of school seats per student along with the shortest distance
+from origin to schools within a school catchment. Similar methods are
+also used in Talen (2001) and Burgess et al. (2011). Several authors
+propose refinements to these methods; Müller (2011), for instance,
+considers travel time by public transit from origins to schools, whereas
 Pizzol, Giannotti, and Tomasiello (2021) considers travel times by
 different modes and multiple schools from a single origin along with
 other indicators related to school quality. By contrast, Williams and
@@ -388,123 +395,113 @@ The consideration of the supply of service is pertinent in the case of
 schools and is acknowledged to as a limitation to using simpler
 accessibility measures (Pizzol, Giannotti, and Tomasiello 2021).
 
-In addition to competition for school-seats, theoretically, the
-advantage students using faster modes (e.g., motorized modes) offer in
-terms of a wider range in school-seat choice is also important. Though
-some of the reviewed works using 2SFCA approaches consider multiple
-modes, explicit attention to the modal \emph{advantage} has not been
-discussed. To this end, in this work we use spatial availability, a
-singly-constrained measure of spatial accessibility (Soukhov et al.
-2023; Soukhov et al. 2024). Spatial availability allows for the
-representation of how many `school-seats' are spatially available to
-motorized- and active-trip taking elementary school-aged student
-population at a spatial-level, facilitating interpretable comparison
-across years. Further, spatial availability can be represented as
-school-seats per capita, mathematically equivalent to the
-supply-to-demand ratio of the 2SFCA (see appendix in Soukhov et al.
-(2023)).
+In addition to competition for school-seats, theoretically, the use of
+faster modes (e.g., motorized modes) offers an advantage in terms of a
+wider range in school-seat choice. Though some of the works reviewed
+consider multiple modes, explicit attention to the modal
+\emph{advantage} has not been discussed. To this end, in this work we
+use spatial availability, a singly-constrained measure of spatial
+accessibility (Soukhov et al. 2023; Soukhov et al. 2024). Spatial
+availability allows for the representation of the number of
+`school-seats' that are spatially available to students by mode of
+transportation (i.e., motorized and active travel), considering the
+school-aged student population by zone. Further, spatial availability
+can be represented as school-seats per capita, mathematically equivalent
+to the supply-to-demand ratio of the 2SFCA (see appendix in Soukhov et
+al. (2023)), which increases the interpretability of the analysis, and
+the comparability between years.
 
 \subsection{Hamilton's school closures and
 consolidation}\label{hamiltons-school-closures-and-consolidation}
 
-Hamilton is a mid-size city (\textasciitilde570,000 pop) with rural,
-suburban and urban characteristics in the province of Ontario, Canada
-(Government of Canada 2022a). The city's public English education is
-covered by the Hamilton-Wentworth District School Board (HWDSB). In
-2013, the HWDSB released its Long Term Facilities Master Plan (HWDSB
-2013). To ensure ``equitable, affordable and sustainable learning
-facilities'', the Master Plan indicated that 80\% of its elementary
-schools (attended by students aged approximately 5 to 14) would be
-subject to evaluations, including a ``Pupil Accommodation Review''
-(HWDSB 2013). This Master Plan and the slated Pupil Accommodation
-Reviews prompted public outcry, as the outcome of Pupil Accommodation
-Reviews are typically schools closures and consolidations (Craggs 2013;
-Seasons 2014b).
+Hamilton is a mid-size city (\textasciitilde570,000 pop) in the province
+of Ontario, Canada, with rural, suburban and urban characteristics
+(Government of Canada 2022a). The city's public English education system
+is managed by the Hamilton-Wentworth District School Board (HWDSB) and
+the Hamilton-Wentworth Catholic District School Board (HWCDSB). These
+two boards, like many in the province have faced fiscal pressures from
+the province. For example, in 2013, the HWDSB released its Long Term
+Facilities Master Plan (HWDSB 2013), which nominally meant to ensure
+``equitable, affordable and sustainable learning facilities''. This plan
+indicated that 80\% of its elementary schools (attended by students aged
+approximately 5 to 14) would be subject to evaluations, including a
+``Pupil Accommodation Review'' (HWDSB 2013). The announcement promptly
+led to a public outcry, since the outcome of Pupil Accommodation Reviews
+historically translated into school closures and consolidations (Craggs
+2013; Seasons 2014b).
 
-Like all school boards in Ontario, HWDSB relies on funding from the
-province which is distributed through a formula based on pupil enrolment
-(Mackenzie 2018; Irwin and Seasons 2012). However, it has been
-demonstrated that this funding formula has become insufficient to
-maintain schools in a state of good repair (Auditor General of Ontario
-2015). Further, existing ``top-up'' programs to assist in operation and
-maintenance costs (e.g., School Facilities Operation and Renewal Grant)
-were entirely phased out by 2018 (TDSB 2024). Within this funding
-backdrop, the Pupil Accommodation Review guidelines outlined a
-``community-focused'' process to assessing the value that a school
-provides to students, the community, and the local economy (Seasons
-2014b; Ministry of Education 2006). However in practice, critical
-residents felt the outcomes of the Pupil Accommodation Reviews were
-predetermined (Thompson, Collins, and Dean 2024): older schools were
-slated to be closed, and a wholesome breakdown of costs to repair and
-maintain schools were not made available (Kleinhuis 2013). Other critics
-pointed to unbalanced incentives motivating the HWDSB: ``By closing
-three schools, the HWDSB would have a strong case with the Ministry of
+School boards in Ontario rely on funding from the province which is
+distributed through a formula based on pupil enrollment (Mackenzie 2018;
+Irwin and Seasons 2012). However, this funding formula has demonstrably
+become insufficient to maintain schools in a state of good repair
+(Auditor General of Ontario 2015). Further, existing ``top-up'' programs
+to assist in operation and maintenance costs (e.g., School Facilities
+Operation and Renewal Grant) were entirely phased out by 2018 (TDSB
+2024). Against this backdrop, the Pupil Accommodation Review guidelines
+outlined a ``community-focused'' process for assessing the value that a
+school provides to students, the community, and the local economy
+(Seasons 2014b; Ministry of Education 2006). However in practice,
+critical residents felt the outcomes of the Pupil Accommodation Reviews
+were predetermined (Thompson, Collins, and Dean 2024): older schools
+were slated to be closed, and a wholesome breakdown of costs to repair
+and maintain schools was not made available (Kleinhuis 2013). The
+process introduced unbalanced incentives for school boards: as a
+concerned resident pointed at the time, ``{[}b{]}y closing three
+schools, the HWDSB would have a strong case with the Ministry of
 Education to receive full funding for a new school'' (Kleinhuis 2013).
 The Ministry's framework promotes the closing and consolidation of
 schools rather than cost-effective solutions for keeping older schools
 open (Kleinhuis 2013).
 
-The HWDSB and the Hamilton-Wentworth Catholic District School Board
-(HWCDSB), which together provide public English education to the
-majority of school-aged children in Hamilton (FAO 2023), were
-particularly impacted. While Accommodation Reviews were a province-wide
-trend during this period, Hamilton's school boards underwent an
-unprecedented number of reviews compared to other boards in other
-Ontario municipalities. (Seasons 2014a). In the wave of Pupil
-Accommodation Reviews between 2013 and 2016, 12 of the 147 elementary
-schools closed in Hamilton. Likely in part due to the public
-unpopularity of school closures, in 2017, the provincial government
-introduced a moratorium on beginning new Pupil Accommodation Reviews. In
-the following years, the HWDSB addressed its backlog and closed 12 more
+Hamilton's two school boards (HWDSB and HWCDSB), which together provide
+public English education to the majority of school-aged children in
+Hamilton (FAO 2023), were particularly impacted by fiscal pressures.
+While Accommodation Reviews were a province-wide trend during this
+period, Hamilton's school boards underwent an unprecedented number of
+reviews compared to boards in other Ontario municipalities. (Seasons
+2014a). In the wave of Pupil Accommodation Reviews between 2013 and
+2016, 12 of the 147 elementary schools closed in Hamilton. Likely in
+part due to the unpopularity of school closures, in 2017, the provincial
+government introduced a moratorium, which paused any scheduled Pupil
+Accommodation Reviews. This created a backlog of Accommodation Reviews
+that HWDSB caught up to in subsequent years, when it closed 12 more
 schools between 2017 to 2021 (HWDSB 2023). Though elementary school
 locations declined by 10\% between 2011-2021, HWDSB intends to conduct
 future Pupil Accommodation Reviews as initially scheduled, waiting until
 the end of the moratorium before dates are assigned (HWDSB 2023).
 
-A justification in these Pupil Accommodation Reviews are operational
+A justification for these Pupil Accommodation Reviews are operational
 savings based on ``projected'' reductions in student population and
 ``under-utilized'' school capacity (Craggs 2012; TDSB 2024; OPSBA 2024).
-As later demonstrated in this study, these policies in fact did result
-in school capacity per student reducing overall. Indeed, school seats in
-the city declined 5\%. It should be noted that though closures dominated
-the Pupil Accommodation Review process, some schools were
-``consolidated'' e.g., a school or two were closed and another school
-was expanded or opened to accommodate students from closed schools.
-Taken that school locations decreased more than overall school-seats,
-elementary schools in Hamilton are on average larger than they once
-were.
+These policies led to overall reductions in school capacity per student:
+school seats in the city declined 5\%--but the impacts were felt
+unevenly across the city. It should be noted that although closures
+dominated the Pupil Accommodation Review process, some schools were
+``consolidated'', that is, a school or two were closed and another
+school was expanded or opened to accommodate students from closed
+schools. Since school locations decreased proportionally more than
+school-seats, elementary schools in Hamilton are on average larger than
+they once were.
 
-In 2024, the moratorium on Pupil Accommodation Reviews is still in place
-and school boards are motivated by the same funding conditions. In
-absence of new revenue-generating levers and under the same funding
-formula with even lower inflation adjusted per-pupil funding, many
-school boards are calling for the end of the moratorium (OPSBA 2024;
-TDSB 2024; Draaisma 2024). In the meantime, some school boards are
-reducing specialized and community-wide programming (TDSB 2024). Under
-the status-quo, the end of the moratorium will result in further school
-closures. These pertinent decisions, made under an austere funding
-formula and flawed school board incentives does not create an
-environment where solutions for a sustainable public education system
-can thrive.
-
-Though schools have a plethora of benefits not captured by their
-maintenance and operational costs (Butler, Kane, and Cooligan 2019;
-Irwin and Seasons 2012; Autti and Hyry-Beihammer 2014), this paper's
-scope is limited to their travel implications. For students who live in
-proximity to schools, their closure or consolidation directly eliminate
-the realized or potential active trips that are, or could have been,
-made. Closing a school permanently reduces the potential for active
-trips and further entrenches reliance on motorized travel. Additionally,
-from the perspective of modal equity, school-aged populations with
-access to motorized transport gain a speed-time advantage, providing
-them with greater flexibility and choice in accessing school-seats.
+Existing research indicates that schools have a plethora of benefits not
+captured by their maintenance and operational costs (Butler, Kane, and
+Cooligan 2019; Irwin and Seasons 2012; Autti and Hyry-Beihammer 2014),
+and in this paper we focus on the transportation implications. For
+students who live in proximity to schools, closures or consolidations
+directly eliminate the potential for active trips, and consequently
+physical activity. Closing a school permanently reduces the potential
+for active trips and further entrenches reliance on motorized travel.
+Additionally, from the perspective of modal equity, school-aged
+populations with access to motorized transport gain a speed-time
+advantage, providing them with greater flexibility and choice in
+accessing school-seats.
 
 The spatial and population-level distribution of these impacts are of
-question for this paper. Specifically, the paper's aim is to demonstrate
+question for this paper. Specifically, the paper's aim is to investigate
 how these policies impacted the motorized and non-motorized (active)
-school-seat accessibility landscape. We hypothesize that the school
-closure and consolidation policies reduced accessibility to school-seats
-for many students. By extension, this loss in access and the
+school-seat accessibility landscape. We hypothesize that school closure
+and consolidation policies reduced the availability of school-seats for
+many students. By extension, this loss in accessibility and the
 displacement of active trips likely resulted in decreased potential
 active travel minutes and increased motorized travel minutes, with these
 impacts distributed inequitably across space and populations. To test
@@ -513,8 +510,8 @@ these hypotheses, the paper examines the following:
 \begin{itemize}
 \tightlist
 \item
-  How has spatial availability changed for home-to-school trips
-  following school closures and consolidations?
+  Did spatial availability change for home-to-school trips following
+  school closures and consolidations?
 \item
   What is the extent of the loss in walking minutes for these trips?
 \item
@@ -527,51 +524,50 @@ these hypotheses, the paper examines the following:
 
 \section{Data}\label{data}
 
-Our focus is to evaluate the impact of school consolidations between
-2011, 2016 and 2021 on multimodal school-seat spatial availability in
-Hamilton. To facilitate comparison, the following conditions are
-constructed for each year: 1) school configurations, 2) average student
-population, low-income prevalence of households, and residential parcel
-locations, and 3) estimated multimodal travel behaviour. The following
-sub-sections describe these three types of data.
+We focus on the evaluation of the impacts of school closures and
+consolidations between 2011, 2016 and 2021. The outcome of interest is
+the multimodal school-seat spatial availability in Hamilton. To research
+this, the following data were prepared for each year: 1) school
+configurations, 2) student population, prevalence of low-income
+households, and residential parcel locations, and 3) estimated trip
+length by mode. These data are described next.
 
 \subsection{Schools}\label{schools}
 
-First, elementary schools locations, how the changed throughout the
-study period and their capacities are required for each studied year.
+For this study, we use the locations of elementary schools and their
+capacities at each of three years: 2011, 2016, and 2021.
 
 Concerning school locations, the City's school boards provided the
 authors with locations and associated school catchments for the
-2010-2011 and 2015-2016 academic years. Data for 2021 locations was
+2010-2011 and 2015-2016 academic years. School locations in 2021 were
 retrieved from the City's open data portal (Hamilton 2024). In Hamilton,
 the majority of student-aged population attend school in one of the two
-English public school boards (FAO 2023). One school board is referred as
-Hamilton Wentworth District School Board (HWDSB) and the other as
-Hamilton Wentworth Catholic District School Board (HWCDSB). School
-catchments for the public and public-catholic catchments indicate what
-residential property is assigned to what school by default. However,
-families can decide to attend schools out of catchment; in fact,
-21\%-23\% of motorized school trips for populations aged 5 through 14
-are out of catchment according to the regional travel survey (the
-Transportation Tomorrow Survey (TTS)) in 2011 and 2016, the most recent
-TTS available at the time of writing (Data Management Group 2018).
+English public school boards (FAO 2023). School catchments for the
+public and public-catholic catchments indicate the default school for
+households. However, families can decide to attend schools out of
+catchment, and in fact, 21\%-23\% of motorized school trips for
+populations aged 5 through 14 are out of catchment according to the
+regional travel survey (the Transportation Tomorrow Survey, or TTS) in
+2011 and 2016, the most recent TTS available at the time of writing
+(Data Management Group 2018).
 
-In addition to the school's location in 2011, 2016 and 2021, all schools
-were also tagged with a school status regarding their existence and/or
-change in location or school-seat capacity. A summary of the status of
-schools through 2011 to 2021 is illustrated in Figure~\ref{fig-Fig1}.
-Figure~\ref{fig-Fig1} also displays a count of the number of schools
-with the status between years, the number of schools overall present in
-each year, and the symbolic representation of a school status that is
-used in Figures throughout the paper. Overall, a school can have one of
-seven school statuses in any given year. Either: 1) the school did not
-change throughout 2011 to 2021, 2) the school expanded (i.e., increased
-school-seat capacity) or was 3) relocated and expanded (N.B., schools
-expanded only between 2011 through 2016 as they were typically done
-\emph{before} school closures and no new Pupil Accommodation Review was
-commenced after 2017), 4) the school closed sometime after 2011 and
-before 2016 or 5) after 2016 and before 2021, and 6) the school opened
-sometime after 2011 and before 2016 or 7) after 2016 and before 2021.
+In addition to school locations, all schools were also tagged with a
+school status regarding their operational status (active or closed)
+and/or changes in location or school-seat capacity. A summary of the
+status of schools through 2011 to 2021 is shown in
+Figure~\ref{fig-Fig1}. Figure~\ref{fig-Fig1} also displays a count of
+the number of schools with the status between years, the number of
+schools overall present in each year, and the symbolic representation of
+a school status that is used in Figures throughout the paper. Overall, a
+school can have one of seven school statuses in any given year. Either:
+1) the school did not change throughout 2011 to 2021, 2) the school
+expanded (i.e., increased school-seat capacity) or was 3) relocated and
+expanded (N.B., schools expanded only between 2011 through 2016 as they
+were typically done \emph{before} school closures and no new Pupil
+Accommodation Review was commenced after 2017), 4) the school closed
+sometime after 2011 and before 2016 or 5) after 2016 and before 2021,
+and 6) the school opened sometime after 2011 and before 2016 or 7) after
+2016 and before 2021.
 
 \begin{figure}
 
@@ -586,58 +582,55 @@ in 2011, 2016 and 2021 along with the type of school status change..}
 
 \end{figure}%
 
-The capacity of each school is also required for each simulated year.
-This capacity is reflected as the number of `seats' available in the
-school. Enrolment exceeding this capacity indicates over-enrolment,
-while enrolment below it indicates under-enrolment. This value is
+The capacity of each school is also required for each year. This
+capacity is the number of `seats' available in the school. Capacity is
 calculated by the provincial Ministry of Education and referred to as
-the on-the-ground capacity (OTGC). The current and historic OTGCs for
-schools are no longer publicly available (Ontario 2017), so we estimated
-them using a multivariate regression model and validated the results
-with a set of OTGC values manually gathered. These values were retrieved
-for schools that had undergone a completed Pupil Accommodation Review
-and had publicly available School Information Profiles.
+the ``on-the-ground capacity'' (OTGC) of a school, albeit it is
+important to note that schools rarely operate at their nominal capacity,
+and can be either over-enrolled or under-enrolled.
 
-For schools lacking OTGC values, two regression models were created: one
-for public schools and another for public catholic schools. The
-independent variables in the model were 1) a dummy variable indicating
-the type of school grade instruction (\emph{MidElem}, \emph{JrElem},
-\emph{Elem}), 2) the school's building footprint (\emph{F}) in units of
-(\(m^2\)), and 3) the school's shortest Euclidean distance from the
-centroid of Hamilton's central business district area (\emph{DistCBD})
-defined in metres:
+Current and historic OTGCs for schools are not publicly available
+(Ontario 2017), so we used a set of known OTGC values gathered from
+Pupil Accommodation Review documents and multivariate regression to
+estimate and validate these values. Two regression models were created:
+one for public schools and another for public catholic schools. The
+independent variables in these models were 1) a dummy variable
+indicating the level of the school (\emph{MidElem}, \emph{JrElem},
+\emph{Elem}); 2) the school's building footprint (\emph{F}) in \(m^2\);
+and 3) the school's Euclidean distance from the centroid of Hamilton's
+central business district area (\emph{DistCBD}) in metres.
+
+Formally, elementary schools are defined as schools that provide
+instruction to any combination of grades between kindergarten to grade 8
+(i.e.~typically children aged 5 to 14). As such, elementary includes
+middle schools that only instruct grades 6 to 8 (\emph{MidElem}),
+primary schools that only instruct kindergarten to grade 5 or 6
+(\emph{JrElem}), and all grade elementary schools (\emph{Elem}) which
+instruct all grades from kindergarten to grade 8. \emph{MidElem} and
+\emph{JrElem} school grade instruction type is only present in the
+public school board.
 
 \begin{itemize}
-\tightlist
-\item
-  Formally, elementary schools are defined as schools that provide
-  instruction to any combination of grades between kindergarten to grade
-  8 (i.e.~typically children aged 5 to 14). As such, elementary includes
-  middle schools that only instruct grades 6 to 8 (\emph{MidElem}),
-  primary schools that only instruct kindergarten to grade 5 or 6
-  (\emph{JrElem}), and all grade elementary schools (\emph{Elem}) which
-  instruct all grades from kindergarten to grade 8. \emph{MidElem} and
-  \emph{JrElem} school grade instruction type is only present in the
-  public school board.
 \item
   The building footprint \emph{F} was retrieved from an archived spatial
   data set (Spatial 2015) and footprints from newer schools in 2016 and
   2021 from OSM (OpenStreetMap 2021).
 \item
   \emph{DistCBD} was calculated `as the crow flies' from each school to
-  the centroid of the Hamilton CBD (43.256684°N, 79.869039°W). Notably,
-  this variable can also be seen as a proxy for school construction age
-  as older buildings in Hamilton are generally located closer to the
-  CBD, the ``old'' Hamilton community (Merrall 2021).
+  the centroid of the Hamilton CBD (43.256684\(\circ\)N,
+  79.869039\(\circ\)W). Notably, this variable can also be seen as a
+  proxy for school construction age as older buildings in Hamilton are
+  generally located closer to the CBD, the ``old'' Hamilton community
+  (Merrall 2021).
 \end{itemize}
 
-Equations (\ref{eq:OTGC-public}) and (\ref{eq:OTGC-catholic}) summarise
-the OTGC regression model for public schools and public catholic schools
+Equations (\ref{eq:OTGC-public}) and (\ref{eq:OTGC-catholic}) are the
+OTGC regression model for public schools and public catholic schools
 respectively. As seen in Table \ref{TabA1-OTGC}, the coefficient of
-determination for these models are fantastic: \(R^2 = 0.999\) and
-\(R^2 = 0.998\) for the public \(OTGC_{Public}\) and public catholic
-\(OTGC_{Public Catholic}\) school boards respectively, and the residual
-standard deviation is \(\sigma = 0.212\) and \(sigma = 0.331\).
+determination for these models are quite high, at \(R^2 = 0.999\) and
+\(R^2 = 0.998\) for the public and public catholic school boards
+respectively, and the residual standard deviation is \(\sigma = 0.212\)
+and \(sigma = 0.331\).
 
 \begin{equation}
 \label{eq:OTGC-public}
@@ -652,7 +645,7 @@ OTGC_{Public Catholic} =F^{0.471}-e^{0.00003*DistCBD}+e^{2.333*Elem}
 \input{Tab1.tex}
 
 Taken together, Figure~\ref{fig-Fig2} displays the city's elementary
-schools locations, status and their estimated or retrieved OTGCs for
+schools locations, status, and their observed or estimated OTGCs for
 2011, 2016 and 2021. For additional context on the degree of residential
 urbanization in Hamilton, the percentage of residential parcels
 considered `urban' compared to `suburban' or `rural' is reflected at an
@@ -715,16 +708,13 @@ land-use and the largest amount of schools closed
 decreased in 2021 as a result of Pandemic benefits that reduced income
 inequality (Government of Canada 2022b).
 
-Where students live are estimated at the level of the residential
-parcel. Centroids for parcels in 2011, 2016 and 2021 are retrieved from
-Teranet (2009), representing 134,340, 139,467 and 143,890 unique
-locations in those years, respectively. The datasets do not provide
-information on the number of households or children per parcel. To
-estimate this value, the average number of students per parcel is
-calculated using the number of school-aged population in each DA is
-divided by the number of households in each DA. This rate is assigned to
-all parcels within an associated DA. Due to the proprietary nature of
-the parcel data, the second row in Figure~\ref{fig-Fig3} visualises an
+Student residential locations were approximated at the level of
+residential parcels. Centroids for parcels in 2011, 2016 and 2021 were
+retrieved from Teranet (2009), representing \(134,340\), \(139,467\) and
+\(143,890\) unique locations, respectively. Each residential unit in a
+parcel was populated with the average number of children aged 5-14 in
+the corresponding dissemination area (DA). Due to the proprietary nature
+of the parcel data, the second row in Figure~\ref{fig-Fig3} shows an
 aggregation of the information: the average rate of 5-14 year old
 population per residential unit (parcel) at the DA level. Notably,
 though the rate of 5-14 year old population per parcel is higher in more
@@ -749,21 +739,12 @@ shown. All scales are represented in quartiles.}
 
 \end{figure}%
 
-\subsection{Multimodal travel
-behaviour}\label{multimodal-travel-behaviour}
+\subsection{Trip length by mode}\label{trip-length-by-mode}
 
-To reflect multimodal travel behaviour for all studied years, two types
-of data are estimated and complied. First, observed home-to-school trips
-by mode are retained from travel surveys. Next, travel times are
-calculated assuming active and motorized modes at parcel-to-school level
-and at the level matching the travel survey. Then, travel impedance
-functions are calibrated using the observed travel data, and using the
-functions and the parcel-to-school calculated travel times as input, the
-travel impedance values for each residential location to each school
-(origin-destination pair) is estimated. These three steps are described
-as follows:
+To reflect multimodal travel behaviour, two types of data were estimated
+and compiled. The process to do so is explained next.
 
-First, we retrieve information about the mode used and
+First, we retrieves information about the mode used and
 origin-destination locations of home-to-school trips from the 2011 and
 2016 Transportation Tomorrow Survey (TTS) (Data Management Group 2018);
 the 2021 TTS survey is unavailable at the time of writing so 2016 flows
@@ -804,28 +785,27 @@ DA boundaries, and Hamilton community boundaries.}
 
 \end{figure}%
 
-Next, the travel times matrices for motorized and active travel are
-estimated using the `travel\_time\_matrix()' function part of the
-\{r5r\} package (Pereira, Saraiva, et al. 2021). Travel time matrices
-are estimated for all TAZ centroids to TAZ centroids (matrices of size
-for 2011 and 2016: 234 x 234) as they ar enot reported in the TTS.
-Additionally matrices are estimated for all residential parcels to
-schools (matrices of size 134,340 x 147 for 2011, 139,467 x 137 for
-2016, and 143,890 x 132 for 2021) for additional granularity. \{r5r\} is
-a R-based interface to the R5 routing engine developed separately by
-Conveyal (Conveyal {[}2015{]} 2022). For simplicity, we assume motorized
-travel is by car and non-motorized travel is by walking, as these are
-the most common modes in their respective categories. For travel time
-calculations, we set a maximum threshold of 60 minutes and use the
-free-flow OpenStreetMap road network of Hamilton (Geofabrik 2022). While
-all car trips are retained, walking trips over 27 minutes are filtered
-out. This value approximately corresponds to a distance of 1.6 km at a
+Next, travel times matrices for motorized and active travel were
+calculated using \{r5r\} package (Pereira, Saraiva, et al. 2021). Travel
+time matrices were estimated for all TAZ centroids to TAZ centroids
+(matrices of size for 2011 and 2016: 234 x 234) as they are not reported
+in the TTS. Additionally matrices were estimated for all residential
+parcels to schools (matrices of size 134,340 x 147 for 2011, 139,467 x
+137 for 2016, and 143,890 x 132 for 2021) for additional granularity.
+\{r5r\} is a R-based interface to the R5 routing engine (Conveyal
+{[}2015{]} 2022). For simplicity, we assume motorized travel is by car
+and non-motorized travel is by walking, as these are the most common
+modes in their respective categories. For travel time calculations, we
+set a maximum threshold of 60 minutes and use the free-flow
+OpenStreetMap road network of Hamilton (Geofabrik 2022). While all car
+trips are retained, walking trips over 27 minutes were filtered out.
+This value approximately corresponds to a distance of 1.6 km at a
 walking speed of 3.6 km/h, which is the threshold for qualifying for
 motorized transport provided by the school board (HWDSB 2019).
 
 In terms of the travel impedance function: we assume that children can
 go to any elementary school, however, there is a preference for
-facilities that are more proximate. Based on this assumption, we match
+facilities that are more proximate. Based on this assumption, we matched
 the associated TAZ-to-TAZ travel times to all observed student-to-school
 travel flows from the TTS; these are visualised as grey bar columns in
 Figure~\ref{fig-Fig5}. Using these observed values, the
@@ -931,7 +911,7 @@ interpretability of Hansen-type accessibility has been discussed in
 numerous studies, including recently by Hu and Downs (2019), Kelobonye
 et al. (2020), and in greater depth by Merlin and Hu (2017) along with
 Soukhov et al. (2023) and Soukhov et al. (2024). The interpretation of
-accessibility depends on how many people demand for the opportunity,
+accessibility depends on how many people demand the opportunity,
 especially for exclusive opportunity-types like schools-seats (i.e., one
 school-seat is for one student).
 
@@ -1294,7 +1274,7 @@ aggregated by communities in 2011 and how much they changed by 2021}
 
 \hhline{>{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}-}
 
-\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Hamilton\ C.}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Dundas}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Stoney\ Creek}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Glanbrook}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Flamborough}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Ancaster}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{\%\ Δ}}}}} \\
+\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Hamilton\ C.}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Dundas}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Stoney\ Creek}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Glanbrook}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Flamborough}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Ancaster}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\%\ Δ}}}}} \\
 
 \noalign{\global\arrayrulewidth 0pt}\arrayrulecolor[HTML]{000000}
 
@@ -1302,7 +1282,7 @@ aggregated by communities in 2011 and how much they changed by 2021}
 
 \hhline{>{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1.5pt}-}
 
-\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Hamilton\ C.}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Dundas}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Stoney\ Creek}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Glanbrook}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Flamborough}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Ancaster}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{\%\ Δ}}}}} \\
+\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Hamilton\ C.}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Dundas}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Stoney\ Creek}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Glanbrook}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Flamborough}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\%\ Δ}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Ancaster}}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{\%\ Δ}}}}} \\
 
 \noalign{\global\arrayrulewidth 0pt}\arrayrulecolor[HTML]{000000}
 
@@ -1310,7 +1290,7 @@ aggregated by communities in 2011 and how much they changed by 2021}
 
 
 
-\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{LIM-AT}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{23.8516970}}}} & \multicolumn{1}{>{\cellcolor[HTML]{F4FBF3}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{13.2\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{11.2879110}}}} & \multicolumn{1}{>{\cellcolor[HTML]{F6FCF5}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{10.6\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{10.8019420}}}} & \multicolumn{1}{>{\cellcolor[HTML]{F7FCF7}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{9.1\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{8.3083330}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFFAF8}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-2.5\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{7.2350900}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FAFDFA}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{5.4\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{7.0989650}}}} & \multicolumn{1}{>{\cellcolor[HTML]{EAF7E9}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{24.9\%}}}} \\
+\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{LIM-AT}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{23.8516970}}}} & \multicolumn{1}{>{\cellcolor[HTML]{F4FBF3}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{13.2\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{11.2879110}}}} & \multicolumn{1}{>{\cellcolor[HTML]{F6FCF5}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{10.6\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{10.8019420}}}} & \multicolumn{1}{>{\cellcolor[HTML]{F7FCF7}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{9.1\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{8.3083330}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFFAF8}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{-2.5\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{7.2350900}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FAFDFA}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{5.4\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{7.0989650}}}} & \multicolumn{1}{>{\cellcolor[HTML]{EAF7E9}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{24.9\%}}}} \\
 
 \noalign{\global\arrayrulewidth 0pt}\arrayrulecolor[HTML]{000000}
 
@@ -1318,7 +1298,7 @@ aggregated by communities in 2011 and how much they changed by 2021}
 
 
 
-\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{Kid\ pop.}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{35310.5960000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFF9F7}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-3.2\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{2590.0000000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFE3D9}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-14.7\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{7514.7510000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{EEF9ED}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{20.0\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{2639.6530000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{A2DB9F}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{108.9\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{5365.0000000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{F8FCF7}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{8.7\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{4845.0000000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{F5FBF4}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{12.4\%}}}} \\
+\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{Kid\ pop.}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{35310.5960000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFF9F7}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{-3.2\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{2590.0000000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFE3D9}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{-14.7\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{7514.7510000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{EEF9ED}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{20.0\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{2639.6530000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{A2DB9F}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{108.9\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{5365.0000000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{F8FCF7}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{8.7\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{4845.0000000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{F5FBF4}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{12.4\%}}}} \\
 
 \noalign{\global\arrayrulewidth 0pt}\arrayrulecolor[HTML]{000000}
 
@@ -1326,15 +1306,7 @@ aggregated by communities in 2011 and how much they changed by 2021}
 
 
 
-\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{OTGC}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{39889.0820000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFECE6}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-9.8\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{2377.0380000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFFFFF}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{0.0\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{9010.1960000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFF1EB}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-7.6\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{1313.5220000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{91D58F}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{127.6\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{4590.7010000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFF1EB}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-7.5\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{3386.8900000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{F6FBF5}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{11.1\%}}}} \\
-
-\noalign{\global\arrayrulewidth 0pt}\arrayrulecolor[HTML]{000000}
-
-\hhline{>{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}-}
-
-
-
-\multicolumn{13}{>{\centering}m{\dimexpr 9.75in+24\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Motorized}}}}} \\
+\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{OTGC}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{39889.0820000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFECE6}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{-9.8\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{2377.0380000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFFFFF}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{0.0\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{9010.1960000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFF1EB}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{-7.6\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{1313.5220000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{91D58F}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{127.6\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{4590.7010000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFF1EB}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{-7.5\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{3386.8900000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{F6FBF5}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{11.1\%}}}} \\
 
 \noalign{\global\arrayrulewidth 0pt}\arrayrulecolor[HTML]{000000}
 
@@ -1342,15 +1314,7 @@ aggregated by communities in 2011 and how much they changed by 2021}
 
 
 
-\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{V\ (mt)}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{42527.7500000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFE9E1}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-11.6\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{1952.2590000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFD4C5}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-22.5\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{6328.0100000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{F7FCF6}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{9.9\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{1531.3080000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{9DD99A}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{114.8\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{3382.5270000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFFBF9}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-2.3\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{4086.6160000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{F9FDF9}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{7.2\%}}}} \\
-
-\noalign{\global\arrayrulewidth 0pt}\arrayrulecolor[HTML]{000000}
-
-
-
-
-
-\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{v\ (mt)}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{1.2393060}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFEEE8}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-8.9\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{0.7590198}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFEEE7}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-9.0\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{0.8369173}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFF1EC}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-7.1\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{0.5823797}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FCFEFC}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{3.1\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{0.6312921}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFECE5}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-10.1\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{0.8491653}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFF6F2}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-5.0\%}}}} \\
+\multicolumn{13}{>{\centering}m{\dimexpr 9.75in+24\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Motorized}}}}} \\
 
 \noalign{\global\arrayrulewidth 0pt}\arrayrulecolor[HTML]{000000}
 
@@ -1358,7 +1322,15 @@ aggregated by communities in 2011 and how much they changed by 2021}
 
 
 
-\multicolumn{13}{>{\centering}m{\dimexpr 9.75in+24\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{\textbf{Non-motorized}}}}} \\
+\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{V\ (mt)}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{42527.7500000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFE9E1}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{-11.6\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{1952.2590000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFD4C5}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{-22.5\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{6328.0100000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{F7FCF6}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{9.9\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{1531.3080000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{9DD99A}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{114.8\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{3382.5270000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFFBF9}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{-2.3\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{4086.6160000}}}} & \multicolumn{1}{>{\cellcolor[HTML]{F9FDF9}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{7.2\%}}}} \\
+
+\noalign{\global\arrayrulewidth 0pt}\arrayrulecolor[HTML]{000000}
+
+
+
+
+
+\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{v\ (mt)}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{1.2393060}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFEEE8}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{-8.9\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{0.7590198}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFEEE7}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{-9.0\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{0.8369173}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFF1EC}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{-7.1\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{0.5823797}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FCFEFC}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{3.1\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{0.6312921}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFECE5}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{-10.1\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{0.8491653}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFF6F2}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{-5.0\%}}}} \\
 
 \noalign{\global\arrayrulewidth 0pt}\arrayrulecolor[HTML]{000000}
 
@@ -1366,7 +1338,15 @@ aggregated by communities in 2011 and how much they changed by 2021}
 
 
 
-\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{V\ (nmt)}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{631.8817250}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFEAE2}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-11.0\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{28.7632500}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFF1EC}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-7.1\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{65.1592800}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFB39B}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-39.5\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{2.3855420}}}} & \multicolumn{1}{>{\cellcolor[HTML]{7CCD7C}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{1274.9\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{12.2516440}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFFDFC}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-1.0\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{18.5170610}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FF7957}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-67.6\%}}}} \\
+\multicolumn{13}{>{\centering}m{\dimexpr 9.75in+24\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{\textbf{Non-motorized}}}}} \\
+
+\noalign{\global\arrayrulewidth 0pt}\arrayrulecolor[HTML]{000000}
+
+\hhline{>{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}->{\arrayrulecolor[HTML]{BEBEBE}\global\arrayrulewidth=1pt}-}
+
+
+
+\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{V\ (nmt)}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{631.8817250}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFEAE2}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{-11.0\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{28.7632500}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFF1EC}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{-7.1\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{65.1592800}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFB39B}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{-39.5\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{2.3855420}}}} & \multicolumn{1}{>{\cellcolor[HTML]{7CCD7C}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{1274.9\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{12.2516440}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFFDFC}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{-1.0\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{18.5170610}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FF7957}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{-67.6\%}}}} \\
 
 \noalign{\global\arrayrulewidth 0pt}\arrayrulecolor[HTML]{000000}
 
@@ -1374,7 +1354,7 @@ aggregated by communities in 2011 and how much they changed by 2021}
 
 
 
-\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{v\ (nmt)}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{0.7054674}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFE6DD}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-13.0\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{1.5790158}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFDFD4}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-16.6\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{0.8967578}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFCFBE}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-25.3\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{1.6565846}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFD0BF}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-24.8\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{1.8555444}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFE8DF}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-12.2\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{0.8641681}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFDFD3}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{Arial}{-17.0\%}}}} \\
+\multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{v\ (nmt)}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{0.7054674}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFE6DD}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{-13.0\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{1.5790158}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFDFD4}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{-16.6\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{0.8967578}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFCFBE}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{-25.3\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{1.6565846}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFD0BF}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{-24.8\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{1.8555444}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFE8DF}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{-12.2\%}}}} & \multicolumn{1}{>{\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{0.8641681}}}} & \multicolumn{1}{>{\cellcolor[HTML]{FFDFD3}\centering}m{\dimexpr 0.75in+0\tabcolsep}}{\textcolor[HTML]{000000}{\fontsize{10}{10}\selectfont{\global\setmainfont{DejaVu Sans}{-17.0\%}}}} \\
 
 \noalign{\global\arrayrulewidth 0pt}\arrayrulecolor[HTML]{000000}
 
@@ -1391,16 +1371,16 @@ aggregated by communities in 2011 and how much they changed by 2021}
 
 \renewcommand*{\arraystretch}{1}
 
-Due to spatial availability's flexible proportional allocation mechanism
-and this cases' calculation at the parcel level, results can also be
-summarized by community (Table~\ref{tbl-Tab1}). The majority of schools
-were closed in Hamilton Central as seen in the largest reduction in OTGC
-by percentage and magnitude. Hamilton Central represents 55\% of the
-5-14 year old population in 2021. Though the population decreased a
-modest amount from 2011 to 2021, the rate of school-seat spatial
-availability decreased disproportionately more (population by -3.2\% and
-spatial availability by -11.6\% for both modes). Schools and additional
-OTGC was not sufficiently expanded to provide the same levels of spatial
+Due to spatial availability's proportional allocation mechanism and this
+cases' calculation at the parcel level, results can also be summarized
+by community (Table~\ref{tbl-Tab1}). The majority of schools were closed
+in Hamilton Central as seen in the largest reduction in OTGC by
+percentage and magnitude. Hamilton Central represents 55\% of the 5-14
+year old population in 2021. Though the population decreased a modest
+amount from 2011 to 2021, the rate of school-seat spatial availability
+decreased disproportionately more (population by -3.2\% and spatial
+availability by -11.6\% for both modes). Schools and additional OTGC was
+not sufficiently expanded to provide the same levels of spatial
 availability as in 2011. This disproportionate decrease in spatial
 availability to students is greater in Hamilton Central by magnitude
 than any other community.
@@ -1642,6 +1622,11 @@ Supporting Reproducibility and Critical Spatial Data Science.''}
 \emph{Journal of Geographical Systems} 23 (4): 477--96.
 \url{https://doi.org/10.1007/s10109-020-00334-2}.
 
+\bibitem[\citeproctext]{ref-buckWhy2019}
+BUCK, NAOMI. 2019. {``Why Did Our Children Stop Walking to School?''}
+\emph{The Globe and Mail}, October, O1.
+\url{http://global.factiva.com/redir/default.aspx?P=sa&an=GLOB000020191019efaj00011&cat=a&ep=ASE}.
+
 \bibitem[\citeproctext]{ref-burgess2011parental}
 Burgess, Simon, Ellen Greaves, Anna Vignoles, and Deborah Wilson. 2011.
 {``Parental Choice of Primary School in England: What Types of School Do
@@ -1714,12 +1699,6 @@ Waygood, and Antonio Páez. 2024. {``Framing Active School Travel in
 Research Part A: Policy and Practice} 180 (February): 103953.
 \url{https://doi.org/10.1016/j.tra.2024.103953}.
 
-\bibitem[\citeproctext]{ref-draaismaTDSBConsideringCuts2024}
-Draaisma, Muriel. 2024. {``{TDSB} Considering Cuts to Programming Amid
-\$20M Deficit and Many Trustees Are Concerned.''} \emph{{CBC} News},
-March.
-\url{https://www.cbc.ca/news/canada/toronto/toronto-district-school-board-finance-budget-enrolment-committee-proposed-cuts-1.7149195}.
-
 \bibitem[\citeproctext]{ref-elmurrWalkingAccessibilityParks2021}
 El-Murr, Karl, Arianne Robillard, Owen Waygood, and Geneviève Boisjoly.
 2021. {``Walking Accessibility to Parks: Considering Number of Parks,
@@ -1759,6 +1738,13 @@ July 13, 2022.
 \bibitem[\citeproctext]{ref-hamiltonEducationalInstitutions2024}
 Hamilton. 2024. {``Educational Institutions.''} Open Hamilton.
 \url{https://open.hamilton.ca/datasets/34794547fe3e46619b3ff92a574fd558_19/explore}.
+
+\bibitem[\citeproctext]{ref-hammerWhy2012}
+Hammer, Kate, and Tamara Baluja. 2012. {``Why Our Schools Need a Phys-Ed
+Revolution; {An} Inactive Generation with Soaring Obesity Rates Shows
+Schools Are Flunking When It Comes to Fitness.''} \emph{The Globe and
+Mail}, May, A1.
+\url{http://global.factiva.com/redir/default.aspx?P=sa&an=GLOB000020120524e85o0001r&cat=a&ep=ASE}.
 
 \bibitem[\citeproctext]{ref-hansenHowAccessibilityShapes1959}
 Hansen, Walter G. 1959. {``How {Accessibility Shapes Land Use}.''}
@@ -1892,6 +1878,12 @@ Ministry of Education. 2006. {``Pupil Accommodation Review Guidelines -
 Memo.''} Toronto: Business; Finance Divisio.
 \url{https://efis.fma.csc.gov.on.ca/faab/Memos/B2006/B_12.pdf}.
 
+\bibitem[\citeproctext]{ref-moniruzzamanAccessibility2012}
+Moniruzzaman, M., and A. Paez. 2012. {``Accessibility to Transit, by
+Transit, and Mode Share: Application of a Logistic Model with Spatial
+Filters.''} \emph{Journal of Transport Geography} 24 (September):
+198--205. \url{https://doi.org/10.1016/j.jtrangeo.2012.02.006}.
+
 \bibitem[\citeproctext]{ref-morencyHowMany2007}
 Morency, C., M. Demers, and L. Lapierre. 2007. {``How Many Steps Do You
 Have in Reserve? {Thoughts} and Measures about a Healthier Way to
@@ -1990,12 +1982,24 @@ Pizzol, Bruna, Mariana Giannotti, and Diego Bogado Tomasiello. 2021.
 Equity.''} \emph{Journal of Transport Geography} 96 (October): 103199.
 \url{https://doi.org/10.1016/j.jtrangeo.2021.103199}.
 
+\bibitem[\citeproctext]{ref-reyesalking2014}
+Reyes, M., A. Paez, and C. Morency. 2014. {``Walking Accessibility to
+Urban Parks by Children: {A} Case Study of {Montreal}.''}
+\emph{Landscape and Urban Planning} 125 (May): 38--47.
+\url{https://doi.org/10.1016/j.landurbplan.2014.02.002}.
+
 \bibitem[\citeproctext]{ref-rongReviewResearchLowcarbon2022}
 Rong, Peijun, Mei-Po Kwan, Yaochen Qin, and Zhicheng Zheng. 2022. {``A
 Review of Research on Low-Carbon School Trips and Their Implications for
 Human-Environment Relationship.''} \emph{Journal of Transport Geography}
 99 (February): 103306.
 \url{https://doi.org/10.1016/j.jtrangeo.2022.103306}.
+
+\bibitem[\citeproctext]{ref-roseKids2013}
+Rose, Lauren La. 2013. {``Kids Get {D} Minus on Physical Activity Report
+Card as Fewer Walk or Bike to School.''} \emph{The Globe and Mail}, May,
+L12.
+\url{http://global.factiva.com/redir/default.aspx?P=sa&an=GLOB000020130522e95m00009&cat=a&ep=ASE}.
 
 \bibitem[\citeproctext]{ref-Rosik_PulawskaObiedowska_Goliszek_2021}
 Rosik, Piotr, Sabina Puławska-Obiedowska, and Sławomir Goliszek. 2021.
@@ -2107,6 +2111,7 @@ Transport Systems in Yogyakarta, Indonesia.''} \emph{{SUSTAINABILITY}}
 13 (16). \url{https://doi.org/10.3390/su13169372}.
 
 \end{CSLReferences}
+
 
 
 
